@@ -5,6 +5,7 @@ import type {
   HRConnection,
   HRDevice,
 } from './types.js';
+import { DeviceNotFoundError, TimeoutError } from './errors.js';
 
 /**
  * Match a discovered device against profiles by service UUIDs and name prefix.
@@ -36,13 +37,13 @@ export async function connectToDevice(
   const allProfiles = fallback ? [...prefer, fallback] : [...prefer];
 
   if (allProfiles.length === 0) {
-    throw new Error('No device profiles specified. Provide at least one profile in prefer or fallback.');
+    throw new DeviceNotFoundError('No device profiles specified. Provide at least one profile in prefer or fallback.');
   }
 
   const discovered = new Map<string, { device: HRDevice; profile: DeviceProfile; rank: number }>();
 
   const scanTimeout = new Promise<never>((_, reject) => {
-    setTimeout(() => reject(new Error('Scan timeout')), timeoutMs);
+    setTimeout(() => reject(new TimeoutError('Scan timeout')), timeoutMs);
   });
 
   const scanLoop = async (): Promise<HRConnection> => {
@@ -79,7 +80,7 @@ export async function connectToDevice(
       return transport.connect(best.device.id, best.profile);
     }
 
-    throw new Error('No compatible device found');
+    throw new DeviceNotFoundError('No compatible device found');
   };
 
   return Promise.race([scanLoop(), scanTimeout]);
