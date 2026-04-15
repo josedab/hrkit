@@ -1,0 +1,29 @@
+{
+  "name": "@hrkit/react-native",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@hrkit/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "react-native-ble-plx": ">=2.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "tsup": "^8.0.0",
+    "react-native-ble-plx": "^3.0.0"
+  }
+}
