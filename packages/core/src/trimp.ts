@@ -1,0 +1,53 @@
+import type { TimestampedHR, TRIMPConfig, Session } from './types.js';
+
+const SEX_FACTORS: Record<TRIMPConfig['sex'], number> = {
+  male: 1.92,
+  female: 1.67,
+  neutral: 1.80,
+};
+
+/**
+ * Bannister's TRIMP (Training Impulse).
+ * TRIMP = Σ (duration_min × HRR × 0.64 × e^(sexFactor × HRR))
+ * where HRR = (HR - restHR) / (maxHR - restHR)
+ */
+export function trimp(samples: TimestampedHR[], config: TRIMPConfig): number {
+  if (samples.length < 2) return 0;
+  if (config.maxHR <= config.restHR) return 0;
+
+  const hrRange = config.maxHR - config.restHR;
+  const sexFactor = SEX_FACTORS[config.sex];
+  let total = 0;
+
+  for (let i = 0; i < samples.length - 1; i++) {
+    const current = samples[i]!;
+    const next = samples[i + 1]!;
+    const durationMin = (next.timestamp - current.timestamp) / 60000;
+
+    if (durationMin <= 0 || durationMin > 0.5) continue; // skip gaps > 30s
+
+    const hrr = Math.max(0, Math.min(1, (current.hr - config.restHR) / hrRange));
+    total += durationMin * hrr * 0.64 * Math.exp(sexFactor * hrr);
+  }
+
+  return total;
+}
+
+/**
+ * Aggregate weekly TRIMP from a set of sessions.
+ */
+export function weeklyTRIMP(sessions: Session[], weekStart: Date): number {
+  const weekStartMs = weekStart.getTime();
+  const weekEndMs = weekStartMs + 7 * 24 * 60 * 60 * 1000;
+
+  return sessions
+    .filter((s) => s.startTime >= weekStartMs && s.startTime < weekEndMs)
+    .reduce((sum, session) => {
+      const config: TRIMPConfig = {
+        maxHR: session.config.maxHR,
+        restHR: session.config.restHR ?? 60,
+        sex: 'neutral',
+      };
+      return sum + trimp(session.samples, config);
+    }, 0);
+}
