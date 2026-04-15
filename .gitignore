@@ -27,3 +27,4 @@ dist/
 # Environment
 .env
 .env.local
+CLAUDE.md
