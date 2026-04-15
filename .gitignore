@@ -1,0 +1,29 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Build artifacts that may leak into src
+*.js
+*.js.map
+*.d.ts
+*.d.ts.map
+
+# Allow config files
+!tsup.config.ts
+!vitest.config.ts
+!tsconfig.json
+!tsconfig.*.json
+!package.json
+!pnpm-workspace.yaml
+!pnpm-lock.yaml
+
+# IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local

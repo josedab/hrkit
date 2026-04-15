@@ -1,0 +1,22 @@
+{
+  "name": "hrkit",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit && tsc --noEmit -p packages/web/tsconfig.lint.json",
+    "clean": "pnpm -r run clean"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.89.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  }
+}
