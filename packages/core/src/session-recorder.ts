@@ -13,6 +13,10 @@ import { hrToZone } from './zones.js';
 
 type Zone = 1 | 2 | 3 | 4 | 5;
 
+/**
+ * Minimal observable stream with BehaviorSubject-like semantics.
+ * Emits the current value to new subscribers immediately on subscribe.
+ */
 class SimpleStream<T> implements ReadableStream<T> {
   private listeners = new Set<(value: T) => void>();
   private current: T | undefined;
@@ -38,6 +42,24 @@ class SimpleStream<T> implements ReadableStream<T> {
   }
 }
 
+/**
+ * Stateful session recorder that ingests HRPacket events and builds a Session.
+ *
+ * Supports round-based tracking for interval training (e.g., BJJ rounds,
+ * HIIT intervals). Provides real-time observable streams for HR and zone.
+ *
+ * @example
+ * ```typescript
+ * const recorder = new SessionRecorder({ maxHR: 185, restHR: 48 });
+ * recorder.hr$.subscribe((hr) => console.log('HR:', hr));
+ *
+ * for await (const packet of conn.heartRate()) {
+ *   recorder.ingest(packet);
+ * }
+ *
+ * const session = recorder.end();
+ * ```
+ */
 export class SessionRecorder {
   private config: SessionConfig;
   private zoneConfig: HRZoneConfig;
@@ -55,7 +77,9 @@ export class SessionRecorder {
   private hrStream = new SimpleStream<number>();
   private zoneStream = new SimpleStream<Zone>();
 
+  /** Observable stream of heart rate values. Emits current value on subscribe. */
   readonly hr$: ReadableStream<number> = this.hrStream;
+  /** Observable stream of zone values (1–5). Emits current value on subscribe. */
   readonly zone$: ReadableStream<Zone> = this.zoneStream;
 
   constructor(config: SessionConfig) {
@@ -67,6 +91,7 @@ export class SessionRecorder {
     };
   }
 
+  /** Feed an HR packet into the session. Updates samples, RR intervals, and streams. */
   ingest(packet: HRPacket): void {
     if (this.startTime === null) {
       this.startTime = packet.timestamp;
@@ -85,6 +110,7 @@ export class SessionRecorder {
     this.zoneStream.emit(hrToZone(packet.hr, this.zoneConfig));
   }
 
+  /** Begin a new round. Subsequent ingested packets are recorded to this round. */
   startRound(meta?: RoundMeta): void {
     this.currentRound = {
       startTime: Date.now(),
@@ -94,6 +120,7 @@ export class SessionRecorder {
     };
   }
 
+  /** End the current round and return its data. Throws if no round is in progress. */
   endRound(meta?: RoundMeta): Round {
     if (!this.currentRound) {
       throw new Error('No round in progress');
@@ -113,19 +140,23 @@ export class SessionRecorder {
     return round;
   }
 
+  /** Latest ingested heart rate, or `null` if no data yet. */
   currentHR(): number | null {
     return this.hrStream.get() ?? null;
   }
 
+  /** Latest computed HR zone (1–5), or `null` if no data yet. */
   currentZone(): Zone | null {
     return this.zoneStream.get() ?? null;
   }
 
+  /** Seconds elapsed since the first ingested packet. */
   elapsedSeconds(): number {
     if (this.startTime === null) return 0;
     return (Date.now() - this.startTime) / 1000;
   }
 
+  /** Finalize the session and return the complete Session object. */
   end(): Session {
     return {
       startTime: this.startTime ?? Date.now(),
