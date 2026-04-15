@@ -143,6 +143,8 @@ export interface SessionConfig {
   restHR?: number;
   /** Zone thresholds. Defaults to `[0.6, 0.7, 0.8, 0.9]` if omitted. */
   zones?: [number, number, number, number];
+  /** Sex for TRIMP calculation. Defaults to `'neutral'`. */
+  sex?: 'male' | 'female' | 'neutral';
 }
 
 /** Metadata for a round (e.g., label, custom key-value pairs). */
@@ -162,14 +164,27 @@ export interface Round {
   meta?: RoundMeta;
 }
 
+/** Current schema version for Session serialization. Increment on breaking changes. */
+export const SESSION_SCHEMA_VERSION = 1;
+
 /** A completed recording session with all samples, RR intervals, and rounds. */
 export interface Session {
+  /** Schema version for forward/backward compatibility. */
+  schemaVersion: number;
   startTime: number;
   endTime: number;
   samples: TimestampedHR[];
   rrIntervals: number[];
   rounds: Round[];
   config: SessionConfig;
+  /** Device info captured at recording time. */
+  deviceInfo?: {
+    id: string;
+    name: string;
+    profile?: DeviceProfile;
+  };
+  /** Arbitrary metadata (activity type, notes, athlete info). */
+  metadata?: Record<string, unknown>;
 }
 
 // ── Observable ──────────────────────────────────────────────────────────
