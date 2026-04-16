@@ -1,6 +1,7 @@
 {
   "name": "@hrkit/polar",
   "version": "0.1.0",
+  "description": "Polar PMD protocol utilities for @hrkit — ECG and accelerometer data streaming",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -25,13 +26,25 @@
     "tsup": "^8.0.0"
   },
   "keywords": [
-    "heart-rate",
     "ble",
     "bluetooth",
-    "sdk",
-    "typescript",
+    "heart-rate",
     "polar",
     "ecg",
-    "accelerometer"
-  ]
+    "hrv"
+  ],
+  "author": "@hrkit contributors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/josedab/hrkit.git",
+    "directory": "packages/polar"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bugs": {
+    "url": "https://github.com/josedab/hrkit/issues"
+  },
+  "homepage": "https://github.com/josedab/hrkit/tree/main/packages/polar",
+  "license": "MIT"
 }
