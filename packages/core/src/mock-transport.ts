@@ -5,6 +5,7 @@ import type {
   HRDevice,
   HRPacket,
 } from './types.js';
+import { DeviceNotFoundError } from './errors.js';
 
 export interface MockFixture {
   device: {
@@ -65,7 +66,7 @@ export class MockTransport implements BLETransport {
   async connect(deviceId: string, profile: DeviceProfile): Promise<HRConnection> {
     const fixture = this.fixtures.find((f) => f.device.id === deviceId);
     if (!fixture) {
-      throw new Error(`MockTransport: No fixture for device "${deviceId}"`);
+      throw new DeviceNotFoundError(`MockTransport: No fixture for device "${deviceId}"`);
     }
 
     let disconnected = false;
