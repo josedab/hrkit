@@ -7,7 +7,7 @@ Thank you for your interest in contributing! Here's how to get started.
 ```bash
 git clone <repo-url>
 cd hrkit
-pnpm install    # requires pnpm >= 9, Node >= 22
+pnpm install    # requires pnpm >= 9, Node >= 18
 pnpm test       # run all tests
 pnpm lint       # type-check all packages
 pnpm check      # lint + format check (biome)
