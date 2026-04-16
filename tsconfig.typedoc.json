@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": [
+    "packages/core/src/**/*.ts",
+    "packages/polar/src/**/*.ts",
+    "packages/web/src/**/*.ts",
+    "packages/react-native/src/**/*.ts",
+    "packages/server/src/**/*.ts",
+    "packages/widgets/src/**/*.ts"
+  ],
+  "exclude": ["**/__tests__/**", "**/*.test.ts", "**/dist/**", "node_modules"]
+}

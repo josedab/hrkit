@@ -4,7 +4,8 @@
   "private": true,
   "description": "React Native starter source template for @hrkit BLE heart rate monitoring (copy src/ into your own Expo app)",
   "scripts": {
-    "start": "node -e \"console.log('\\n@hrkit/starter-rn is a SOURCE TEMPLATE, not a runnable app.\\n\\nTo use it:\\n  1. Create a new Expo dev build: npx create-expo-app@latest my-app --template blank-typescript\\n  2. Install: npm install @hrkit/core @hrkit/react-native react-native-ble-plx expo-dev-client\\n  3. Copy src/ into your project.\\n\\nFull instructions: ./README.md\\n')\""
+    "scaffold": "node scripts/scaffold.mjs",
+    "start": "node -e \"console.log('\\n@hrkit/starter-rn is a SOURCE TEMPLATE, not a runnable app.\\n\\nQuickest path: pnpm scaffold ../path/to/my-expo-app\\n\\nFull instructions: ./README.md\\n')\""
   },
   "dependencies": {
     "@hrkit/core": "workspace:*",

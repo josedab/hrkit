@@ -24,6 +24,9 @@ jobs:
           filters: |
             docs:
               - 'website/**'
+              - 'packages/**/src/**'
+              - 'typedoc.json'
+              - 'tsconfig.typedoc.json'
               - '.github/workflows/ci.yml'
             code:
               - 'packages/**'
@@ -32,6 +35,8 @@ jobs:
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
               - 'tsconfig.json'
+              - 'tsconfig.typedoc.json'
+              - 'typedoc.json'
               - 'vitest.config.ts'
               - 'biome.json'
               - '.github/workflows/ci.yml'
@@ -131,10 +136,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Docusaurus site
-        working-directory: website
         run: |
-          pnpm install --frozen-lockfile
-          pnpm build
+          pnpm docs:api
+          pnpm --filter website build
 
   ci-success:
     name: CI Success
