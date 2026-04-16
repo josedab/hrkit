@@ -1,4 +1,5 @@
 import type { HRZoneConfig, SessionConfig, TRIMPConfig } from './types.js';
+import { HRKitError } from './errors.js';
 
 /** Named zone preset identifiers. */
 export type ZonePreset = '5-zone' | '3-zone';
@@ -23,11 +24,32 @@ export interface AthleteProfile {
   zones?: ZonePreset | [number, number, number, number];
 }
 
-/** Derive a SessionConfig from an AthleteProfile. */
+function validateZoneThresholds(zones: [number, number, number, number]): void {
+  for (let i = 0; i < 4; i++) {
+    if (zones[i]! < 0 || zones[i]! > 1) {
+      throw new HRKitError(`Zone threshold ${i} must be between 0 and 1, got ${zones[i]}`);
+    }
+  }
+  if (zones[0] >= zones[1] || zones[1] >= zones[2] || zones[2] >= zones[3]) {
+    throw new HRKitError('Zone thresholds must be in strictly ascending order');
+  }
+}
+
+/**
+ * Derive a SessionConfig from an AthleteProfile.
+ *
+ * @param profile - Athlete profile to derive config from.
+ * @returns SessionConfig suitable for SessionRecorder.
+ */
 export function toSessionConfig(profile: AthleteProfile): SessionConfig {
   const zones = typeof profile.zones === 'string'
     ? ZONE_PRESETS[profile.zones]
     : profile.zones ?? ZONE_PRESETS['5-zone'];
+
+  // Validate custom zone thresholds (named presets are known-good)
+  if (typeof profile.zones !== 'string' && profile.zones !== undefined) {
+    validateZoneThresholds(zones);
+  }
 
   return {
     maxHR: profile.maxHR,
@@ -37,16 +59,31 @@ export function toSessionConfig(profile: AthleteProfile): SessionConfig {
   };
 }
 
-/** Derive an HRZoneConfig from an AthleteProfile. */
+/**
+ * Derive an HRZoneConfig from an AthleteProfile.
+ *
+ * @param profile - Athlete profile.
+ * @returns HRZoneConfig for zone calculations.
+ */
 export function toZoneConfig(profile: AthleteProfile): HRZoneConfig {
   const zones = typeof profile.zones === 'string'
     ? ZONE_PRESETS[profile.zones]
     : profile.zones ?? ZONE_PRESETS['5-zone'];
 
+  // Validate custom zone thresholds (named presets are known-good)
+  if (typeof profile.zones !== 'string' && profile.zones !== undefined) {
+    validateZoneThresholds(zones);
+  }
+
   return { maxHR: profile.maxHR, restHR: profile.restHR, zones };
 }
 
-/** Derive a TRIMPConfig from an AthleteProfile. */
+/**
+ * Derive a TRIMPConfig from an AthleteProfile.
+ *
+ * @param profile - Athlete profile.
+ * @returns TRIMPConfig for TRIMP calculations.
+ */
 export function toTRIMPConfig(profile: AthleteProfile): TRIMPConfig {
   return { maxHR: profile.maxHR, restHR: profile.restHR, sex: profile.sex };
 }
