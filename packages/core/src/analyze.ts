@@ -51,6 +51,9 @@ export interface SessionAnalysis {
  * One-call post-session analysis: HRV, TRIMP, zones, artifact filtering.
  * Computes all common metrics from a Session in a single function call.
  *
+ * @param session - The completed session to analyze.
+ * @returns Complete analysis including HR stats, HRV, zones, TRIMP, and artifacts.
+ *
  * @example
  * ```typescript
  * const session = recorder.end();

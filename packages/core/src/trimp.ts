@@ -10,6 +10,10 @@ const SEX_FACTORS: Record<TRIMPConfig['sex'], number> = {
  * Bannister's TRIMP (Training Impulse).
  * TRIMP = Σ (duration_min × HRR × 0.64 × e^(sexFactor × HRR))
  * where HRR = (HR - restHR) / (maxHR - restHR)
+ *
+ * @param samples - Timestamped HR samples.
+ * @param config - TRIMP configuration with maxHR, restHR, sex.
+ * @returns TRIMP value. Returns 0 if fewer than 2 samples.
  */
 export function trimp(samples: TimestampedHR[], config: TRIMPConfig): number {
   if (samples.length < 2) return 0;
@@ -36,6 +40,11 @@ export function trimp(samples: TimestampedHR[], config: TRIMPConfig): number {
 /**
  * Aggregate weekly TRIMP from a set of sessions.
  * Uses the sex from each session's config, falling back to the provided default or 'neutral'.
+ *
+ * @param sessions - Array of sessions to aggregate.
+ * @param weekStart - Start of the week (Date).
+ * @param defaultSex - Default sex for TRIMP if session doesn't specify.
+ * @returns Sum of TRIMP for sessions within the week.
  */
 export function weeklyTRIMP(
   sessions: Session[],
