@@ -12,13 +12,20 @@ pnpm add @hrkit/core
 
 ## Features
 
-- **GATT HR Parser** — Parse BLE Heart Rate Measurement characteristic (0x2A37)
+- **GATT HR Parser** — Parse BLE Heart Rate Measurement characteristic (0x2A37) with bounds checking
 - **HRV Metrics** — RMSSD, SDNN, pNN50, mean HR, baseline tracking, readiness verdict
-- **Zone Calculator** — 5-zone HR mapping with time-in-zone distribution
+- **Zone Calculator** — 5-zone HR mapping with time-in-zone distribution and zone presets
 - **TRIMP** — Bannister training impulse with sex-based weighting
 - **Artifact Filter** — RR interval artifact detection with remove or interpolate strategies
-- **Session Recorder** — Stateful session recording with round tracking and observable streams
-- **Device Profiles** — Capability-based device abstraction
+- **Real-Time Artifact Detection** — Live artifact flagging via observable stream
+- **Session Recorder** — Stateful session recording with round tracking, pause/resume, observable streams
+- **Session Serialization** — JSON round-trip, CSV export, TCX export (Strava/Garmin compatible)
+- **Session Analysis** — One-call `analyzeSession()` for HRV, TRIMP, zones, and artifact metrics
+- **Streaming Metrics** — Rolling RMSSD and live TRIMP accumulation during recording
+- **Data Validation** — HR and RR interval range checking
+- **Connection Management** — Reconnection with exponential backoff and connection state observable
+- **Device Profiles** — Capability-based device abstraction with zone presets and athlete profiles
+- **Error Hierarchy** — Structured errors: `ParseError`, `ConnectionError`, `TimeoutError`, `DeviceNotFoundError`
 - **MockTransport** — In-memory BLE transport for testing
 
 ## Usage
@@ -166,7 +173,29 @@ Built-in implementations:
 | Function | Description |
 |----------|-------------|
 | `trimp(samples, config)` | Bannister TRIMP. Sex factors: male=1.92, female=1.67, neutral=1.80. Skips gaps > 30s. |
-| `weeklyTRIMP(sessions, weekStart)` | Aggregate TRIMP across sessions within a 7-day window. |
+| `weeklyTRIMP(sessions, weekStart, sex?)` | Aggregate TRIMP across sessions within a 7-day window. Uses session config sex, falls back to provided default. |
+
+### Session Analysis
+
+| Function | Description |
+|----------|-------------|
+| `analyzeSession(session)` | One-call post-session analysis. Returns HR stats, HRV (RMSSD/SDNN/pNN50), artifact rate, zone distribution, and TRIMP. |
+
+### Session Serialization
+
+| Function | Description |
+|----------|-------------|
+| `sessionToJSON(session)` | Serialize a Session to JSON string with schema version. |
+| `sessionFromJSON(json)` | Deserialize and validate a Session from JSON. Throws `ParseError` on invalid data. |
+| `sessionToCSV(session, options?)` | Export samples as CSV. Optional `includeRR` flag. |
+| `roundsToCSV(session)` | Export round data as CSV. |
+| `sessionToTCX(session, options?)` | Export as TCX (Training Center XML) for Strava/Garmin. Optional `sport` type. |
+
+### Data Validation
+
+| Function | Description |
+|----------|-------------|
+| `validateHRPacket(packet, config?)` | Validate HR (default 30–250 bpm) and RR (default 200–2000 ms) ranges. Returns `{ valid, warnings }`. |
 
 ### Artifact Filter
 
@@ -180,14 +209,19 @@ Options: `threshold` (default 0.2), `strategy` (`'remove'` or `'interpolate'`), 
 
 | Method / Property | Description |
 |-------------------|-------------|
-| `new SessionRecorder(config)` | Create with `{ maxHR, restHR?, zones? }`. Default zones: `[0.6, 0.7, 0.8, 0.9]`. |
-| `ingest(packet)` | Feed an `HRPacket` into the session. |
+| `new SessionRecorder(config)` | Create with `{ maxHR, restHR?, zones?, sex? }`. Default zones: `[0.6, 0.7, 0.8, 0.9]`. |
+| `ingest(packet)` | Feed an `HRPacket` into the session. Ignored when paused. |
 | `startRound(meta?)` | Begin a new round with optional metadata. |
 | `endRound(meta?)` | End the current round. Returns `Round`. Throws if no round in progress. |
+| `pause()` | Pause recording. Ingested packets are ignored until `resume()`. |
+| `resume()` | Resume recording after a pause. |
+| `paused` | Whether the recorder is currently paused (readonly). |
+| `setDeviceInfo(info)` | Attach device info `{ id, name, profile? }` to the session. |
+| `setMetadata(data)` | Attach arbitrary metadata to the session. |
 | `currentHR()` | Latest ingested heart rate, or `null`. |
 | `currentZone()` | Latest computed zone (1–5), or `null`. |
-| `elapsedSeconds()` | Seconds since first ingested packet. |
-| `end()` | Finalize session. Returns `Session` with all samples, RR intervals, and rounds. |
+| `elapsedSeconds()` | Seconds since first ingested packet (based on packet timestamps). |
+| `end()` | Finalize session. Returns `Session` with `schemaVersion`, samples, RR intervals, rounds, device info, and metadata. |
 | `hr$` | Observable stream of HR values. Emits current value on subscribe. |
 | `zone$` | Observable stream of zone values. Emits current value on subscribe. |
 
@@ -196,6 +230,39 @@ Options: `threshold` (default 0.2), `strategy` (`'remove'` or `'interpolate'`), 
 | Function | Description |
 |----------|-------------|
 | `connectToDevice(transport, options?)` | Scan and connect to the best matching device. Options: `prefer`, `fallback`, `timeoutMs` (default 10s). |
+| `connectWithReconnect(transport, deviceId, profile, config?)` | Connect with automatic retry and exponential backoff. Returns `ManagedConnection` with `state$` observable. |
+
+### Streaming Metrics
+
+| Class | Description |
+|-------|-------------|
+| `RollingRMSSD(windowSize?, minSamples?)` | Windowed RMSSD calculator. Emits via `rmssd$` stream. Call `ingest(rrIntervals, timestamp)`. |
+| `TRIMPAccumulator(config)` | Live cumulative TRIMP. Emits via `trimp$` stream. Call `ingest(hr, timestamp)`. |
+
+### Real-Time Artifact Detection
+
+| Class | Description |
+|-------|-------------|
+| `RealtimeArtifactDetector(windowSize?, threshold?)` | Flags artifact RR intervals in real-time. Emits `ArtifactEvent` via `artifacts$` stream. |
+
+### Zone Presets & Athlete Profile
+
+| Export | Description |
+|--------|-------------|
+| `ZONE_PRESETS` | Built-in zone thresholds: `'5-zone'` (0.6/0.7/0.8/0.9), `'3-zone'` (0.7/0.85/0.95/1.0). |
+| `toSessionConfig(profile)` | Derive `SessionConfig` from an `AthleteProfile`. |
+| `toZoneConfig(profile)` | Derive `HRZoneConfig` from an `AthleteProfile`. |
+| `toTRIMPConfig(profile)` | Derive `TRIMPConfig` from an `AthleteProfile`. |
+
+### Error Types
+
+| Error | When |
+|-------|------|
+| `HRKitError` | Base class for all @hrkit errors. |
+| `ParseError` | Truncated or malformed BLE data. |
+| `ConnectionError` | BLE connection failure or reconnection exhausted. |
+| `TimeoutError` | Scan or connection timeout exceeded. |
+| `DeviceNotFoundError` | No compatible device found during scan. |
 
 ### Constants
 
@@ -207,9 +274,11 @@ Options: `threshold` (default 0.2), `strategy` (`'remove'` or `'interpolate'`), 
 | `POLAR_PMD_CONTROL_UUID` | `fb005c81-02e7-f387-1cad-8acd2d8df0c8` |
 | `POLAR_PMD_DATA_UUID` | `fb005c82-02e7-f387-1cad-8acd2d8df0c8` |
 
-### Profiles Sub-Export
+### Profiles
 
 ```typescript
+import { GENERIC_HR } from '@hrkit/core';
+// or from sub-export:
 import { GENERIC_HR } from '@hrkit/core/profiles';
 ```
 
