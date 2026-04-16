@@ -1,7 +1,11 @@
 {
   "name": "@hrkit/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
+  "description": "Zero-dependency TypeScript library for BLE heart rate sensor data processing",
   "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "keywords": ["heart-rate", "hrv", "ble", "bluetooth", "trimp", "fitness", "sdk", "typescript"],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -15,6 +19,9 @@
     }
   },
   "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist"
