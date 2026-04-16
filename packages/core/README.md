@@ -230,7 +230,8 @@ Options: `threshold` (default 0.2), `strategy` (`'remove'` or `'interpolate'`), 
 | Function | Description |
 |----------|-------------|
 | `connectToDevice(transport, options?)` | Scan and connect to the best matching device. Options: `prefer`, `fallback`, `timeoutMs` (default 10s). |
-| `connectWithReconnect(transport, deviceId, profile, config?)` | Connect with automatic retry and exponential backoff. Returns `ManagedConnection` with `state$` observable. |
+| `connectWithRetry(transport, deviceId, profile, config?)` | Connect with automatic retry and exponential backoff. Returns `ManagedConnection` with `state$` observable. |
+| `connectWithReconnect(...)` | Deprecated alias for `connectWithRetry`. |
 
 ### Streaming Metrics
 
@@ -253,6 +254,108 @@ Options: `threshold` (default 0.2), `strategy` (`'remove'` or `'interpolate'`), 
 | `toSessionConfig(profile)` | Derive `SessionConfig` from an `AthleteProfile`. |
 | `toZoneConfig(profile)` | Derive `HRZoneConfig` from an `AthleteProfile`. |
 | `toTRIMPConfig(profile)` | Derive `TRIMPConfig` from an `AthleteProfile`. |
+
+### Training Insights
+
+Rule-based training recommendations from training load and HRV data — no ML required.
+
+| Function | Description |
+|----------|-------------|
+| `getTrainingRecommendation(input)` | Generate a `TrainingRecommendation` with verdict, risk level, zone prescription, and reasoning. |
+| `assessACWRRisk(acwr)` | Assess injury risk from ACWR: `'low'`, `'moderate'`, `'high'`, or `'critical'`. |
+| `analyzeHRVTrend(trend)` | Analyze HRV trend direction, magnitude, and concern flag. |
+| `calculateMonotony(trainingLoad)` | Calculate training monotony (mean / stddev of daily load). > 2.0 = too repetitive. |
+
+Constants: `ACWR_CRITICAL` (1.5), `ACWR_HIGH` (1.3), `ACWR_UNDERTRAINED` (0.8), `MONOTONY_HIGH` (2.0), `TSB_DELOAD_THRESHOLD` (-20), `HRV_POOR_RECOVERY` (0.8), `HRV_WELL_RECOVERED` (0.95).
+
+```typescript
+import { getTrainingRecommendation } from '@hrkit/core';
+
+const rec = getTrainingRecommendation({
+  trainingLoad: store.getTrainingLoadTrend(),
+  hrvTrend: store.getHRVTrend(),
+  todayRmssd: 42,
+  baselineRmssd: 45,
+  maxHR: 185,
+});
+console.log(rec.verdict, rec.summary);
+// → 'moderate', 'Moderate effort today...'
+```
+
+### Athlete Longitudinal Store
+
+| Export | Description |
+|--------|-------------|
+| `InMemoryAthleteStore` | In-memory implementation of `AthleteStore`. Stores session summaries, computes daily TRIMP/rMSSD aggregates. |
+
+Key methods: `saveSession(session)`, `getSessions(limit?)`, `getHRVTrend(days?)`, `getTrainingLoadTrend(days?)`, `getCurrentACWR()`.
+
+### Workout Protocol Engine
+
+Define and execute structured workouts with step-by-step progression and target compliance.
+
+| Export | Description |
+|--------|-------------|
+| `WorkoutEngine` | Executes a `WorkoutProtocol`, tracking step progression and HR target compliance. Emits `step$`, `target$`, `state$` observables. |
+| `tabataProtocol()` | 20s work / 10s rest × 8 rounds with warmup/cooldown. |
+| `emomProtocol(minutes, workSec)` | Every-minute-on-the-minute intervals. |
+| `pyramidProtocol(steps, restSec)` | Ascending/descending work durations. |
+| `bjjRoundsProtocol(rounds, workSec, restSec)` | BJJ sparring rounds with warmup/cooldown. |
+| `intervalProtocol(rounds, workSec, restSec)` | Simple repeated work/rest cycles. |
+
+```typescript
+import { WorkoutEngine, tabataProtocol, hrToZone } from '@hrkit/core';
+
+const engine = new WorkoutEngine(tabataProtocol(), zoneConfig);
+engine.step$.subscribe(({ step }) => console.log(`Step: ${step.name}`));
+engine.start(Date.now());
+// Feed HR packets: engine.ingest(packet)
+```
+
+### Multi-Device Fusion
+
+Manage multiple simultaneous BLE HR connections and fuse their data.
+
+| Export | Description |
+|--------|-------------|
+| `MultiDeviceManager` | Manages multiple HR connections with quality scoring and data fusion. Emits `fused$` and `quality$` observables. |
+
+Fusion strategies: `'primary-fallback'` (use primary, fall back on stale), `'consensus'` (median HR across devices), `'best-rr'` (lowest artifact rate for RR intervals).
+
+```typescript
+import { MultiDeviceManager } from '@hrkit/core';
+
+const manager = new MultiDeviceManager({ strategy: 'consensus' });
+manager.addConnection(conn1);
+manager.addConnection(conn2);
+manager.fused$.subscribe((packet) => recorder.ingest(packet));
+```
+
+### Group Session
+
+Orchestrate multi-athlete group sessions for instructor dashboards.
+
+| Export | Description |
+|--------|-------------|
+| `GroupSession` | Tracks multiple athletes simultaneously. Computes per-athlete zones, TRIMP, and group aggregates. Emits `athletes$`, `heatmap$`, `stats$` observables. |
+
+Key methods: `addAthlete(config)`, `ingest(athleteId, packet)`, `getLeaderboard(metric)`, `getHeatmap()`, `end()`.
+
+### Plugin Architecture
+
+Extend the SDK with custom lifecycle hooks.
+
+| Export | Description |
+|--------|-------------|
+| `PluginRegistry` | Manages plugins that hook into the packet/session lifecycle. Methods: `register(plugin)`, `processPacket(packet)`, `collectAnalytics(session)`. |
+
+Plugins implement the `HRKitPlugin` interface with optional hooks: `onInit`, `onPacket`, `onRoundStart`, `onRoundEnd`, `onSessionEnd`, `onAnalyze`, `onDestroy`.
+
+### Observable Stream
+
+| Export | Description |
+|--------|-------------|
+| `SimpleStream<T>` | Minimal observable with BehaviorSubject-like semantics. Used by all `$`-suffixed properties. Methods: `subscribe(listener)`, `get()`, `emit(value)`. |
 
 ### Error Types
 
@@ -283,3 +386,24 @@ import { GENERIC_HR } from '@hrkit/core/profiles';
 ```
 
 `GENERIC_HR` matches any BLE device advertising the standard HR service (empty `namePrefix`).
+
+### Built-in Device Profiles
+
+Available from `@hrkit/core` or `@hrkit/core/profiles`:
+
+| Profile | Brand | Model | Capabilities |
+|---------|-------|-------|-------------|
+| `GENERIC_HR` | Generic | Any BLE HR sensor | heartRate, rrIntervals |
+| `GARMIN_HRM_PRO` | Garmin | HRM-Pro | heartRate, rrIntervals |
+| `GARMIN_HRM_DUAL` | Garmin | HRM-Dual | heartRate, rrIntervals |
+| `GARMIN_HRM_RUN` | Garmin | HRM-Run | heartRate, rrIntervals |
+| `WAHOO_TICKR` | Wahoo | TICKR | heartRate, rrIntervals |
+| `WAHOO_TICKR_X` | Wahoo | TICKR X | heartRate, rrIntervals |
+| `WAHOO_TICKR_FIT` | Wahoo | TICKR FIT | heartRate, rrIntervals |
+| `MAGENE_H64` | Magene | H64 | heartRate, rrIntervals |
+| `MAGENE_H303` | Magene | H303 | heartRate, rrIntervals |
+| `SUUNTO_SMART_SENSOR` | Suunto | Smart Sensor | heartRate, rrIntervals |
+| `COOSPO_H6` | Coospo | H6 | heartRate, rrIntervals |
+| `COOSPO_H808S` | Coospo | H808S | heartRate, rrIntervals |
+
+For Polar devices with ECG/ACC support, see [`@hrkit/polar`](../polar/).

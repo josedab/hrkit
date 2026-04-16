@@ -16,10 +16,13 @@ graph TD
     POLAR["@hrkit/polar<br/><i>PMD protocol utilities</i>"]
     RN["@hrkit/react-native<br/><i>react-native-ble-plx</i>"]
     WEB["@hrkit/web<br/><i>Web Bluetooth API</i>"]
+    SERVER["@hrkit/server<br/><i>WebSocket + SSE</i>"]
+    WIDGETS["@hrkit/widgets<br/><i>Web Components</i>"]
 
     POLAR -->|depends on| CORE
     RN -->|depends on| CORE
     WEB -->|depends on| CORE
+    SERVER -->|depends on| CORE
 ```
 
 - **`@hrkit/core`** has zero runtime dependencies. Every metric function is pure TypeScript.
@@ -67,12 +70,19 @@ This means:
 | HRV metrics | `@hrkit/core` | RMSSD, SDNN, pNN50, baseline, readiness |
 | Zones & TRIMP | `@hrkit/core` | 5-zone model, Bannister method |
 | Session recording | `@hrkit/core` | Stateful, with round tracking |
-| Device profiles | `@hrkit/core` | `GENERIC_HR` and the `DeviceProfile` type |
+| Device profiles | `@hrkit/core` | `GENERIC_HR` + Garmin, Wahoo, Magene, Suunto, Coospo |
 | Artifact filter | `@hrkit/core` | RR interval outlier detection |
+| Training insights | `@hrkit/core` | ACWR risk, HRV trend analysis, recommendations |
+| Workout protocols | `@hrkit/core` | Tabata, EMOM, intervals, BJJ rounds engine |
+| Multi-device fusion | `@hrkit/core` | Fuse HR from multiple BLE devices |
+| Group sessions | `@hrkit/core` | Multi-athlete dashboards with leaderboards |
+| Plugin architecture | `@hrkit/core` | Lifecycle hooks for extensibility |
 | Polar profiles | `@hrkit/polar` | H10, H9, OH1, Verity Sense |
 | PMD protocol | `@hrkit/polar` | ECG/ACC command builders and parsers |
 | React Native BLE | `@hrkit/react-native` | Wraps `react-native-ble-plx` |
 | Web Bluetooth BLE | `@hrkit/web` | Wraps `navigator.bluetooth` |
+| HR data server | `@hrkit/server` | WebSocket + SSE broadcasting |
+| Dashboard widgets | `@hrkit/widgets` | HR gauge, zone bar, HR chart Web Components |
 
 ## Pure functions
 

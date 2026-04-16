@@ -15,6 +15,8 @@ description: Choose the right packages for your platform and use case.
 | Use HR metrics in a React Native app     | `@hrkit/core` + `@hrkit/react-native`    |
 | Use HR metrics in a browser app          | `@hrkit/core` + `@hrkit/web`             |
 | Parse Polar PMD protocol frames          | `@hrkit/core` + `@hrkit/polar`           |
+| Stream HR data to WebSocket/SSE clients  | `@hrkit/core` + `@hrkit/server`          |
+| Add live HR dashboard widgets            | `@hrkit/widgets`                         |
 | Prototype/test without BLE hardware      | `@hrkit/core` (includes `MockTransport`) |
 | Build a custom platform adapter          | `@hrkit/core` (implement `BLETransport`) |
 
@@ -90,6 +92,30 @@ npm install @hrkit/core @hrkit/polar
 Adds device profiles and protocol utilities for Polar H10, H9, OH1, and Verity Sense. Enables raw ECG streaming (130Hz) and accelerometer data.
 
 See the [Polar devices guide](../guides/polar-devices) for usage.
+
+## Streaming Server
+
+```bash
+npm install @hrkit/server
+```
+
+Broadcasts HR data to WebSocket and SSE clients. For WebSocket support, also install `ws`:
+
+```bash
+npm install ws
+```
+
+See the [@hrkit/server README](https://github.com/josedab/hrkit/tree/main/packages/server) for configuration.
+
+## Dashboard Widgets
+
+```bash
+npm install @hrkit/widgets
+```
+
+Zero-dependency Web Components for live HR display: `<hrkit-heart-rate>`, `<hrkit-zone-bar>`, `<hrkit-hr-chart>`. Works in any framework or plain HTML.
+
+See the [@hrkit/widgets README](https://github.com/josedab/hrkit/tree/main/packages/widgets) for usage.
 
 ## Requirements
 

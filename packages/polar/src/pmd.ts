@@ -12,7 +12,10 @@ const PMD_CP_START_MEASUREMENT = 0x02;
 const PMD_CP_STOP_MEASUREMENT = 0x03;
 
 /**
- * Build a PMD control point command to start ECG streaming at 130Hz.
+ * Build a PMD control point command to start ECG streaming.
+ * Configures the Polar device for 130Hz sampling at 14-bit resolution.
+ *
+ * @returns Uint8Array command to write to the PMD Control Point characteristic.
  */
 export function buildStartECGCommand(): Uint8Array {
   return new Uint8Array([
@@ -30,7 +33,11 @@ export function buildStartECGCommand(): Uint8Array {
 }
 
 /**
- * Build a PMD control point command to start ACC streaming.
+ * Build a PMD control point command to start accelerometer streaming.
+ * Configures 16-bit resolution and 8G range.
+ *
+ * @param sampleRate - Sampling rate in Hz. Default: 25. Supports 25, 50, 100, 200.
+ * @returns Uint8Array command to write to the PMD Control Point characteristic.
  */
 export function buildStartACCCommand(sampleRate: 25 | 50 | 100 | 200 = 25): Uint8Array {
   const rateLo = sampleRate & 0xff;
@@ -55,22 +62,30 @@ export function buildStartACCCommand(sampleRate: 25 | 50 | 100 | 200 = 25): Uint
 }
 
 /**
- * Build a PMD control point command to stop a measurement.
+ * Build a PMD control point command to stop a measurement by type ID.
+ *
+ * @param measurementType - PMD measurement type constant (e.g., `PMD_MEASUREMENT_ECG`).
+ * @returns Uint8Array command to write to the PMD Control Point characteristic.
  */
 export function buildStopCommand(measurementType: number): Uint8Array {
   return new Uint8Array([PMD_CP_STOP_MEASUREMENT, measurementType]);
 }
 
+/** Stop ECG streaming. Shorthand for `buildStopCommand(PMD_MEASUREMENT_ECG)`. */
 export function buildStopECGCommand(): Uint8Array {
   return buildStopCommand(PMD_MEASUREMENT_ECG);
 }
 
+/** Stop accelerometer streaming. Shorthand for `buildStopCommand(PMD_MEASUREMENT_ACC)`. */
 export function buildStopACCCommand(): Uint8Array {
   return buildStopCommand(PMD_MEASUREMENT_ACC);
 }
 
 /**
- * Build a command to query measurement settings.
+ * Build a command to query a device's supported measurement settings.
+ *
+ * @param measurementType - PMD measurement type constant (e.g., `PMD_MEASUREMENT_ECG`).
+ * @returns Uint8Array command to write to the PMD Control Point characteristic.
  */
 export function buildGetSettingsCommand(measurementType: number): Uint8Array {
   return new Uint8Array([PMD_CP_GET_MEASUREMENT_SETTINGS, measurementType]);
@@ -79,12 +94,17 @@ export function buildGetSettingsCommand(measurementType: number): Uint8Array {
 // ── PMD Data Parsing ────────────────────────────────────────────────────
 
 /**
- * Parse PMD ECG data notification.
- * Frame format:
- *   byte 0:   measurement type (0x00 = ECG)
- *   bytes 1-8: timestamp (uint64 LE, microseconds)
- *   byte 9:   frame type
- *   bytes 10+: samples (3 bytes each, 14-bit signed, little-endian)
+ * Parse a PMD ECG data notification from the PMD Data characteristic.
+ * Extracts 14-bit signed samples in microvolts at 130Hz.
+ *
+ * @param data - Raw DataView from PMD Data characteristic notification.
+ * @returns Parsed {@link ECGPacket} with timestamp, samples, and sample rate.
+ *
+ * @example
+ * ```typescript
+ * const ecg = parseECGData(dataView);
+ * console.log(`${ecg.samples.length} ECG samples at ${ecg.sampleRate}Hz`);
+ * ```
  */
 export function parseECGData(data: DataView): ECGPacket {
   const timestamp = readUint64LE(data, 1);
@@ -109,12 +129,20 @@ export function parseECGData(data: DataView): ECGPacket {
 }
 
 /**
- * Parse PMD ACC data notification.
- * Frame format:
- *   byte 0:   measurement type (0x02 = ACC)
- *   bytes 1-8: timestamp (uint64 LE, microseconds)
- *   byte 9:   frame type
- *   bytes 10+: samples (6 bytes each: x, y, z as int16 LE)
+ * Parse a PMD accelerometer data notification from the PMD Data characteristic.
+ * Extracts 3-axis (x/y/z) int16 samples in milliG (mG).
+ *
+ * @param data - Raw DataView from PMD Data characteristic notification.
+ * @param sampleRate - Expected sample rate. Default: 25Hz. Must match the rate used in `buildStartACCCommand`.
+ * @returns Parsed {@link ACCPacket} with timestamp, 3-axis samples, and sample rate.
+ *
+ * @example
+ * ```typescript
+ * const acc = parseACCData(dataView, 50);
+ * for (const { x, y, z } of acc.samples) {
+ *   console.log(`ACC: x=${x} y=${y} z=${z} mG`);
+ * }
+ * ```
  */
 export function parseACCData(data: DataView, sampleRate: 25 | 50 | 100 | 200 = 25): ACCPacket {
   const timestamp = readUint64LE(data, 1);
@@ -145,6 +173,10 @@ export function parseACCData(data: DataView, sampleRate: 25 | 50 | 100 | 200 = 2
  *   byte 3: status (0x00 = success)
  *   bytes 4+: parameters (if GET_MEASUREMENT_SETTINGS)
  */
+/**
+ * Parsed response from the Polar PMD Control Point characteristic.
+ * Returned after writing a command (start, stop, or get settings).
+ */
 export interface PMDControlResponse {
   opCode: number;
   measurementType: number;
@@ -153,6 +185,12 @@ export interface PMDControlResponse {
   parameters: Uint8Array;
 }
 
+/**
+ * Parse a PMD control point response.
+ *
+ * @param data - Raw DataView from PMD Control Point notification.
+ * @returns Parsed {@link PMDControlResponse} with opCode, status, and parameters.
+ */
 export function parsePMDControlResponse(data: DataView): PMDControlResponse {
   const opCode = data.getUint8(1);
   const measurementType = data.getUint8(2);
