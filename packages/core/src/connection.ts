@@ -69,14 +69,16 @@ export interface ReconnectConfig {
 }
 
 /**
- * Connect to a device with automatic reconnection on failure.
+ * Connect to a device with automatic retry on initial connection failure.
+ * Retries with exponential backoff up to maxAttempts.
  *
- * Returns a ManagedConnection that tracks connection state and
- * automatically retries on connection failure with exponential backoff.
+ * Returns a ManagedConnection that tracks connection state.
+ * Note: this retries the initial connection only. It does not
+ * automatically reconnect after a successful connection is lost.
  *
- * @throws {ConnectionError} if all reconnection attempts are exhausted.
+ * @throws {ConnectionError} if all retry attempts are exhausted.
  */
-export async function connectWithReconnect(
+export async function connectWithRetry(
   transport: BLETransport,
   deviceId: string,
   profile: DeviceProfile,
@@ -146,3 +148,8 @@ export async function connectWithReconnect(
 
   return managed;
 }
+
+/**
+ * @deprecated Use `connectWithRetry` instead. This alias will be removed in a future version.
+ */
+export const connectWithReconnect = connectWithRetry;

@@ -78,7 +78,7 @@ export { validateHRPacket } from './validators.js';
 export type { ValidationResult, ValidationConfig } from './validators.js';
 
 // Connection management
-export { connectWithReconnect } from './connection.js';
+export { connectWithRetry, connectWithReconnect } from './connection.js';
 export type { ConnectionState, ManagedConnection, ReconnectConfig } from './connection.js';
 
 // Windowed metrics
