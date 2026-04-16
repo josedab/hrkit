@@ -1,24 +1,6 @@
-import type { ReadableStream, Unsubscribe, TRIMPConfig } from './types.js';
+import type { ReadableStream, TRIMPConfig } from './types.js';
 import { rmssd as computeRmssd } from './hrv.js';
-
-// Minimal inline stream
-class MetricStream<T> implements ReadableStream<T> {
-  private listeners = new Set<(value: T) => void>();
-  private current: T | undefined;
-
-  subscribe(listener: (value: T) => void): Unsubscribe {
-    this.listeners.add(listener);
-    if (this.current !== undefined) listener(this.current);
-    return () => this.listeners.delete(listener);
-  }
-
-  get(): T | undefined { return this.current; }
-
-  emit(value: T): void {
-    this.current = value;
-    for (const listener of this.listeners) listener(value);
-  }
-}
+import { SimpleStream } from './stream.js';
 
 // ── Rolling RMSSD ───────────────────────────────────────────────────────
 
@@ -36,25 +18,31 @@ export interface WindowedHRV {
  * Rolling RMSSD calculator that emits windowed HRV measurements.
  * Maintains a sliding buffer of RR intervals and emits RMSSD
  * each time new data arrives (once minimum samples are met).
- *
- * @param windowSize Maximum number of RR intervals in the window. Default: 30.
- * @param minSamples Minimum samples before emitting. Default: 5.
  */
 export class RollingRMSSD {
   private buffer: number[] = [];
   private windowSize: number;
   private minSamples: number;
-  private stream = new MetricStream<WindowedHRV>();
+  private stream = new SimpleStream<WindowedHRV>();
 
   /** Observable stream of windowed RMSSD values. */
   readonly rmssd$: ReadableStream<WindowedHRV> = this.stream;
 
+  /**
+   * @param windowSize - Maximum number of RR intervals in the window. Default: 30.
+   * @param minSamples - Minimum samples before emitting. Default: 5.
+   */
   constructor(windowSize: number = 30, minSamples: number = 5) {
     this.windowSize = windowSize;
     this.minSamples = minSamples;
   }
 
-  /** Ingest one or more RR intervals. Emits updated RMSSD if window has enough data. */
+  /**
+   * Ingest one or more RR intervals. Emits updated RMSSD if window has enough data.
+   *
+   * @param rrIntervals - Array of RR intervals in milliseconds.
+   * @param timestamp - Timestamp for this batch of intervals.
+   */
   ingest(rrIntervals: number[], timestamp: number): void {
     this.buffer.push(...rrIntervals);
 
@@ -102,16 +90,24 @@ export class TRIMPAccumulator {
   private config: TRIMPConfig;
   private cumulative = 0;
   private lastTimestamp: number | null = null;
-  private stream = new MetricStream<CumulativeTRIMP>();
+  private stream = new SimpleStream<CumulativeTRIMP>();
 
   /** Observable stream of cumulative TRIMP values. */
   readonly trimp$: ReadableStream<CumulativeTRIMP> = this.stream;
 
+  /**
+   * @param config - TRIMP calculation parameters (maxHR, restHR, sex).
+   */
   constructor(config: TRIMPConfig) {
     this.config = config;
   }
 
-  /** Ingest an HR sample and accumulate TRIMP. */
+  /**
+   * Ingest an HR sample and accumulate TRIMP. Skips gaps > 30s.
+   *
+   * @param hr - Heart rate in BPM.
+   * @param timestamp - Sample timestamp in ms.
+   */
   ingest(hr: number, timestamp: number): void {
     if (this.lastTimestamp !== null) {
       const durationMin = (timestamp - this.lastTimestamp) / 60000;
