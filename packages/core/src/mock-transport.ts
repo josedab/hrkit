@@ -7,13 +7,20 @@ import type {
 } from './types.js';
 import { DeviceNotFoundError } from './errors.js';
 
+/** Mock fixture for simulating BLE device data. */
 export interface MockFixture {
+  /** Simulated device identity. */
   device: {
     id: string;
     name: string;
     rssi?: number;
   };
+  /** Heart rate packets to replay. */
   packets: HRPacket[];
+  /** If set, the heartRate() stream throws this error after all packets. */
+  error?: Error;
+  /** If set, simulate disconnect after this many packets. */
+  disconnectAfter?: number;
 }
 
 /**
@@ -24,10 +31,12 @@ export class MockTransport implements BLETransport {
   private fixtures: MockFixture[];
   private scanning = false;
 
+  /** @param fixtures - One or more mock fixtures to simulate. */
   constructor(fixtures: MockFixture | MockFixture[]) {
     this.fixtures = Array.isArray(fixtures) ? fixtures : [fixtures];
   }
 
+  /** @param profiles - Optional device profiles to filter by. */
   async *scan(profiles?: DeviceProfile[]): AsyncIterable<HRDevice> {
     this.scanning = true;
     try {
@@ -63,6 +72,12 @@ export class MockTransport implements BLETransport {
     this.scanning = false;
   }
 
+  /**
+   * @param deviceId - Device ID to connect to.
+   * @param profile - Device profile.
+   * @returns Mock HR connection.
+   * @throws DeviceNotFoundError if no fixture matches.
+   */
   async connect(deviceId: string, profile: DeviceProfile): Promise<HRConnection> {
     const fixture = this.fixtures.find((f) => f.device.id === deviceId);
     if (!fixture) {
@@ -81,10 +96,19 @@ export class MockTransport implements BLETransport {
       profile,
 
       async *heartRate(): AsyncIterable<HRPacket> {
+        let count = 0;
         try {
           for (const packet of fixture.packets) {
             if (disconnected) return;
+            if (fixture.disconnectAfter !== undefined && count >= fixture.disconnectAfter) {
+              resolveDisconnect();
+              return;
+            }
             yield packet;
+            count++;
+          }
+          if (fixture.error) {
+            throw fixture.error;
           }
         } finally {
           // Stream completed
