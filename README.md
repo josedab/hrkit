@@ -8,11 +8,10 @@ A platform-agnostic TypeScript SDK for BLE heart rate sensors. Works with **any*
 
 | Package | Description | Docs |
 |---------|-------------|------|
-| [`@hrkit/core`](packages/core/) | Zero-dependency core: GATT parser, HRV metrics, zones, TRIMP, SessionRecorder | [README](packages/core/README.md) |
+| [`@hrkit/core`](packages/core/) | Zero-dependency core: GATT parser, HRV, zones, TRIMP, session recording, analysis, serialization, streaming metrics | [README](packages/core/README.md) |
 | [`@hrkit/polar`](packages/polar/) | Polar PMD protocol utilities: ECG + accelerometer command builders and parsers | [README](packages/polar/README.md) |
 | [`@hrkit/react-native`](packages/react-native/) | BLE adapter for `react-native-ble-plx` | [README](packages/react-native/README.md) |
 | [`@hrkit/web`](packages/web/) | BLE adapter for Web Bluetooth API | [README](packages/web/README.md) |
-| [`apps/bjj`](apps/bjj/) | Reference BJJ rolling intensity app | [README](apps/bjj/README.md) |
 
 ## Architecture
 
@@ -64,6 +63,33 @@ for await (const packet of conn.heartRate()) {
 }
 
 const session = recorder.end();
+```
+
+### One-Call Session Analysis
+
+```typescript
+import { analyzeSession } from '@hrkit/core';
+
+const analysis = analyzeSession(session);
+console.log(`TRIMP: ${analysis.trimp}`);
+console.log(`RMSSD: ${analysis.hrv?.rmssd}`);
+console.log(`Zone 5 time: ${analysis.zones.zones[5]}s`);
+```
+
+### Save & Load Sessions
+
+```typescript
+import { sessionToJSON, sessionFromJSON, sessionToTCX } from '@hrkit/core';
+
+// Persist to storage
+const json = sessionToJSON(session);
+localStorage.setItem('session', json);
+
+// Load back
+const restored = sessionFromJSON(localStorage.getItem('session')!);
+
+// Export for Strava/Garmin
+const tcx = sessionToTCX(session, { sport: 'Running' });
 ```
 
 ### Prefer Polar H10, fall back to any device
