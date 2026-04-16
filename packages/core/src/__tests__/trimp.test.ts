@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { trimp, weeklyTRIMP } from '../trimp.js';
 import type { TimestampedHR, TRIMPConfig, Session } from '../types.js';
+import { SESSION_SCHEMA_VERSION } from '../types.js';
 
 const defaultConfig: TRIMPConfig = {
   maxHR: 185,
@@ -106,6 +107,7 @@ describe('weeklyTRIMP', () => {
 
     const sessions: Session[] = [
       {
+        schemaVersion: SESSION_SCHEMA_VERSION,
         startTime: weekStart.getTime(),
         endTime: weekStart.getTime() + 60000,
         samples,
@@ -123,6 +125,7 @@ describe('weeklyTRIMP', () => {
     const weekStart = new Date('2024-01-08');
     const sessions: Session[] = [
       {
+        schemaVersion: SESSION_SCHEMA_VERSION,
         startTime: new Date('2024-01-01').getTime(), // previous week
         endTime: new Date('2024-01-01').getTime() + 60000,
         samples: [

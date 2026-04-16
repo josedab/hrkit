@@ -35,8 +35,13 @@ export function trimp(samples: TimestampedHR[], config: TRIMPConfig): number {
 
 /**
  * Aggregate weekly TRIMP from a set of sessions.
+ * Uses the sex from each session's config, falling back to the provided default or 'neutral'.
  */
-export function weeklyTRIMP(sessions: Session[], weekStart: Date): number {
+export function weeklyTRIMP(
+  sessions: Session[],
+  weekStart: Date,
+  defaultSex: TRIMPConfig['sex'] = 'neutral',
+): number {
   const weekStartMs = weekStart.getTime();
   const weekEndMs = weekStartMs + 7 * 24 * 60 * 60 * 1000;
 
@@ -46,7 +51,7 @@ export function weeklyTRIMP(sessions: Session[], weekStart: Date): number {
       const config: TRIMPConfig = {
         maxHR: session.config.maxHR,
         restHR: session.config.restHR ?? 60,
-        sex: 'neutral',
+        sex: session.config.sex ?? defaultSex,
       };
       return sum + trimp(session.samples, config);
     }, 0);
