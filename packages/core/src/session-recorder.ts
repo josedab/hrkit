@@ -12,6 +12,7 @@ import type {
 } from './types.js';
 import { SESSION_SCHEMA_VERSION } from './types.js';
 import { hrToZone } from './zones.js';
+import { HRKitError } from './errors.js';
 
 type Zone = 1 | 2 | 3 | 4 | 5;
 
@@ -131,10 +132,13 @@ export class SessionRecorder {
     this.zoneStream.emit(hrToZone(packet.hr, this.zoneConfig));
   }
 
-  /** Begin a new round. Subsequent ingested packets are recorded to this round. */
+  /** Begin a new round. Subsequent ingested packets are recorded to this round. Throws if a round is already in progress. */
   startRound(meta?: RoundMeta): void {
+    if (this.currentRound) {
+      throw new HRKitError('Cannot start a new round while one is already in progress. Call endRound() first.');
+    }
     this.currentRound = {
-      startTime: this.lastPacketTime ?? Date.now(),
+      startTime: this.lastPacketTime ?? this.startTime ?? 0,
       samples: [],
       rrIntervals: [],
       meta,
@@ -144,15 +148,15 @@ export class SessionRecorder {
   /** End the current round and return its data. Throws if no round is in progress. */
   endRound(meta?: RoundMeta): Round {
     if (!this.currentRound) {
-      throw new Error('No round in progress');
+      throw new HRKitError('No round in progress');
     }
 
     const round: Round = {
       index: this.rounds.length,
       startTime: this.currentRound.startTime,
-      endTime: this.lastPacketTime ?? Date.now(),
-      samples: this.currentRound.samples,
-      rrIntervals: this.currentRound.rrIntervals,
+      endTime: this.lastPacketTime ?? this.currentRound.startTime,
+      samples: [...this.currentRound.samples],
+      rrIntervals: [...this.currentRound.rrIntervals],
       meta: meta ?? this.currentRound.meta,
     };
 
@@ -192,19 +196,28 @@ export class SessionRecorder {
     return (this.lastPacketTime - this.startTime) / 1000;
   }
 
-  /** Finalize the session and return the complete Session object. */
+  /** Finalize the session and return the complete Session object. Auto-closes any open round. Returns a snapshot (safe from later mutation). */
   end(): Session {
-    const now = this.lastPacketTime ?? Date.now();
+    // Auto-close open round
+    if (this.currentRound) {
+      this.endRound();
+    }
+
+    const now = this.lastPacketTime ?? 0;
     return {
       schemaVersion: SESSION_SCHEMA_VERSION,
       startTime: this.startTime ?? now,
       endTime: now,
-      samples: this.samples,
-      rrIntervals: this.rrIntervals,
-      rounds: this.rounds,
-      config: this.config,
-      deviceInfo: this._deviceInfo,
-      metadata: this._metadata,
+      samples: [...this.samples],
+      rrIntervals: [...this.rrIntervals],
+      rounds: this.rounds.map((r) => ({
+        ...r,
+        samples: [...r.samples],
+        rrIntervals: [...r.rrIntervals],
+      })),
+      config: { ...this.config },
+      deviceInfo: this._deviceInfo ? { ...this._deviceInfo } : undefined,
+      metadata: this._metadata ? { ...this._metadata } : undefined,
     };
   }
 }
