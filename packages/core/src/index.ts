@@ -53,6 +53,10 @@ export { rmssd, sdnn, pnn50, meanHR, hrBaseline, readinessVerdict } from './hrv.
 // Zones
 export { hrToZone, zoneDistribution } from './zones.js';
 
+// Zone presets & athlete profile
+export { ZONE_PRESETS, toSessionConfig, toZoneConfig, toTRIMPConfig } from './zone-presets.js';
+export type { ZonePreset, AthleteProfile } from './zone-presets.js';
+
 // TRIMP
 export { trimp, weeklyTRIMP } from './trimp.js';
 
@@ -66,8 +70,30 @@ export { sessionToJSON, sessionFromJSON, sessionToCSV, roundsToCSV } from './ses
 export { analyzeSession } from './analyze.js';
 export type { SessionAnalysis } from './analyze.js';
 
+// TCX export
+export { sessionToTCX } from './export-tcx.js';
+
+// Validators
+export { validateHRPacket } from './validators.js';
+export type { ValidationResult, ValidationConfig } from './validators.js';
+
+// Connection management
+export { connectWithReconnect } from './connection.js';
+export type { ConnectionState, ManagedConnection, ReconnectConfig } from './connection.js';
+
+// Windowed metrics
+export { RollingRMSSD, TRIMPAccumulator } from './windowed-metrics.js';
+export type { WindowedHRV, CumulativeTRIMP } from './windowed-metrics.js';
+
+// Real-time artifact detection
+export { RealtimeArtifactDetector } from './realtime-artifacts.js';
+export type { ArtifactEvent } from './realtime-artifacts.js';
+
 // Connect
 export { connectToDevice } from './connect.js';
+
+// Device profiles (re-exported for convenience)
+export { GENERIC_HR } from './profiles/index.js';
 
 // Mock transport
 export { MockTransport } from './mock-transport.js';
