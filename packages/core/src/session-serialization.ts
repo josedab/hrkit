@@ -62,12 +62,63 @@ export function sessionFromJSON(json: string): Session {
     throw new ParseError('Invalid session data: rounds must be an array');
   }
 
+  // Validate sample shapes
+  const samples = obj['samples'] as unknown[];
+  for (let i = 0; i < Math.min(samples.length, 1); i++) {
+    const s = samples[i];
+    if (typeof s !== 'object' || s === null ||
+        typeof (s as Record<string, unknown>)['timestamp'] !== 'number' ||
+        typeof (s as Record<string, unknown>)['hr'] !== 'number') {
+      throw new ParseError('Invalid session data: samples must contain objects with timestamp and hr fields');
+    }
+  }
+
+  // Validate RR interval types
+  const rr = obj['rrIntervals'] as unknown[];
+  if (rr.length > 0 && typeof rr[0] !== 'number') {
+    throw new ParseError('Invalid session data: rrIntervals must contain numbers');
+  }
+
+  // Validate round shapes
+  const rounds = obj['rounds'] as unknown[];
+  for (let i = 0; i < Math.min(rounds.length, 1); i++) {
+    const r = rounds[i];
+    if (typeof r !== 'object' || r === null ||
+        typeof (r as Record<string, unknown>)['index'] !== 'number' ||
+        typeof (r as Record<string, unknown>)['startTime'] !== 'number' ||
+        typeof (r as Record<string, unknown>)['endTime'] !== 'number') {
+      throw new ParseError('Invalid session data: rounds must contain objects with index, startTime, and endTime fields');
+    }
+  }
+
+  // Validate config shape
+  const config = obj['config'];
+  if (typeof config !== 'object' || config === null ||
+      typeof (config as Record<string, unknown>)['maxHR'] !== 'number') {
+    throw new ParseError('Invalid session data: config must contain a maxHR field');
+  }
+
+  // Validate time ordering
+  if (typeof obj['startTime'] === 'number' && typeof obj['endTime'] === 'number') {
+    if (obj['endTime'] < obj['startTime']) {
+      throw new ParseError('Invalid session data: endTime must be >= startTime');
+    }
+  }
+
   return obj as unknown as Session;
 }
 
 /**
  * Export a Session as CSV text.
  * Each row is a sample with timestamp and HR.
+ *
+ * @param session - The session to export.
+ * @returns CSV string with header row `timestamp,hr`.
+ *
+ * @example
+ * ```typescript
+ * const csv = sessionToCSV(session);
+ * ```
  */
 export function sessionToCSV(session: Session): string {
   const header = 'timestamp,hr';
@@ -83,6 +134,14 @@ export function sessionToCSV(session: Session): string {
 /**
  * Export rounds as CSV text for per-round analysis.
  * Each row is a round with index, start, end, duration, sample count, and metadata label.
+ *
+ * @param session - The session whose rounds to export.
+ * @returns CSV string with header row `index,startTime,endTime,durationSec,sampleCount,rrCount,label`.
+ *
+ * @example
+ * ```typescript
+ * const csv = roundsToCSV(session);
+ * ```
  */
 export function roundsToCSV(session: Session): string {
   const header = 'index,startTime,endTime,durationSec,sampleCount,rrCount,label';
@@ -90,9 +149,9 @@ export function roundsToCSV(session: Session): string {
 
   for (const round of session.rounds) {
     const duration = ((round.endTime - round.startTime) / 1000).toFixed(1);
-    const label = round.meta?.label ?? '';
+    const label = (round.meta?.label ?? '').replace(/"/g, '""');
     lines.push(
-      `${round.index},${round.startTime},${round.endTime},${duration},${round.samples.length},${round.rrIntervals.length},"${label}"`,
+      `${round.index},${round.startTime},${round.endTime},${duration},${round.samples.length},${round.rrIntervals.length},"${label.replace(/\n/g, ' ')}"`,
     );
   }
 
