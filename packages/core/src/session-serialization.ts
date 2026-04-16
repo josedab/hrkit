@@ -67,38 +67,14 @@ export function sessionFromJSON(json: string): Session {
 
 /**
  * Export a Session as CSV text.
- * Each row is a sample with timestamp, HR, and zone (if config is available).
- *
- * @param options.includeRR - Include a column for RR intervals (default: false)
+ * Each row is a sample with timestamp and HR.
  */
-export function sessionToCSV(
-  session: Session,
-  options?: { includeRR?: boolean },
-): string {
-  const includeRR = options?.includeRR ?? false;
-
-  const header = includeRR
-    ? 'timestamp,hr,rrIntervals'
-    : 'timestamp,hr';
-
+export function sessionToCSV(session: Session): string {
+  const header = 'timestamp,hr';
   const lines = [header];
 
-  // Build an RR lookup: each sample index maps to the RR intervals that arrived with it.
-  // Since Session doesn't store per-sample RR mapping, we distribute them sequentially.
-  let rrIndex = 0;
-
   for (const sample of session.samples) {
-    if (includeRR) {
-      // Collect RR intervals that fit within this sample's time window
-      const rrs: number[] = [];
-      while (rrIndex < session.rrIntervals.length && rrs.length < 5) {
-        rrs.push(Math.round(session.rrIntervals[rrIndex]! * 100) / 100);
-        rrIndex++;
-      }
-      lines.push(`${sample.timestamp},${sample.hr},"${rrs.join(';')}"`);
-    } else {
-      lines.push(`${sample.timestamp},${sample.hr}`);
-    }
+    lines.push(`${sample.timestamp},${sample.hr}`);
   }
 
   return lines.join('\n');
