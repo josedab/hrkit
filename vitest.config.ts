@@ -6,6 +6,7 @@ export default defineConfig({
     alias: {
       '@hrkit/core': path.resolve(__dirname, 'packages/core/src/index.ts'),
       '@hrkit/polar': path.resolve(__dirname, 'packages/polar/src/index.ts'),
+      '@hrkit/server': path.resolve(__dirname, 'packages/server/src/index.ts'),
     },
   },
   test: {

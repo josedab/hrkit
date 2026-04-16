@@ -20,13 +20,15 @@
     "paths": {
       "@hrkit/core": ["./packages/core/src/index.ts"],
       "@hrkit/core/*": ["./packages/core/src/*/index.ts"],
-      "@hrkit/polar": ["./packages/polar/src/index.ts"]
+      "@hrkit/polar": ["./packages/polar/src/index.ts"],
+      "@hrkit/server": ["./packages/server/src/index.ts"]
     }
   },
   "include": [
     "packages/core/src/**/*.ts",
     "packages/polar/src/**/*.ts",
-    "packages/react-native/src/**/*.ts"
+    "packages/react-native/src/**/*.ts",
+    "packages/server/src/**/*.ts"
   ],
   "exclude": [
     "node_modules",
