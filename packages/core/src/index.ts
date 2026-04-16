@@ -29,7 +29,17 @@ export {
   POLAR_PMD_SERVICE_UUID,
   POLAR_PMD_CONTROL_UUID,
   POLAR_PMD_DATA_UUID,
+  SESSION_SCHEMA_VERSION,
 } from './types.js';
+
+// Errors
+export {
+  HRKitError,
+  ParseError,
+  ConnectionError,
+  TimeoutError,
+  DeviceNotFoundError,
+} from './errors.js';
 
 // GATT parser
 export { parseHeartRate } from './gatt-parser.js';
@@ -48,6 +58,13 @@ export { trimp, weeklyTRIMP } from './trimp.js';
 
 // Session recorder
 export { SessionRecorder } from './session-recorder.js';
+
+// Session serialization
+export { sessionToJSON, sessionFromJSON, sessionToCSV, roundsToCSV } from './session-serialization.js';
+
+// Session analysis
+export { analyzeSession } from './analyze.js';
+export type { SessionAnalysis } from './analyze.js';
 
 // Connect
 export { connectToDevice } from './connect.js';
