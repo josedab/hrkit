@@ -13,7 +13,7 @@ import { DeviceNotFoundError, TimeoutError } from './errors.js';
 function matchProfile(device: HRDevice, profiles: DeviceProfile[]): DeviceProfile | undefined {
   for (const profile of profiles) {
     if (profile.namePrefix && device.name) {
-      if (device.name.startsWith(profile.namePrefix)) {
+      if (device.name.toLowerCase().startsWith(profile.namePrefix.toLowerCase())) {
         return profile;
       }
     }
@@ -28,6 +28,20 @@ function matchProfile(device: HRDevice, profiles: DeviceProfile[]): DeviceProfil
  * Scans for devices, tries to match against preferred profiles first,
  * then falls back to the fallback profile. For web transports that yield
  * a single user-selected device, this resolves immediately.
+ *
+ * @param transport - Platform-specific BLE transport implementation.
+ * @param options - Connection options (preferred profiles, fallback, timeout).
+ * @returns A connected {@link HRConnection}.
+ * @throws {DeviceNotFoundError} if no compatible device is found.
+ * @throws {TimeoutError} if the scan exceeds `timeoutMs`.
+ *
+ * @example
+ * ```typescript
+ * const connection = await connectToDevice(transport, {
+ *   prefer: [polarH10Profile],
+ *   timeoutMs: 15000,
+ * });
+ * ```
  */
 export async function connectToDevice(
   transport: BLETransport,
@@ -52,7 +66,8 @@ export async function connectToDevice(
         // Try preferred profiles first (higher priority = lower index)
         for (let i = 0; i < prefer.length; i++) {
           const profile = prefer[i]!;
-          const nameMatches = profile.namePrefix === '' || device.name?.startsWith(profile.namePrefix);
+          const nameMatches = profile.namePrefix === '' ||
+            (device.name?.toLowerCase().startsWith(profile.namePrefix.toLowerCase()) ?? false);
           if (nameMatches) {
             await transport.stopScan();
             return transport.connect(device.id, profile);
@@ -68,7 +83,8 @@ export async function connectToDevice(
         }
       }
     } catch {
-      // Scan ended or was stopped
+      // Scan stream ended (normal completion, timeout, or transport error).
+      // Fall through to check discovered fallback devices.
     }
 
     // If scan ended without a preferred match, use best discovered fallback
@@ -86,6 +102,6 @@ export async function connectToDevice(
   try {
     return await Promise.race([scanLoop(), scanTimeout]);
   } finally {
-    await transport.stopScan().catch(() => {});
+    await transport.stopScan().catch(() => { /* Ignore — scan may already be stopped. */ });
   }
 }

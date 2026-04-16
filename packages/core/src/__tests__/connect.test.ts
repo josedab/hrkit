@@ -45,6 +45,37 @@ describe('connectToDevice', () => {
 
     await expect(connectToDevice(transport)).rejects.toThrow('No device profiles');
   });
+
+  it('matches device names case-insensitively', async () => {
+    // The fixture device name is 'Polar H10 A1B2C3', profile prefix is 'Polar H10'
+    const lowerProfile: DeviceProfile = {
+      ...POLAR_H10_PROFILE,
+      namePrefix: 'polar h10',
+    };
+
+    const transport = new MockTransport(BJJ_SESSION_FIXTURE);
+    const conn = await connectToDevice(transport, {
+      prefer: [lowerProfile],
+      timeoutMs: 5000,
+    });
+
+    expect(conn.deviceId).toBe('h10-001');
+  });
+
+  it('matches with uppercase prefix against mixed-case device name', async () => {
+    const upperProfile: DeviceProfile = {
+      ...POLAR_H10_PROFILE,
+      namePrefix: 'POLAR H10',
+    };
+
+    const transport = new MockTransport(BJJ_SESSION_FIXTURE);
+    const conn = await connectToDevice(transport, {
+      prefer: [upperProfile],
+      timeoutMs: 5000,
+    });
+
+    expect(conn.deviceId).toBe('h10-001');
+  });
 });
 
 describe('MockTransport', () => {
