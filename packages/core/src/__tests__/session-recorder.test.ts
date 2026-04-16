@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { SessionRecorder } from '../session-recorder.js';
 import type { HRPacket } from '../types.js';
 

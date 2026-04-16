@@ -1,12 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { connectToDevice, DeviceNotFoundError, TimeoutError } from '../index.js';
 import { MockTransport } from '../mock-transport.js';
-import { GENERIC_HR } from '../profiles/index.js';
 import type { DeviceProfile } from '../types.js';
 import { GATT_HR_SERVICE_UUID, POLAR_PMD_SERVICE_UUID } from '../types.js';
 import { BJJ_SESSION_FIXTURE } from './fixtures/index.js';
 
-const POLAR_H10_PROFILE: DeviceProfile = {
+const _POLAR_H10_PROFILE: DeviceProfile = {
   brand: 'Polar',
   model: 'H10',
   namePrefix: 'Polar H10',

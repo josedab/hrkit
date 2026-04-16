@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { validateHRPacket, validateZoneConfig, validateSessionConfig, validateSession } from '../validators.js';
-import type { HRPacket, Session, SessionConfig, HRZoneConfig } from '../types.js';
+import { describe, expect, it } from 'vitest';
+import type { HRPacket, HRZoneConfig, Session, SessionConfig } from '../types.js';
 import { SESSION_SCHEMA_VERSION } from '../types.js';
+import { validateHRPacket, validateSession, validateSessionConfig, validateZoneConfig } from '../validators.js';
 
 function pkt(overrides: Partial<HRPacket> = {}): HRPacket {
   return { timestamp: 1000, hr: 72, rrIntervals: [833], contactDetected: true, ...overrides };
@@ -198,27 +198,33 @@ describe('validateSession', () => {
   });
 
   it('errors on out-of-order sample timestamps', () => {
-    const result = validateSession(makeSession({
-      samples: [
-        { timestamp: 2000, hr: 85 },
-        { timestamp: 1000, hr: 72 },
-        { timestamp: 3000, hr: 120 },
-      ],
-    }));
+    const result = validateSession(
+      makeSession({
+        samples: [
+          { timestamp: 2000, hr: 85 },
+          { timestamp: 1000, hr: 72 },
+          { timestamp: 3000, hr: 120 },
+        ],
+      }),
+    );
     expect(result.valid).toBe(false);
     expect(result.errors.some((e) => e.includes('Sample 1 has timestamp before sample 0'))).toBe(true);
   });
 
   it('errors on round with endTime before startTime', () => {
-    const result = validateSession(makeSession({
-      rounds: [{
-        index: 0,
-        startTime: 3000,
-        endTime: 1000,
-        samples: [],
-        rrIntervals: [],
-      }],
-    }));
+    const result = validateSession(
+      makeSession({
+        rounds: [
+          {
+            index: 0,
+            startTime: 3000,
+            endTime: 1000,
+            samples: [],
+            rrIntervals: [],
+          },
+        ],
+      }),
+    );
     expect(result.valid).toBe(false);
     expect(result.errors.some((e) => e.includes('Round 0'))).toBe(true);
   });

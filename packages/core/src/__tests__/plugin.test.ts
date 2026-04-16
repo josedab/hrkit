@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { PluginRegistry } from '../plugin.js';
+import { describe, expect, it, vi } from 'vitest';
 import { HRKitError } from '../errors.js';
 import type { HRKitPlugin } from '../plugin.js';
+import { PluginRegistry } from '../plugin.js';
 import type { HRPacket, Round, Session } from '../types.js';
 
 function makePacket(overrides: Partial<HRPacket> = {}): HRPacket {
@@ -59,9 +59,7 @@ describe('PluginRegistry', () => {
     registry.register(makePlugin({ name: 'dup' }));
 
     expect(() => registry.register(makePlugin({ name: 'dup' }))).toThrow(HRKitError);
-    expect(() => registry.register(makePlugin({ name: 'dup' }))).toThrow(
-      'Plugin "dup" is already registered',
-    );
+    expect(() => registry.register(makePlugin({ name: 'dup' }))).toThrow('Plugin "dup" is already registered');
   });
 
   it('unregisters a plugin by name', () => {
@@ -348,11 +346,15 @@ describe('error resilience', () => {
   it('processPacket survives a plugin that throws', () => {
     const registry = new PluginRegistry();
     const throwingPlugin: HRKitPlugin = {
-      name: 'crasher', version: '1.0',
-      onPacket: () => { throw new Error('boom'); },
+      name: 'crasher',
+      version: '1.0',
+      onPacket: () => {
+        throw new Error('boom');
+      },
     };
     const goodPlugin: HRKitPlugin = {
-      name: 'doubler', version: '1.0',
+      name: 'doubler',
+      version: '1.0',
       onPacket: (p) => ({ ...p, hr: p.hr * 2 }),
     };
     registry.register(throwingPlugin);
@@ -366,8 +368,20 @@ describe('error resilience', () => {
   it('notifyRoundStart survives a plugin that throws', () => {
     const registry = new PluginRegistry();
     const calls: number[] = [];
-    registry.register({ name: 'crasher', version: '1.0', onRoundStart: () => { throw new Error('boom'); } });
-    registry.register({ name: 'tracker', version: '1.0', onRoundStart: (idx) => { calls.push(idx); } });
+    registry.register({
+      name: 'crasher',
+      version: '1.0',
+      onRoundStart: () => {
+        throw new Error('boom');
+      },
+    });
+    registry.register({
+      name: 'tracker',
+      version: '1.0',
+      onRoundStart: (idx) => {
+        calls.push(idx);
+      },
+    });
 
     registry.notifyRoundStart(0);
     expect(calls).toEqual([0]);
@@ -377,8 +391,20 @@ describe('error resilience', () => {
     const registry = new PluginRegistry();
     const calls: number[] = [];
     const round: Round = { index: 0, startTime: 0, endTime: 1000, samples: [], rrIntervals: [] };
-    registry.register({ name: 'crasher', version: '1.0', onRoundEnd: () => { throw new Error('boom'); } });
-    registry.register({ name: 'tracker', version: '1.0', onRoundEnd: (r) => { calls.push(r.index); } });
+    registry.register({
+      name: 'crasher',
+      version: '1.0',
+      onRoundEnd: () => {
+        throw new Error('boom');
+      },
+    });
+    registry.register({
+      name: 'tracker',
+      version: '1.0',
+      onRoundEnd: (r) => {
+        calls.push(r.index);
+      },
+    });
 
     registry.notifyRoundEnd(round);
     expect(calls).toEqual([0]);
@@ -388,8 +414,20 @@ describe('error resilience', () => {
     const registry = new PluginRegistry();
     const calls: string[] = [];
     const session = makeSession();
-    registry.register({ name: 'crasher', version: '1.0', onSessionEnd: () => { throw new Error('boom'); } });
-    registry.register({ name: 'tracker', version: '1.0', onSessionEnd: () => { calls.push('called'); } });
+    registry.register({
+      name: 'crasher',
+      version: '1.0',
+      onSessionEnd: () => {
+        throw new Error('boom');
+      },
+    });
+    registry.register({
+      name: 'tracker',
+      version: '1.0',
+      onSessionEnd: () => {
+        calls.push('called');
+      },
+    });
 
     registry.notifySessionEnd(session);
     expect(calls).toEqual(['called']);
@@ -397,7 +435,13 @@ describe('error resilience', () => {
 
   it('collectAnalytics survives a plugin that throws', () => {
     const registry = new PluginRegistry();
-    registry.register({ name: 'crasher', version: '1.0', onAnalyze: () => { throw new Error('boom'); } });
+    registry.register({
+      name: 'crasher',
+      version: '1.0',
+      onAnalyze: () => {
+        throw new Error('boom');
+      },
+    });
     registry.register({ name: 'good', version: '1.0', onAnalyze: () => ({ score: 42 }) });
 
     const session = makeSession();
@@ -411,9 +455,14 @@ describe('re-registration', () => {
     const registry = new PluginRegistry();
     const initCalls: string[] = [];
     const plugin: HRKitPlugin = {
-      name: 'test', version: '1.0',
-      onInit: () => { initCalls.push('init'); },
-      onDestroy: () => { initCalls.push('destroy'); },
+      name: 'test',
+      version: '1.0',
+      onInit: () => {
+        initCalls.push('init');
+      },
+      onDestroy: () => {
+        initCalls.push('destroy');
+      },
     };
 
     registry.register(plugin);

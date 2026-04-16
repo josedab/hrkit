@@ -1,11 +1,11 @@
 import { HRKitHeartRate } from './heart-rate.js';
-import { HRKitZoneBar } from './zone-bar.js';
 import { HRKitHRChart } from './hr-chart.js';
+import { HRKitZoneBar } from './zone-bar.js';
 
+export { hrToColor, hrToZone, ZONE_COLORS } from './colors.js';
 export { HRKitHeartRate } from './heart-rate.js';
-export { HRKitZoneBar } from './zone-bar.js';
 export { HRKitHRChart } from './hr-chart.js';
-export { ZONE_COLORS, hrToColor, hrToZone } from './colors.js';
+export { HRKitZoneBar } from './zone-bar.js';
 
 export function registerAll(): void {
   if (!customElements.get('hrkit-heart-rate')) {

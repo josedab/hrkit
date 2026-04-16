@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { RealtimeArtifactDetector } from '../realtime-artifacts.js';
 
 describe('RealtimeArtifactDetector', () => {
@@ -36,7 +36,9 @@ describe('RealtimeArtifactDetector', () => {
   it('includes deviation in events', () => {
     const detector = new RealtimeArtifactDetector();
     let lastDeviation = 0;
-    detector.artifacts$.subscribe((e) => { lastDeviation = e.deviation; });
+    detector.artifacts$.subscribe((e) => {
+      lastDeviation = e.deviation;
+    });
 
     // Feed clean data
     detector.ingest(800, 0);
@@ -58,8 +60,12 @@ describe('RealtimeArtifactDetector', () => {
 
     let strictArtifact = false;
     let lenientArtifact = false;
-    strict.artifacts$.subscribe((e) => { strictArtifact = e.isArtifact; });
-    lenient.artifacts$.subscribe((e) => { lenientArtifact = e.isArtifact; });
+    strict.artifacts$.subscribe((e) => {
+      strictArtifact = e.isArtifact;
+    });
+    lenient.artifacts$.subscribe((e) => {
+      lenientArtifact = e.isArtifact;
+    });
 
     // Moderate deviation: 10% off
     const data = [800, 810, 790, 820, 880]; // 880 is ~10% above mean
@@ -68,7 +74,7 @@ describe('RealtimeArtifactDetector', () => {
       lenient.ingest(data[i]!, i * 1000);
     }
 
-    expect(strictArtifact).toBe(true);  // 10% > 5% threshold
+    expect(strictArtifact).toBe(true); // 10% > 5% threshold
     expect(lenientArtifact).toBe(false); // 10% < 50% threshold
   });
 

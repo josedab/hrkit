@@ -1,10 +1,6 @@
-import type {
-  HRConnection,
-  HRPacket,
-  ReadableStream,
-} from './types.js';
 import { HRKitError } from './errors.js';
 import { SimpleStream } from './stream.js';
+import type { HRConnection, HRPacket, ReadableStream } from './types.js';
 
 // ── Public Types ────────────────────────────────────────────────────────
 
@@ -93,11 +89,7 @@ function computeArtifactRate(rrIntervals: number[]): number {
   return artifacts / (rrIntervals.length - 1);
 }
 
-function computeQualityScore(
-  state: DeviceState,
-  staleMs: number,
-  now: number,
-): number {
+function computeQualityScore(state: DeviceState, staleMs: number, now: number): number {
   if (state.packetCount === 0) return 0;
 
   const artifactRate = computeArtifactRate(state.rrIntervals);
@@ -166,11 +158,7 @@ function fusePrimaryFallback(
  * Consensus: Use the median HR across all non-stale devices.
  * RR intervals come from the device with the lowest artifact rate.
  */
-function fuseConsensus(
-  states: Map<string, DeviceState>,
-  staleMs: number,
-  timestamp: number,
-): FusedHRPacket | null {
+function fuseConsensus(states: Map<string, DeviceState>, staleMs: number, timestamp: number): FusedHRPacket | null {
   const fresh: DeviceState[] = [];
   for (const state of states.values()) {
     if (!isStale(state, staleMs, timestamp) && getLastPacket(state)) {
@@ -183,9 +171,7 @@ function fuseConsensus(
   // Median HR
   const hrs = fresh.map((s) => getLastPacket(s)!.hr).sort((a, b) => a - b);
   const mid = Math.floor(hrs.length / 2);
-  const medianHR = hrs.length % 2 === 1
-    ? hrs[mid]!
-    : Math.round((hrs[mid - 1]! + hrs[mid]!) / 2);
+  const medianHR = hrs.length % 2 === 1 ? hrs[mid]! : Math.round((hrs[mid - 1]! + hrs[mid]!) / 2);
 
   // Best RR source: lowest artifact rate
   let bestRRState = fresh[0]!;
@@ -215,11 +201,7 @@ function fuseConsensus(
  * Best-RR: Use the device with the lowest artifact rate for RR intervals
  * and its HR value. Falls back to device with most recent packet if no RR data.
  */
-function fuseBestRR(
-  states: Map<string, DeviceState>,
-  staleMs: number,
-  timestamp: number,
-): FusedHRPacket | null {
+function fuseBestRR(states: Map<string, DeviceState>, staleMs: number, timestamp: number): FusedHRPacket | null {
   const fresh: DeviceState[] = [];
   for (const state of states.values()) {
     if (!isStale(state, staleMs, timestamp) && getLastPacket(state)) {
@@ -375,12 +357,7 @@ export class MultiDeviceManager {
 
     switch (this.config.strategy) {
       case 'primary-fallback':
-        return fusePrimaryFallback(
-          this.deviceStates,
-          this.config.primaryDeviceId || undefined,
-          staleMs,
-          timestamp,
-        );
+        return fusePrimaryFallback(this.deviceStates, this.config.primaryDeviceId || undefined, staleMs, timestamp);
       case 'consensus':
         return fuseConsensus(this.deviceStates, staleMs, timestamp);
       case 'best-rr':

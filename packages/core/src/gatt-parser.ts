@@ -1,5 +1,5 @@
-import type { HRPacket } from './types.js';
 import { ParseError } from './errors.js';
+import type { HRPacket } from './types.js';
 
 const RR_RESOLUTION = 1000 / 1024;
 
@@ -21,9 +21,7 @@ const RR_RESOLUTION = 1000 / 1024;
  */
 export function parseHeartRate(data: DataView, timestamp?: number): HRPacket {
   if (data.byteLength < 2) {
-    throw new ParseError(
-      `Heart Rate Measurement too short: expected at least 2 bytes, got ${data.byteLength}`,
-    );
+    throw new ParseError(`Heart Rate Measurement too short: expected at least 2 bytes, got ${data.byteLength}`);
   }
 
   const ts = timestamp ?? Date.now();

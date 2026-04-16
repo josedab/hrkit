@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import type { HRPacket } from '@hrkit/core';
-import { buildPayload, HRStreamServer } from '../index.js';
+import { afterEach, describe, expect, it } from 'vitest';
 import type { BroadcastPayload } from '../index.js';
+import { buildPayload, HRStreamServer } from '../index.js';
 
 // ── Fixtures ────────────────────────────────────────────────────────────
 
@@ -315,14 +315,20 @@ describe('HRStreamServer', () => {
   describe('edge cases', () => {
     it('buildPayload with zero HR', () => {
       const payload = buildPayload({
-        timestamp: 1000, hr: 0, rrIntervals: [], contactDetected: false,
+        timestamp: 1000,
+        hr: 0,
+        rrIntervals: [],
+        contactDetected: false,
       });
       expect(payload.hr).toBe(0);
     });
 
     it('buildPayload with very large HR', () => {
       const payload = buildPayload({
-        timestamp: 1000, hr: 999, rrIntervals: [100, 200], contactDetected: true,
+        timestamp: 1000,
+        hr: 999,
+        rrIntervals: [100, 200],
+        contactDetected: true,
       });
       expect(payload.hr).toBe(999);
       expect(payload.rrIntervals).toEqual([100, 200]);
@@ -345,9 +351,12 @@ describe('HRStreamServer', () => {
     });
 
     it('rate limiting allows first packet always', () => {
-      const server = new HRStreamServer({ port: 0, maxRateHz: 1 });
+      const _server = new HRStreamServer({ port: 0, maxRateHz: 1 });
       const payload = buildPayload({
-        timestamp: 1000, hr: 80, rrIntervals: [], contactDetected: true,
+        timestamp: 1000,
+        hr: 80,
+        rrIntervals: [],
+        contactDetected: true,
       });
       expect(payload).toBeDefined();
     });

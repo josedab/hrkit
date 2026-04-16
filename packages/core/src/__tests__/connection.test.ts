@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { connectWithReconnect } from '../connection.js';
 import { ConnectionError } from '../errors.js';
 import { MockTransport } from '../mock-transport.js';
 import { GENERIC_HR } from '../profiles/index.js';
-import { HIGH_INTENSITY_FIXTURE } from './fixtures/index.js';
 import type { BLETransport, DeviceProfile, HRConnection, HRDevice } from '../types.js';
+import { HIGH_INTENSITY_FIXTURE } from './fixtures/index.js';
 
 describe('connectWithReconnect', () => {
   it('connects successfully on first attempt', async () => {
@@ -35,9 +35,11 @@ describe('connectWithReconnect', () => {
   it('retries on failure and eventually connects', async () => {
     let attempts = 0;
     const transport: BLETransport = {
-      async *scan(): AsyncIterable<HRDevice> { yield { id: 'dev', name: 'Dev', rssi: -50 }; },
+      async *scan(): AsyncIterable<HRDevice> {
+        yield { id: 'dev', name: 'Dev', rssi: -50 };
+      },
       async stopScan() {},
-      async connect(deviceId: string, profile: DeviceProfile): Promise<HRConnection> {
+      async connect(_deviceId: string, profile: DeviceProfile): Promise<HRConnection> {
         attempts++;
         if (attempts < 3) throw new Error('Connection failed');
         return new MockTransport(HIGH_INTENSITY_FIXTURE).connect('h10-001', profile);
@@ -56,9 +58,13 @@ describe('connectWithReconnect', () => {
 
   it('throws ConnectionError after max attempts exhausted', async () => {
     const transport: BLETransport = {
-      async *scan(): AsyncIterable<HRDevice> { yield { id: 'dev', name: 'Dev', rssi: -50 }; },
+      async *scan(): AsyncIterable<HRDevice> {
+        yield { id: 'dev', name: 'Dev', rssi: -50 };
+      },
       async stopScan() {},
-      async connect(): Promise<HRConnection> { throw new Error('Always fails'); },
+      async connect(): Promise<HRConnection> {
+        throw new Error('Always fails');
+      },
     };
 
     await expect(
@@ -72,7 +78,9 @@ describe('connectWithReconnect', () => {
   it('applies exponential backoff between retries', async () => {
     const timestamps: number[] = [];
     const transport: BLETransport = {
-      async *scan(): AsyncIterable<HRDevice> { yield { id: 'dev', name: 'Dev', rssi: -50 }; },
+      async *scan(): AsyncIterable<HRDevice> {
+        yield { id: 'dev', name: 'Dev', rssi: -50 };
+      },
       async stopScan() {},
       async connect(): Promise<HRConnection> {
         timestamps.push(Date.now());
@@ -86,7 +94,9 @@ describe('connectWithReconnect', () => {
         initialDelayMs: 50,
         backoffMultiplier: 2,
       });
-    } catch { /* expected */ }
+    } catch {
+      /* expected */
+    }
 
     expect(timestamps).toHaveLength(3);
     // Second gap should be roughly 2x the first (backoff)

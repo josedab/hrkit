@@ -78,15 +78,10 @@ export function meanHR(rr: number[]): number {
  * @param windowDays - Number of recent days to include.
  * @returns Median rMSSD from the window, or null if no data.
  */
-export function hrBaseline(
-  readings: DailyHRVReading[],
-  windowDays: number,
-): number | null {
+export function hrBaseline(readings: DailyHRVReading[], windowDays: number): number | null {
   if (readings.length === 0 || windowDays <= 0) return null;
 
-  const sorted = [...readings]
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(-windowDays);
+  const sorted = [...readings].sort((a, b) => a.date.localeCompare(b.date)).slice(-windowDays);
 
   if (sorted.length === 0) return null;
 
@@ -106,15 +101,12 @@ export function hrBaseline(
  * @param baseline - 7-day baseline rMSSD.
  * @returns Training readiness verdict.
  */
-export function readinessVerdict(
-  todayRmssd: number,
-  baseline: number,
-): 'go_hard' | 'moderate' | 'rest' {
+export function readinessVerdict(todayRmssd: number, baseline: number): 'go_hard' | 'moderate' | 'rest' {
   if (baseline <= 0) return 'rest';
 
   const ratio = todayRmssd / baseline;
 
   if (ratio >= 0.95) return 'go_hard';
-  if (ratio >= 0.80) return 'moderate';
+  if (ratio >= 0.8) return 'moderate';
   return 'rest';
 }

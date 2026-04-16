@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { sessionToJSON, sessionFromJSON, sessionToCSV, roundsToCSV } from '../session-serialization.js';
+import { describe, expect, it } from 'vitest';
 import { ParseError } from '../errors.js';
-import { SESSION_SCHEMA_VERSION } from '../types.js';
+import { roundsToCSV, sessionFromJSON, sessionToCSV, sessionToJSON } from '../session-serialization.js';
 import type { Session } from '../types.js';
+import { SESSION_SCHEMA_VERSION } from '../types.js';
 
 function makeSession(overrides?: Partial<Session>): Session {
   return {
@@ -205,7 +205,9 @@ describe('sessionFromJSON', () => {
       config: { maxHR: 185 },
     });
     expect(() => sessionFromJSON(json)).toThrow(ParseError);
-    expect(() => sessionFromJSON(json)).toThrow('rounds must contain objects with index, startTime, and endTime fields');
+    expect(() => sessionFromJSON(json)).toThrow(
+      'rounds must contain objects with index, startTime, and endTime fields',
+    );
   });
 
   it('throws ParseError on missing config.maxHR', () => {
@@ -297,13 +299,15 @@ describe('roundsToCSV', () => {
 
   it('handles rounds without metadata', () => {
     const session = makeSession({
-      rounds: [{
-        index: 0,
-        startTime: 1000,
-        endTime: 3000,
-        samples: [{ timestamp: 1000, hr: 120 }],
-        rrIntervals: [],
-      }],
+      rounds: [
+        {
+          index: 0,
+          startTime: 1000,
+          endTime: 3000,
+          samples: [{ timestamp: 1000, hr: 120 }],
+          rrIntervals: [],
+        },
+      ],
     });
     const csv = roundsToCSV(session);
     const lines = csv.split('\n');
@@ -313,14 +317,16 @@ describe('roundsToCSV', () => {
 
   it('escapes double quotes in round labels', () => {
     const session = makeSession({
-      rounds: [{
-        index: 0,
-        startTime: 1000,
-        endTime: 3000,
-        samples: [{ timestamp: 1000, hr: 120 }],
-        rrIntervals: [],
-        meta: { label: 'Round "A"' },
-      }],
+      rounds: [
+        {
+          index: 0,
+          startTime: 1000,
+          endTime: 3000,
+          samples: [{ timestamp: 1000, hr: 120 }],
+          rrIntervals: [],
+          meta: { label: 'Round "A"' },
+        },
+      ],
     });
     const csv = roundsToCSV(session);
     const lines = csv.split('\n');

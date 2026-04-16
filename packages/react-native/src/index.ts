@@ -1,11 +1,5 @@
-import type {
-  BLETransport,
-  DeviceProfile,
-  HRConnection,
-  HRDevice,
-  HRPacket,
-} from '@hrkit/core';
-import { parseHeartRate, GATT_HR_SERVICE_UUID, GATT_HR_MEASUREMENT_UUID } from '@hrkit/core';
+import type { BLETransport, DeviceProfile, HRConnection, HRDevice, HRPacket } from '@hrkit/core';
+import { GATT_HR_MEASUREMENT_UUID, GATT_HR_SERVICE_UUID, parseHeartRate } from '@hrkit/core';
 
 /**
  * Check if the react-native-ble-plx BleManager is likely functional.
@@ -94,43 +88,41 @@ export class ReactNativeTransport implements BLETransport {
 
     const queue: HRDevice[] = [];
     let resolve: (() => void) | null = null;
-    let done = false;
+    const done = false;
     const seen = new Set<string>();
 
-    this.manager.startDeviceScan(
-      serviceUUIDs.length > 0 ? serviceUUIDs : null,
-      null,
-      (error, device) => {
-        if (error || !device) return;
-        if (seen.has(device.id)) return;
-        seen.add(device.id);
+    this.manager.startDeviceScan(serviceUUIDs.length > 0 ? serviceUUIDs : null, null, (error, device) => {
+      if (error || !device) return;
+      if (seen.has(device.id)) return;
+      seen.add(device.id);
 
-        const name = device.name ?? device.localName ?? 'Unknown';
-        const matchedProfile = profiles?.find(
-          (p) => p.namePrefix && name.startsWith(p.namePrefix),
-        ) ?? profiles?.find((p) => p.namePrefix === '');
+      const name = device.name ?? device.localName ?? 'Unknown';
+      const matchedProfile =
+        profiles?.find((p) => p.namePrefix && name.startsWith(p.namePrefix)) ??
+        profiles?.find((p) => p.namePrefix === '');
 
-        const hrDevice: HRDevice = {
-          id: device.id,
-          name,
-          rssi: device.rssi ?? -100,
-          profile: matchedProfile,
-        };
+      const hrDevice: HRDevice = {
+        id: device.id,
+        name,
+        rssi: device.rssi ?? -100,
+        profile: matchedProfile,
+      };
 
-        queue.push(hrDevice);
-        if (resolve) {
-          resolve();
-          resolve = null;
-        }
-      },
-    );
+      queue.push(hrDevice);
+      if (resolve) {
+        resolve();
+        resolve = null;
+      }
+    });
 
     try {
       while (!done) {
         if (queue.length > 0) {
           yield queue.shift()!;
         } else {
-          await new Promise<void>((r) => { resolve = r; });
+          await new Promise<void>((r) => {
+            resolve = r;
+          });
         }
       }
     } finally {
@@ -194,7 +186,9 @@ export class ReactNativeTransport implements BLETransport {
             if (queue.length > 0) {
               yield queue.shift()!;
             } else {
-              await new Promise<void>((r) => { resolve = r; });
+              await new Promise<void>((r) => {
+                resolve = r;
+              });
             }
           }
           while (queue.length > 0) {

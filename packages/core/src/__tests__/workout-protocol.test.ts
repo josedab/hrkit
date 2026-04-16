@@ -1,13 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import type { HRPacket, HRZoneConfig } from '../types.js';
 import type { StepChangeEvent, TargetEvent, WorkoutState } from '../workout-protocol.js';
 import {
-  WorkoutEngine,
-  tabataProtocol,
-  emomProtocol,
-  pyramidProtocol,
   bjjRoundsProtocol,
+  emomProtocol,
   intervalProtocol,
+  pyramidProtocol,
+  tabataProtocol,
+  WorkoutEngine,
 } from '../workout-protocol.js';
 
 const zoneConfig: HRZoneConfig = {
@@ -25,9 +25,7 @@ describe('WorkoutEngine', () => {
     it('expands steps with repeat > 1', () => {
       const protocol = {
         name: 'Test',
-        steps: [
-          { name: 'Work', type: 'work' as const, durationSec: 30, repeat: 3 },
-        ],
+        steps: [{ name: 'Work', type: 'work' as const, durationSec: 30, repeat: 3 }],
       };
       const engine = new WorkoutEngine(protocol, zoneConfig);
       expect(engine.getExpandedSteps()).toHaveLength(3);
@@ -48,10 +46,13 @@ describe('WorkoutEngine', () => {
     });
 
     it('throws on negative step duration', () => {
-      expect(() => new WorkoutEngine(
-        { name: 'Bad', steps: [{ name: 'Bad', type: 'work' as const, durationSec: -5 }] },
-        zoneConfig,
-      )).toThrow('negative duration');
+      expect(
+        () =>
+          new WorkoutEngine(
+            { name: 'Bad', steps: [{ name: 'Bad', type: 'work' as const, durationSec: -5 }] },
+            zoneConfig,
+          ),
+      ).toThrow('negative duration');
     });
   });
 
@@ -169,9 +170,7 @@ describe('WorkoutEngine', () => {
     it('completes workout after all steps', () => {
       const protocol = {
         name: 'Test',
-        steps: [
-          { name: 'Work', type: 'work' as const, durationSec: 10 },
-        ],
+        steps: [{ name: 'Work', type: 'work' as const, durationSec: 10 }],
       };
       const engine = new WorkoutEngine(protocol, zoneConfig);
       engine.start(0);
@@ -205,9 +204,7 @@ describe('WorkoutEngine', () => {
     it('checks target compliance with zone target', () => {
       const protocol = {
         name: 'Test',
-        steps: [
-          { name: 'Work', type: 'work' as const, durationSec: 60, target: { zone: 4 as const } },
-        ],
+        steps: [{ name: 'Work', type: 'work' as const, durationSec: 60, target: { zone: 4 as const } }],
       };
       const engine = new WorkoutEngine(protocol, zoneConfig);
       const targets: TargetEvent[] = [];
@@ -251,9 +248,7 @@ describe('WorkoutEngine', () => {
     it('does not emit target event when step has no target', () => {
       const protocol = {
         name: 'Test',
-        steps: [
-          { name: 'Work', type: 'work' as const, durationSec: 60 },
-        ],
+        steps: [{ name: 'Work', type: 'work' as const, durationSec: 60 }],
       };
       const engine = new WorkoutEngine(protocol, zoneConfig);
       const targets: TargetEvent[] = [];
@@ -269,9 +264,7 @@ describe('WorkoutEngine', () => {
     it('pauses and resumes correctly', () => {
       const protocol = {
         name: 'Test',
-        steps: [
-          { name: 'Work', type: 'work' as const, durationSec: 30 },
-        ],
+        steps: [{ name: 'Work', type: 'work' as const, durationSec: 30 }],
       };
       const engine = new WorkoutEngine(protocol, zoneConfig);
       engine.start(0);

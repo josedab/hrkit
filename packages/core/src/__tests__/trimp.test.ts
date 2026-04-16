@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { trimp, weeklyTRIMP } from '../trimp.js';
-import type { TimestampedHR, TRIMPConfig, Session } from '../types.js';
+import type { Session, TimestampedHR, TRIMPConfig } from '../types.js';
 import { SESSION_SCHEMA_VERSION } from '../types.js';
 
 const defaultConfig: TRIMPConfig = {
@@ -67,8 +67,8 @@ describe('trimp', () => {
 
   it('clamps HRR to [0, 1]', () => {
     const samples: TimestampedHR[] = [
-      { timestamp: 0, hr: 30 },       // below rest HR
-      { timestamp: 1000, hr: 200 },   // above max HR
+      { timestamp: 0, hr: 30 }, // below rest HR
+      { timestamp: 1000, hr: 200 }, // above max HR
     ];
 
     // Should not throw, and should handle gracefully
@@ -79,9 +79,9 @@ describe('trimp', () => {
   it('skips gaps > 30s', () => {
     const samples: TimestampedHR[] = [
       { timestamp: 0, hr: 150 },
-      { timestamp: 1000, hr: 150 },      // 1s interval, counted
-      { timestamp: 61000, hr: 150 },      // 60s gap, skipped
-      { timestamp: 62000, hr: 150 },      // 1s interval, counted
+      { timestamp: 1000, hr: 150 }, // 1s interval, counted
+      { timestamp: 61000, hr: 150 }, // 60s gap, skipped
+      { timestamp: 62000, hr: 150 }, // 1s interval, counted
     ];
 
     const withGap = trimp(samples, defaultConfig);

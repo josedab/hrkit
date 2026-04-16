@@ -1,15 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import {
-  assessACWRRisk,
-  analyzeHRVTrend,
-  calculateMonotony,
-  getTrainingRecommendation,
-} from '../training-insights.js';
-import type {
-  TrainingLoadPoint,
-  HRVTrendPoint,
-  TrainingVerdict,
-} from '../training-insights.js';
+import { describe, expect, it } from 'vitest';
+import type { HRVTrendPoint, InsightInput, TrainingLoadPoint, TrainingVerdict } from '../training-insights.js';
+import { analyzeHRVTrend, assessACWRRisk, calculateMonotony, getTrainingRecommendation } from '../training-insights.js';
 
 function makeTrainingLoad(
   days: number,
@@ -31,10 +22,7 @@ function makeTrainingLoad(
   });
 }
 
-function makeHRVTrend(
-  days: number,
-  pattern: 'improving' | 'stable' | 'declining',
-): HRVTrendPoint[] {
+function makeHRVTrend(days: number, pattern: 'improving' | 'stable' | 'declining'): HRVTrendPoint[] {
   const base = new Date('2024-03-01');
   const startRmssd = 50;
   return Array.from({ length: days }, (_, i) => {
@@ -130,9 +118,7 @@ describe('analyzeHRVTrend', () => {
   });
 
   it('returns stable for single data point', () => {
-    const result = analyzeHRVTrend([
-      { date: '2024-03-01', rmssd: 50, rollingAvg: 50, cv: 5 },
-    ]);
+    const result = analyzeHRVTrend([{ date: '2024-03-01', rmssd: 50, rollingAvg: 50, cv: 5 }]);
     expect(result.direction).toBe('stable');
     expect(result.magnitude).toBe(0);
   });
@@ -288,7 +274,7 @@ describe('prescription zones match verdict', () => {
 
   for (const [expectedVerdict, primaryZone, maxZone] of cases) {
     it(`${expectedVerdict} → primary zone ${primaryZone}, max zone ${maxZone}`, () => {
-      let input;
+      let input: InsightInput;
       switch (expectedVerdict) {
         case 'go_hard':
           input = {
@@ -336,10 +322,10 @@ describe('prescription zones match verdict', () => {
 
 describe('boundary conditions', () => {
   it('assessACWRRisk at exact boundaries', () => {
-    expect(assessACWRRisk(0.8)).toBe('low');      // exactly 0.8 is sweet spot
-    expect(assessACWRRisk(1.3)).toBe('low');       // exactly 1.3 is still sweet spot
-    expect(assessACWRRisk(1.5)).toBe('high');      // exactly 1.5 is high, not critical
-    expect(assessACWRRisk(0)).toBe('moderate');     // zero ACWR is undertrained
+    expect(assessACWRRisk(0.8)).toBe('low'); // exactly 0.8 is sweet spot
+    expect(assessACWRRisk(1.3)).toBe('low'); // exactly 1.3 is still sweet spot
+    expect(assessACWRRisk(1.5)).toBe('high'); // exactly 1.5 is high, not critical
+    expect(assessACWRRisk(0)).toBe('moderate'); // zero ACWR is undertrained
   });
 
   it('assessACWRRisk with negative ACWR', () => {
@@ -348,7 +334,10 @@ describe('boundary conditions', () => {
 
   it('analyzeHRVTrend with flat data (0% change)', () => {
     const trend = Array.from({ length: 7 }, (_, i) => ({
-      date: `2024-01-${10 + i}`, rmssd: 50, rollingAvg: 50, cv: 0.1,
+      date: `2024-01-${10 + i}`,
+      rmssd: 50,
+      rollingAvg: 50,
+      cv: 0.1,
     }));
     const result = analyzeHRVTrend(trend);
     expect(result.direction).toBe('stable');
@@ -358,31 +347,46 @@ describe('boundary conditions', () => {
   it('conflicting signals: good ACWR but declining HRV', () => {
     // ACWR slightly above 1.0 in sweet spot but HRV declining → should recommend easy
     const trainingLoad = Array.from({ length: 28 }, (_, i) => ({
-      date: `2024-01-${i + 1}`, atl: 80 + (i % 5) * 10, ctl: 100, acwr: 1.1, tsb: 0,
+      date: `2024-01-${i + 1}`,
+      atl: 80 + (i % 5) * 10,
+      ctl: 100,
+      acwr: 1.1,
+      tsb: 0,
     }));
     const hrvTrend = Array.from({ length: 7 }, (_, i) => ({
-      date: `2024-01-${21 + i}`, rmssd: 50 - i * 5, rollingAvg: 50 - i * 5, cv: 0.1,
+      date: `2024-01-${21 + i}`,
+      rmssd: 50 - i * 5,
+      rollingAvg: 50 - i * 5,
+      cv: 0.1,
     }));
 
     const rec = getTrainingRecommendation({
-      trainingLoad, hrvTrend, maxHR: 185,
+      trainingLoad,
+      hrvTrend,
+      maxHR: 185,
     });
     expect(rec.verdict).toBe('easy');
   });
 
   it('handles baselineRmssd of 0 without crashing', () => {
     const rec = getTrainingRecommendation({
-      trainingLoad: [], hrvTrend: [],
-      todayRmssd: 50, baselineRmssd: 0,
+      trainingLoad: [],
+      hrvTrend: [],
+      todayRmssd: 50,
+      baselineRmssd: 0,
       maxHR: 185,
     });
     // Should not crash, no HRV baseline reason added
-    expect(rec.reasons.find(r => r.factor === 'hrv_baseline')).toBeUndefined();
+    expect(rec.reasons.find((r) => r.factor === 'hrv_baseline')).toBeUndefined();
   });
 
   it('calculateMonotony with all identical loads returns Infinity', () => {
     const load = Array.from({ length: 7 }, (_, i) => ({
-      date: `2024-01-${i + 1}`, atl: 100, ctl: 100, acwr: 1.0, tsb: 0,
+      date: `2024-01-${i + 1}`,
+      atl: 100,
+      ctl: 100,
+      acwr: 1.0,
+      tsb: 0,
     }));
     expect(calculateMonotony(load)).toBe(Infinity);
   });

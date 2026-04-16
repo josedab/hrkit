@@ -37,11 +37,7 @@ export class HRKitHeartRate extends HTMLElement {
     this.refresh();
   }
 
-  attributeChangedCallback(
-    _name: string,
-    _oldValue: string | null,
-    _newValue: string | null,
-  ): void {
+  attributeChangedCallback(_name: string, _oldValue: string | null, _newValue: string | null): void {
     this.refresh();
   }
 

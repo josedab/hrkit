@@ -1,4 +1,4 @@
-import type { HRPacket, HRZoneConfig, SessionConfig, Session } from './types.js';
+import type { HRPacket, HRZoneConfig, Session, SessionConfig } from './types.js';
 
 /** Result of validating an HR packet. */
 export interface ValidationResult {
@@ -25,10 +25,7 @@ const DEFAULT_RR_RANGE: [number, number] = [200, 2000];
  * Validate an HR packet against physiological ranges.
  * Returns warnings for out-of-range values without modifying the data.
  */
-export function validateHRPacket(
-  packet: HRPacket,
-  config: ValidationConfig = {},
-): ValidationResult {
+export function validateHRPacket(packet: HRPacket, config: ValidationConfig = {}): ValidationResult {
   const hrRange = config.hrRange ?? DEFAULT_HR_RANGE;
   const rrRange = config.rrRange ?? DEFAULT_RR_RANGE;
   const warnings: string[] = [];

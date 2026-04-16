@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { filterArtifacts } from '../artifact-filter.js';
 import { RR_WITH_ARTIFACTS } from './fixtures/index.js';
 
@@ -44,8 +44,8 @@ describe('filterArtifacts', () => {
 
   it('respects custom threshold', () => {
     const data = [800, 810, 900, 810, 800]; // 900 is 12.5% deviation
-    const strictResult = filterArtifacts(data, { threshold: 0.10, strategy: 'remove' });
-    const lenientResult = filterArtifacts(data, { threshold: 0.20, strategy: 'remove' });
+    const strictResult = filterArtifacts(data, { threshold: 0.1, strategy: 'remove' });
+    const lenientResult = filterArtifacts(data, { threshold: 0.2, strategy: 'remove' });
 
     expect(strictResult.artifactRate).toBeGreaterThan(lenientResult.artifactRate);
   });

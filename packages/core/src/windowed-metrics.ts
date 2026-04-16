@@ -1,6 +1,6 @@
-import type { ReadableStream, TRIMPConfig } from './types.js';
 import { rmssd as computeRmssd } from './hrv.js';
 import { SimpleStream } from './stream.js';
+import type { ReadableStream, TRIMPConfig } from './types.js';
 
 // ── Rolling RMSSD ───────────────────────────────────────────────────────
 
@@ -79,7 +79,7 @@ export interface CumulativeTRIMP {
 const SEX_FACTORS: Record<TRIMPConfig['sex'], number> = {
   male: 1.92,
   female: 1.67,
-  neutral: 1.80,
+  neutral: 1.8,
 };
 
 /**

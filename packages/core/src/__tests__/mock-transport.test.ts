@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import type { MockFixture } from '../mock-transport.js';
 import { MockTransport } from '../mock-transport.js';
 import { GENERIC_HR } from '../profiles/index.js';
-import type { MockFixture } from '../mock-transport.js';
 import type { HRPacket } from '../types.js';
 
 describe('MockTransport error/disconnect simulation', () => {

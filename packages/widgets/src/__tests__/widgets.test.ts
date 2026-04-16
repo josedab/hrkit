@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { hrToColor, hrToZone, ZONE_COLORS } from '../colors.js';
 import { HRKitHeartRate } from '../heart-rate.js';
-import { HRKitZoneBar } from '../zone-bar.js';
 import { HRKitHRChart } from '../hr-chart.js';
+import { HRKitZoneBar } from '../zone-bar.js';
 
 describe('ZONE_COLORS', () => {
   it('has entries for zones 1 through 5', () => {

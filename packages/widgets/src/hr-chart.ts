@@ -21,14 +21,7 @@ interface DataPoint {
  * - clear(): Clear all data points
  */
 export class HRKitHRChart extends HTMLElement {
-  static observedAttributes = [
-    'max-hr',
-    'min-hr',
-    'duration',
-    'theme',
-    'width',
-    'height',
-  ];
+  static observedAttributes = ['max-hr', 'min-hr', 'duration', 'theme', 'width', 'height'];
 
   private canvas!: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -45,11 +38,7 @@ export class HRKitHRChart extends HTMLElement {
     this.draw();
   }
 
-  attributeChangedCallback(
-    _name: string,
-    _oldValue: string | null,
-    _newValue: string | null,
-  ): void {
+  attributeChangedCallback(_name: string, _oldValue: string | null, _newValue: string | null): void {
     if (_name === 'width' || _name === 'height') {
       this.resizeCanvas();
     }
@@ -121,7 +110,7 @@ export class HRKitHRChart extends HTMLElement {
   }
 
   private resizeCanvas(): void {
-    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio ?? 1 : 1;
+    const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio ?? 1) : 1;
     this.canvas.width = this.chartWidth * dpr;
     this.canvas.height = this.chartHeight * dpr;
     this.canvas.style.width = `${this.chartWidth}px`;
@@ -178,8 +167,7 @@ export class HRKitHRChart extends HTMLElement {
     const latest = this.points[this.points.length - 1]!.time;
     const earliest = latest - this.durationMs;
 
-    const toX = (t: number): number =>
-      pad.left + ((t - earliest) / this.durationMs) * plotW;
+    const toX = (t: number): number => pad.left + ((t - earliest) / this.durationMs) * plotW;
     const toY = (hr: number): number => {
       const clamped = Math.max(this.minHR, Math.min(this.maxHR, hr));
       return pad.top + plotH - ((clamped - this.minHR) / range) * plotH;

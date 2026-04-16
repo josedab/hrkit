@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { InMemoryAthleteStore } from '../athlete-store.js';
 import type { Session, SessionConfig } from '../types.js';
 import { SESSION_SCHEMA_VERSION } from '../types.js';

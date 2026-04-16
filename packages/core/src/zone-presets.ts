@@ -1,5 +1,5 @@
-import type { HRZoneConfig, SessionConfig, TRIMPConfig } from './types.js';
 import { HRKitError } from './errors.js';
+import type { HRZoneConfig, SessionConfig, TRIMPConfig } from './types.js';
 
 /** Named zone preset identifiers. */
 export type ZonePreset = '5-zone' | '3-zone';
@@ -42,9 +42,8 @@ function validateZoneThresholds(zones: [number, number, number, number]): void {
  * @returns SessionConfig suitable for SessionRecorder.
  */
 export function toSessionConfig(profile: AthleteProfile): SessionConfig {
-  const zones = typeof profile.zones === 'string'
-    ? ZONE_PRESETS[profile.zones]
-    : profile.zones ?? ZONE_PRESETS['5-zone'];
+  const zones =
+    typeof profile.zones === 'string' ? ZONE_PRESETS[profile.zones] : (profile.zones ?? ZONE_PRESETS['5-zone']);
 
   // Validate custom zone thresholds (named presets are known-good)
   if (typeof profile.zones !== 'string' && profile.zones !== undefined) {
@@ -66,9 +65,8 @@ export function toSessionConfig(profile: AthleteProfile): SessionConfig {
  * @returns HRZoneConfig for zone calculations.
  */
 export function toZoneConfig(profile: AthleteProfile): HRZoneConfig {
-  const zones = typeof profile.zones === 'string'
-    ? ZONE_PRESETS[profile.zones]
-    : profile.zones ?? ZONE_PRESETS['5-zone'];
+  const zones =
+    typeof profile.zones === 'string' ? ZONE_PRESETS[profile.zones] : (profile.zones ?? ZONE_PRESETS['5-zone']);
 
   // Validate custom zone thresholds (named presets are known-good)
   if (typeof profile.zones !== 'string' && profile.zones !== undefined) {

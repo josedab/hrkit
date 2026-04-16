@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // ── @hrkit imports ──────────────────────────────────────────────────────
 // In your real app, uncomment these and wire up BLE:
@@ -22,7 +22,7 @@ interface Props {
 const ZONE_COLORS = ['#3b82f6', '#22c55e', '#eab308', '#f97316', '#ef4444'];
 const ZONE_LABELS = ['Recovery', 'Aerobic', 'Tempo', 'Threshold', 'VO₂ Max'];
 
-export function SessionScreen({ deviceId, deviceName, onBack, onSessionEnd }: Props) {
+export function SessionScreen({ deviceId: _deviceId, deviceName, onBack, onSessionEnd }: Props) {
   const [hr, setHR] = useState(0);
   const [zone, setZone] = useState(0);
   const [elapsed, setElapsed] = useState(0);
@@ -30,7 +30,7 @@ export function SessionScreen({ deviceId, deviceName, onBack, onSessionEnd }: Pr
   const [paused, setPaused] = useState(false);
   const [roundCount, setRoundCount] = useState(0);
   const [inRound, setInRound] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const _timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── Real app integration ──────────────────────────────────────────────
   // Replace the demo timer with actual @hrkit session recording:
@@ -123,9 +123,7 @@ export function SessionScreen({ deviceId, deviceName, onBack, onSessionEnd }: Pr
 
       {/* HR Display */}
       <View style={styles.hrContainer}>
-        <Text style={[styles.hrValue, { color: zone > 0 ? ZONE_COLORS[zone - 1] : '#f8fafc' }]}>
-          {hr || '--'}
-        </Text>
+        <Text style={[styles.hrValue, { color: zone > 0 ? ZONE_COLORS[zone - 1] : '#f8fafc' }]}>{hr || '--'}</Text>
         <Text style={styles.hrUnit}>BPM</Text>
         {zone > 0 && <Text style={[styles.zoneName, { color: ZONE_COLORS[zone - 1] }]}>{ZONE_LABELS[zone - 1]}</Text>}
       </View>
@@ -135,11 +133,7 @@ export function SessionScreen({ deviceId, deviceName, onBack, onSessionEnd }: Pr
         {([1, 2, 3, 4, 5] as const).map((z) => (
           <View
             key={z}
-            style={[
-              styles.zoneSegment,
-              { backgroundColor: ZONE_COLORS[z - 1] },
-              zone !== z && styles.zoneDimmed,
-            ]}
+            style={[styles.zoneSegment, { backgroundColor: ZONE_COLORS[z - 1] }, zone !== z && styles.zoneDimmed]}
           >
             <Text style={styles.zoneLabel}>Z{z}</Text>
           </View>

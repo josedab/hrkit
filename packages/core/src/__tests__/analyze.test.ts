@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { analyzeSession } from '../analyze.js';
-import { SESSION_SCHEMA_VERSION } from '../types.js';
 import type { Session, TimestampedHR } from '../types.js';
+import { SESSION_SCHEMA_VERSION } from '../types.js';
 
 function makeSession(overrides?: Partial<Session>): Session {
   const samples: TimestampedHR[] = [];

@@ -51,10 +51,7 @@ export interface StreamServerConfig {
 // ── Pure helpers (exported for testing) ─────────────────────────────────
 
 /** Build a BroadcastPayload from an HRPacket and optional extras. */
-export function buildPayload(
-  packet: HRPacket,
-  extra?: BroadcastExtra,
-): BroadcastPayload {
+export function buildPayload(packet: HRPacket, extra?: BroadcastExtra): BroadcastPayload {
   const payload: BroadcastPayload = {
     timestamp: packet.timestamp,
     hr: packet.hr,
@@ -124,7 +121,7 @@ export class HRStreamServer {
    * WebSocket server instance. Typed loosely since `ws` is an optional peer dependency
    * loaded dynamically — the concrete type is `WebSocketServer` from the `ws` package.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ws types unavailable at compile time; runtime-checked
+  // biome-ignore lint/suspicious/noExplicitAny: ws types unavailable at compile time; runtime-checked
   private wsServer: Record<string, any> | null = null;
   private readonly sseClients: Set<ServerResponse> = new Set();
   private lastBroadcastTime = 0;
@@ -288,7 +285,7 @@ export class HRStreamServer {
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
+      Connection: 'keep-alive',
     });
     res.flushHeaders();
 

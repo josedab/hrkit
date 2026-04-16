@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config';
 import path from 'path';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   resolve: {
@@ -12,8 +12,17 @@ export default defineConfig({
   test: {
     include: ['packages/*/src/**/*.test.ts'],
     coverage: {
+      provider: 'v8',
       include: ['packages/*/src/**/*.ts'],
-      exclude: ['**/*.test.ts', '**/*.d.ts'],
+      exclude: ['**/*.test.ts', '**/*.d.ts', '**/fixtures/**', '**/dist/**'],
+      reporter: ['text', 'lcov', 'json-summary'],
+      reportsDirectory: './coverage',
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 60,
+        statements: 70,
+      },
     },
   },
 });

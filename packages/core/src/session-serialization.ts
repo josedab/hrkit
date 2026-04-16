@@ -1,6 +1,6 @@
+import { ParseError } from './errors.js';
 import type { Session } from './types.js';
 import { SESSION_SCHEMA_VERSION } from './types.js';
-import { ParseError } from './errors.js';
 
 /**
  * Serialize a Session to a JSON string.
@@ -30,15 +30,15 @@ export function sessionFromJSON(json: string): Session {
 
   const obj = raw as Record<string, unknown>;
 
-  if (typeof obj['schemaVersion'] !== 'number') {
+  if (typeof obj.schemaVersion !== 'number') {
     throw new ParseError('Missing or invalid schemaVersion field');
   }
 
-  if (obj['schemaVersion'] > SESSION_SCHEMA_VERSION) {
+  if (obj.schemaVersion > SESSION_SCHEMA_VERSION) {
     throw new ParseError(
-      `Unsupported schema version ${obj['schemaVersion']}. ` +
-      `This SDK supports up to version ${SESSION_SCHEMA_VERSION}. ` +
-      `Please upgrade @hrkit/core.`,
+      `Unsupported schema version ${obj.schemaVersion}. ` +
+        `This SDK supports up to version ${SESSION_SCHEMA_VERSION}. ` +
+        `Please upgrade @hrkit/core.`,
     );
   }
 
@@ -50,57 +50,64 @@ export function sessionFromJSON(json: string): Session {
     }
   }
 
-  if (!Array.isArray(obj['samples'])) {
+  if (!Array.isArray(obj.samples)) {
     throw new ParseError('Invalid session data: samples must be an array');
   }
 
-  if (!Array.isArray(obj['rrIntervals'])) {
+  if (!Array.isArray(obj.rrIntervals)) {
     throw new ParseError('Invalid session data: rrIntervals must be an array');
   }
 
-  if (!Array.isArray(obj['rounds'])) {
+  if (!Array.isArray(obj.rounds)) {
     throw new ParseError('Invalid session data: rounds must be an array');
   }
 
   // Validate sample shapes
-  const samples = obj['samples'] as unknown[];
+  const samples = obj.samples as unknown[];
   for (let i = 0; i < Math.min(samples.length, 1); i++) {
     const s = samples[i];
-    if (typeof s !== 'object' || s === null ||
-        typeof (s as Record<string, unknown>)['timestamp'] !== 'number' ||
-        typeof (s as Record<string, unknown>)['hr'] !== 'number') {
+    if (
+      typeof s !== 'object' ||
+      s === null ||
+      typeof (s as Record<string, unknown>).timestamp !== 'number' ||
+      typeof (s as Record<string, unknown>).hr !== 'number'
+    ) {
       throw new ParseError('Invalid session data: samples must contain objects with timestamp and hr fields');
     }
   }
 
   // Validate RR interval types
-  const rr = obj['rrIntervals'] as unknown[];
+  const rr = obj.rrIntervals as unknown[];
   if (rr.length > 0 && typeof rr[0] !== 'number') {
     throw new ParseError('Invalid session data: rrIntervals must contain numbers');
   }
 
   // Validate round shapes
-  const rounds = obj['rounds'] as unknown[];
+  const rounds = obj.rounds as unknown[];
   for (let i = 0; i < Math.min(rounds.length, 1); i++) {
     const r = rounds[i];
-    if (typeof r !== 'object' || r === null ||
-        typeof (r as Record<string, unknown>)['index'] !== 'number' ||
-        typeof (r as Record<string, unknown>)['startTime'] !== 'number' ||
-        typeof (r as Record<string, unknown>)['endTime'] !== 'number') {
-      throw new ParseError('Invalid session data: rounds must contain objects with index, startTime, and endTime fields');
+    if (
+      typeof r !== 'object' ||
+      r === null ||
+      typeof (r as Record<string, unknown>).index !== 'number' ||
+      typeof (r as Record<string, unknown>).startTime !== 'number' ||
+      typeof (r as Record<string, unknown>).endTime !== 'number'
+    ) {
+      throw new ParseError(
+        'Invalid session data: rounds must contain objects with index, startTime, and endTime fields',
+      );
     }
   }
 
   // Validate config shape
-  const config = obj['config'];
-  if (typeof config !== 'object' || config === null ||
-      typeof (config as Record<string, unknown>)['maxHR'] !== 'number') {
+  const config = obj.config;
+  if (typeof config !== 'object' || config === null || typeof (config as Record<string, unknown>).maxHR !== 'number') {
     throw new ParseError('Invalid session data: config must contain a maxHR field');
   }
 
   // Validate time ordering
-  if (typeof obj['startTime'] === 'number' && typeof obj['endTime'] === 'number') {
-    if (obj['endTime'] < obj['startTime']) {
+  if (typeof obj.startTime === 'number' && typeof obj.endTime === 'number') {
+    if (obj.endTime < obj.startTime) {
       throw new ParseError('Invalid session data: endTime must be >= startTime');
     }
   }

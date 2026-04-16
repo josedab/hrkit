@@ -11,7 +11,9 @@ class ArtifactStream<T> implements ReadableStream<T> {
     return () => this.listeners.delete(listener);
   }
 
-  get(): T | undefined { return this.current; }
+  get(): T | undefined {
+    return this.current;
+  }
 
   emit(value: T): void {
     this.current = value;
