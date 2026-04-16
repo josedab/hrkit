@@ -1,12 +1,21 @@
 import type { HRPacket } from './types.js';
+import { ParseError } from './errors.js';
 
 const RR_RESOLUTION = 1000 / 1024;
 
 /**
  * Parse a BLE Heart Rate Measurement characteristic (0x2A37).
  * Handles 8/16-bit HR, contact detection, energy expended, and RR intervals.
+ *
+ * @throws {ParseError} if the DataView is too short to contain valid HR data.
  */
 export function parseHeartRate(data: DataView, timestamp?: number): HRPacket {
+  if (data.byteLength < 2) {
+    throw new ParseError(
+      `Heart Rate Measurement too short: expected at least 2 bytes, got ${data.byteLength}`,
+    );
+  }
+
   const ts = timestamp ?? Date.now();
   let offset = 0;
 
@@ -19,6 +28,13 @@ export function parseHeartRate(data: DataView, timestamp?: number): HRPacket {
   const hasEnergy = (flags & 0x08) !== 0;
   const hasRR = (flags & 0x10) !== 0;
 
+  const hrBytes = is16Bit ? 2 : 1;
+  if (offset + hrBytes > data.byteLength) {
+    throw new ParseError(
+      `Heart Rate Measurement truncated: need ${offset + hrBytes} bytes for HR value, got ${data.byteLength}`,
+    );
+  }
+
   let hr: number;
   if (is16Bit) {
     hr = data.getUint16(offset, true);
@@ -30,6 +46,11 @@ export function parseHeartRate(data: DataView, timestamp?: number): HRPacket {
 
   let energyExpended: number | undefined;
   if (hasEnergy) {
+    if (offset + 2 > data.byteLength) {
+      throw new ParseError(
+        `Heart Rate Measurement truncated: need ${offset + 2} bytes for energy field, got ${data.byteLength}`,
+      );
+    }
     energyExpended = data.getUint16(offset, true);
     offset += 2;
   }
