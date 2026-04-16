@@ -7,7 +7,21 @@ import type {
 } from '@hrkit/core';
 import { parseHeartRate, GATT_HR_SERVICE_UUID, GATT_HR_MEASUREMENT_UUID } from '@hrkit/core';
 
-// react-native-ble-plx types (peer dependency)
+/**
+ * Check if the react-native-ble-plx BleManager is likely functional.
+ * Useful for preflight checks before scanning.
+ *
+ * @param manager The BleManager instance to check.
+ * @returns true if the manager has the expected API surface.
+ */
+export function isBleManagerReady(manager: unknown): manager is BleManager {
+  return (
+    typeof manager === 'object' &&
+    manager !== null &&
+    typeof (manager as BleManager).startDeviceScan === 'function' &&
+    typeof (manager as BleManager).connectToDevice === 'function'
+  );
+}
 interface BleManager {
   startDeviceScan(
     uuids: string[] | null,

@@ -8,6 +8,16 @@ import type {
 import { parseHeartRate, GATT_HR_SERVICE_UUID, GATT_HR_MEASUREMENT_UUID } from '@hrkit/core';
 
 /**
+ * Check if Web Bluetooth is available in the current browser.
+ * Returns false in Node.js, unsupported browsers, or non-HTTPS contexts.
+ */
+export function isWebBluetoothSupported(): boolean {
+  return typeof navigator !== 'undefined'
+    && typeof navigator.bluetooth !== 'undefined'
+    && typeof navigator.bluetooth.requestDevice === 'function';
+}
+
+/**
  * BLE transport adapter for Web Bluetooth API.
  *
  * Note: Web Bluetooth uses a user-selection picker rather than continuous
