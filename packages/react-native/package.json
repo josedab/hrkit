@@ -10,7 +10,9 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist"
@@ -25,5 +27,14 @@
     "typescript": "^5.4.0",
     "tsup": "^8.0.0",
     "react-native-ble-plx": "^3.0.0"
-  }
+  },
+  "keywords": [
+    "heart-rate",
+    "ble",
+    "bluetooth",
+    "sdk",
+    "typescript",
+    "react-native",
+    "ble-plx"
+  ]
 }
