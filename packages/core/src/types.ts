@@ -20,10 +20,15 @@ export interface DeviceProfile {
 
 // ── BLE GATT UUIDs ──────────────────────────────────────────────────────
 
+/** Standard BLE Heart Rate Service UUID (0x180D). */
 export const GATT_HR_SERVICE_UUID = '0000180d-0000-1000-8000-00805f9b34fb';
+/** Standard BLE Heart Rate Measurement Characteristic UUID (0x2A37). */
 export const GATT_HR_MEASUREMENT_UUID = '00002a37-0000-1000-8000-00805f9b34fb';
+/** Polar PMD (Measurement Data) Service UUID for ECG/ACC streaming. */
 export const POLAR_PMD_SERVICE_UUID = 'fb005c80-02e7-f387-1cad-8acd2d8df0c8';
+/** Polar PMD Control Point Characteristic UUID. */
 export const POLAR_PMD_CONTROL_UUID = 'fb005c81-02e7-f387-1cad-8acd2d8df0c8';
+/** Polar PMD Data Characteristic UUID. */
 export const POLAR_PMD_DATA_UUID = 'fb005c82-02e7-f387-1cad-8acd2d8df0c8';
 
 // ── HR Packets ──────────────────────────────────────────────────────────

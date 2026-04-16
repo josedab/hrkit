@@ -3,6 +3,18 @@ import type { ArtifactFilterOptions, ArtifactFilterResult } from './types.js';
 /**
  * Filter artifact RR intervals that deviate beyond a threshold from a local sliding mean.
  * Default threshold: 20%. Default window: 5 beats.
+ *
+ * @param rr - Array of RR intervals in milliseconds.
+ * @param options - Optional filter configuration (threshold, strategy, windowSize).
+ * @returns Filtered RR intervals and the proportion flagged as artifacts.
+ *
+ * @example
+ * ```typescript
+ * const { filtered, artifactRate } = filterArtifacts(rrIntervals, {
+ *   threshold: 0.25,
+ *   strategy: 'interpolate',
+ * });
+ * ```
  */
 export function filterArtifacts(
   rr: number[],

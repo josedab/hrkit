@@ -35,9 +35,6 @@ export interface ArtifactEvent {
  * Real-time artifact detector that flags RR intervals as they arrive.
  * Uses a sliding window to compute a local mean and flags intervals
  * that deviate beyond the threshold.
- *
- * @param windowSize Number of RR intervals in the sliding window. Default: 5.
- * @param threshold Deviation threshold (fraction). Default: 0.2 (20%).
  */
 export class RealtimeArtifactDetector {
   private buffer: number[] = [];
@@ -48,12 +45,21 @@ export class RealtimeArtifactDetector {
   /** Observable stream of artifact events. */
   readonly artifacts$: ReadableStream<ArtifactEvent> = this.stream;
 
+  /**
+   * @param windowSize - Number of RR intervals in the sliding window. Default: 5.
+   * @param threshold - Deviation threshold (fraction). Default: 0.2 (20%).
+   */
   constructor(windowSize: number = 5, threshold: number = 0.2) {
     this.windowSize = windowSize;
     this.threshold = threshold;
   }
 
-  /** Ingest an RR interval and emit an artifact event. */
+  /**
+   * Ingest an RR interval and emit an artifact event.
+   *
+   * @param rr - RR interval value in milliseconds.
+   * @param timestamp - Timestamp of this RR interval in ms.
+   */
   ingest(rr: number, timestamp: number): void {
     this.buffer.push(rr);
 

@@ -10,6 +10,10 @@ type Zone = 1 | 2 | 3 | 4 | 5;
  *   Zone 3: 70-80%
  *   Zone 4: 80-90%
  *   Zone 5: >= 90%
+ *
+ * @param hr - Heart rate in BPM.
+ * @param config - Zone configuration with maxHR and zone thresholds.
+ * @returns Zone number (1-5).
  */
 export function hrToZone(hr: number, config: HRZoneConfig): Zone {
   const thresholds = config.zones.map((z) => z * config.maxHR);
@@ -24,6 +28,10 @@ export function hrToZone(hr: number, config: HRZoneConfig): Zone {
 /**
  * Compute time-in-zone distribution from timestamped HR samples.
  * Duration for each sample is the delta to the next sample's timestamp.
+ *
+ * @param samples - Timestamped HR samples.
+ * @param config - Zone configuration.
+ * @returns Time spent in each zone and total duration.
  */
 export function zoneDistribution(
   samples: TimestampedHR[],

@@ -3,6 +3,9 @@ import type { DailyHRVReading } from './types.js';
 /**
  * Root Mean Square of Successive Differences.
  * Primary short-term HRV metric reflecting parasympathetic activity.
+ *
+ * @param rr - Array of RR intervals in milliseconds.
+ * @returns rMSSD value in milliseconds. Returns 0 if fewer than 2 intervals.
  */
 export function rmssd(rr: number[]): number {
   if (rr.length < 2) return 0;
@@ -19,6 +22,9 @@ export function rmssd(rr: number[]): number {
 /**
  * Standard Deviation of NN (Normal-to-Normal) intervals.
  * Reflects overall HRV including both short and long-term variability.
+ *
+ * @param rr - Array of RR intervals in milliseconds.
+ * @returns SDNN value in milliseconds. Returns 0 if fewer than 2 intervals.
  */
 export function sdnn(rr: number[]): number {
   if (rr.length < 2) return 0;
@@ -32,6 +38,9 @@ export function sdnn(rr: number[]): number {
 /**
  * Percentage of successive RR intervals differing by more than 50ms.
  * Another parasympathetic HRV marker.
+ *
+ * @param rr - Array of RR intervals in milliseconds.
+ * @returns Percentage (0-100) of successive intervals differing by >50ms.
  */
 export function pnn50(rr: number[]): number {
   if (rr.length < 2) return 0;
@@ -48,6 +57,9 @@ export function pnn50(rr: number[]): number {
 
 /**
  * Mean heart rate derived from RR intervals.
+ *
+ * @param rr - Array of RR intervals in milliseconds.
+ * @returns Mean heart rate in BPM. Returns 0 if array is empty.
  */
 export function meanHR(rr: number[]): number {
   if (rr.length === 0) return 0;
@@ -61,6 +73,10 @@ export function meanHR(rr: number[]): number {
 /**
  * Compute a baseline rMSSD from a rolling window of daily readings.
  * Returns the median rMSSD from the most recent `windowDays` readings.
+ *
+ * @param readings - Array of daily HRV readings.
+ * @param windowDays - Number of recent days to include.
+ * @returns Median rMSSD from the window, or null if no data.
  */
 export function hrBaseline(
   readings: DailyHRVReading[],
@@ -85,6 +101,10 @@ export function hrBaseline(
 
 /**
  * Training readiness verdict based on today's rMSSD vs baseline.
+ *
+ * @param todayRmssd - Today's morning rMSSD.
+ * @param baseline - 7-day baseline rMSSD.
+ * @returns Training readiness verdict.
  */
 export function readinessVerdict(
   todayRmssd: number,

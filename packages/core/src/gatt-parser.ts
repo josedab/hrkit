@@ -7,7 +7,17 @@ const RR_RESOLUTION = 1000 / 1024;
  * Parse a BLE Heart Rate Measurement characteristic (0x2A37).
  * Handles 8/16-bit HR, contact detection, energy expended, and RR intervals.
  *
+ * @param data - Raw DataView from a GATT notification (Heart Rate Measurement characteristic).
+ * @param timestamp - Optional packet timestamp in ms. Defaults to `Date.now()`.
+ * @returns Parsed {@link HRPacket} with HR, RR intervals, contact, and energy fields.
  * @throws {ParseError} if the DataView is too short to contain valid HR data.
+ *
+ * @example
+ * ```typescript
+ * const data = new DataView(event.target.value.buffer);
+ * const packet = parseHeartRate(data, Date.now());
+ * console.log(packet.hr, packet.rrIntervals);
+ * ```
  */
 export function parseHeartRate(data: DataView, timestamp?: number): HRPacket {
   if (data.byteLength < 2) {
