@@ -134,4 +134,59 @@ describe('SessionRecorder', () => {
     recorder.ingest(makePacket(1000, 170)); // 170/200 = 85% → zone 5 with these thresholds
     expect(recorder.currentZone()).toBe(5);
   });
+
+  it('skips packets with backward timestamps', () => {
+    const recorder = new SessionRecorder(config);
+
+    recorder.ingest(makePacket(2000, 80));
+    recorder.ingest(makePacket(1000, 72)); // backward timestamp, should be skipped
+    recorder.ingest(makePacket(3000, 90));
+
+    const session = recorder.end();
+    expect(session.samples).toHaveLength(2);
+    expect(session.samples[0]!.hr).toBe(80);
+    expect(session.samples[1]!.hr).toBe(90);
+  });
+
+  it('skips packets with negative HR', () => {
+    const recorder = new SessionRecorder(config);
+
+    recorder.ingest(makePacket(1000, -5));
+    recorder.ingest(makePacket(2000, 80));
+
+    const session = recorder.end();
+    expect(session.samples).toHaveLength(1);
+    expect(session.samples[0]!.hr).toBe(80);
+  });
+
+  it('skips packets with HR > 300', () => {
+    const recorder = new SessionRecorder(config);
+
+    recorder.ingest(makePacket(1000, 80));
+    recorder.ingest(makePacket(2000, 301)); // above 300, should be skipped
+
+    const session = recorder.end();
+    expect(session.samples).toHaveLength(1);
+    expect(session.samples[0]!.hr).toBe(80);
+  });
+
+  it('accepts HR at boundary values 0 and 300', () => {
+    const recorder = new SessionRecorder(config);
+
+    recorder.ingest(makePacket(1000, 0));
+    recorder.ingest(makePacket(2000, 300));
+
+    const session = recorder.end();
+    expect(session.samples).toHaveLength(2);
+  });
+
+  it('accepts equal timestamps (not backward)', () => {
+    const recorder = new SessionRecorder(config);
+
+    recorder.ingest(makePacket(1000, 80));
+    recorder.ingest(makePacket(1000, 85)); // same timestamp is OK
+
+    const session = recorder.end();
+    expect(session.samples).toHaveLength(2);
+  });
 });

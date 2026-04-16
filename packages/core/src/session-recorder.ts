@@ -7,43 +7,14 @@ import type {
   RoundMeta,
   HRZoneConfig,
   ReadableStream,
-  Unsubscribe,
   DeviceProfile,
 } from './types.js';
 import { SESSION_SCHEMA_VERSION } from './types.js';
 import { hrToZone } from './zones.js';
 import { HRKitError } from './errors.js';
+import { SimpleStream } from './stream.js';
 
 type Zone = 1 | 2 | 3 | 4 | 5;
-
-/**
- * Minimal observable stream with BehaviorSubject-like semantics.
- * Emits the current value to new subscribers immediately on subscribe.
- */
-class SimpleStream<T> implements ReadableStream<T> {
-  private listeners = new Set<(value: T) => void>();
-  private current: T | undefined;
-
-  subscribe(listener: (value: T) => void): Unsubscribe {
-    this.listeners.add(listener);
-    // Emit current value on subscribe (BehaviorSubject semantics)
-    if (this.current !== undefined) {
-      listener(this.current);
-    }
-    return () => this.listeners.delete(listener);
-  }
-
-  get(): T | undefined {
-    return this.current;
-  }
-
-  emit(value: T): void {
-    this.current = value;
-    for (const listener of this.listeners) {
-      listener(value);
-    }
-  }
-}
 
 /**
  * Stateful session recorder that ingests HRPacket events and builds a Session.
@@ -100,19 +71,42 @@ export class SessionRecorder {
     };
   }
 
-  /** Set device info to be included in the session output. */
+  /**
+   * Set device info to be included in the session output.
+   *
+   * @param info - Device identifier, name, and optional profile.
+   */
   setDeviceInfo(info: { id: string; name: string; profile?: DeviceProfile }): void {
     this._deviceInfo = info;
   }
 
-  /** Set arbitrary metadata to be included in the session output. */
+  /**
+   * Set arbitrary metadata to be included in the session output.
+   *
+   * @param metadata - Key-value pairs (e.g., activity type, athlete info).
+   */
   setMetadata(metadata: Record<string, unknown>): void {
     this._metadata = metadata;
   }
 
-  /** Feed an HR packet into the session. Updates samples, RR intervals, and streams. Ignored when paused. */
+  /**
+   * Feed an HR packet into the session. Updates samples, RR intervals, and streams.
+   * Ignored when paused. Silently skips backward timestamps and physiologically invalid HR (< 0 or > 300 bpm).
+   *
+   * @param packet - Parsed HR packet from BLE or mock transport.
+   */
   ingest(packet: HRPacket): void {
     if (this._paused) return;
+
+    // Validate timestamp monotonicity (skip backward timestamps)
+    if (this.lastPacketTime !== null && packet.timestamp < this.lastPacketTime) {
+      return;
+    }
+
+    // Validate HR is in physiological range (skip obviously bad data)
+    if (packet.hr < 0 || packet.hr > 300) {
+      return;
+    }
 
     if (this.startTime === null) {
       this.startTime = packet.timestamp;
@@ -132,7 +126,12 @@ export class SessionRecorder {
     this.zoneStream.emit(hrToZone(packet.hr, this.zoneConfig));
   }
 
-  /** Begin a new round. Subsequent ingested packets are recorded to this round. Throws if a round is already in progress. */
+  /**
+   * Begin a new round. Subsequent ingested packets are recorded to this round.
+   *
+   * @param meta - Optional round metadata (label, custom key-value pairs).
+   * @throws {HRKitError} if a round is already in progress.
+   */
   startRound(meta?: RoundMeta): void {
     if (this.currentRound) {
       throw new HRKitError('Cannot start a new round while one is already in progress. Call endRound() first.');
@@ -145,7 +144,13 @@ export class SessionRecorder {
     };
   }
 
-  /** End the current round and return its data. Throws if no round is in progress. */
+  /**
+   * End the current round and return its data.
+   *
+   * @param meta - Optional metadata to override the meta set at `startRound()`.
+   * @returns The completed {@link Round} with samples, RR intervals, and timing.
+   * @throws {HRKitError} if no round is in progress.
+   */
   endRound(meta?: RoundMeta): Round {
     if (!this.currentRound) {
       throw new HRKitError('No round in progress');
@@ -180,23 +185,40 @@ export class SessionRecorder {
     return this._paused;
   }
 
-  /** Latest ingested heart rate, or `null` if no data yet. */
+  /**
+   * Latest ingested heart rate, or `null` if no data yet.
+   *
+   * @returns Current HR in bpm, or `null` before the first packet.
+   */
   currentHR(): number | null {
     return this.hrStream.get() ?? null;
   }
 
-  /** Latest computed HR zone (1–5), or `null` if no data yet. */
+  /**
+   * Latest computed HR zone (1–5), or `null` if no data yet.
+   *
+   * @returns Current zone (1–5), or `null` before the first packet.
+   */
   currentZone(): Zone | null {
     return this.zoneStream.get() ?? null;
   }
 
-  /** Seconds elapsed since the first ingested packet (based on packet timestamps). */
+  /**
+   * Seconds elapsed since the first ingested packet (based on packet timestamps).
+   *
+   * @returns Elapsed time in seconds, or 0 if no packets have been ingested.
+   */
   elapsedSeconds(): number {
     if (this.startTime === null || this.lastPacketTime === null) return 0;
     return (this.lastPacketTime - this.startTime) / 1000;
   }
 
-  /** Finalize the session and return the complete Session object. Auto-closes any open round. Returns a snapshot (safe from later mutation). */
+  /**
+   * Finalize the session and return the complete Session object.
+   * Auto-closes any open round. Returns a deep snapshot safe from later mutation.
+   *
+   * @returns The completed {@link Session} with all samples, RR intervals, rounds, and config.
+   */
   end(): Session {
     // Auto-close open round
     if (this.currentRound) {
