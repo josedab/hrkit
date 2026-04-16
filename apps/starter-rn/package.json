@@ -1,0 +1,10 @@
+{
+  "name": "@hrkit/starter-rn",
+  "version": "0.1.0",
+  "private": true,
+  "description": "React Native starter app template for @hrkit BLE heart rate monitoring",
+  "dependencies": {
+    "@hrkit/core": "workspace:*",
+    "@hrkit/react-native": "workspace:*"
+  }
+}
