@@ -8,7 +8,9 @@ import type {
   HRZoneConfig,
   ReadableStream,
   Unsubscribe,
+  DeviceProfile,
 } from './types.js';
+import { SESSION_SCHEMA_VERSION } from './types.js';
 import { hrToZone } from './zones.js';
 
 type Zone = 1 | 2 | 3 | 4 | 5;
@@ -47,6 +49,7 @@ class SimpleStream<T> implements ReadableStream<T> {
  *
  * Supports round-based tracking for interval training (e.g., BJJ rounds,
  * HIIT intervals). Provides real-time observable streams for HR and zone.
+ * Supports pause/resume for interruptions without data loss.
  *
  * @example
  * ```typescript
@@ -64,6 +67,7 @@ export class SessionRecorder {
   private config: SessionConfig;
   private zoneConfig: HRZoneConfig;
   private startTime: number | null = null;
+  private lastPacketTime: number | null = null;
   private samples: TimestampedHR[] = [];
   private rrIntervals: number[] = [];
   private rounds: Round[] = [];
@@ -73,9 +77,13 @@ export class SessionRecorder {
     rrIntervals: number[];
     meta?: RoundMeta;
   } | null = null;
+  private _paused = false;
 
   private hrStream = new SimpleStream<number>();
   private zoneStream = new SimpleStream<Zone>();
+
+  private _deviceInfo?: { id: string; name: string; profile?: DeviceProfile };
+  private _metadata?: Record<string, unknown>;
 
   /** Observable stream of heart rate values. Emits current value on subscribe. */
   readonly hr$: ReadableStream<number> = this.hrStream;
@@ -91,11 +99,24 @@ export class SessionRecorder {
     };
   }
 
-  /** Feed an HR packet into the session. Updates samples, RR intervals, and streams. */
+  /** Set device info to be included in the session output. */
+  setDeviceInfo(info: { id: string; name: string; profile?: DeviceProfile }): void {
+    this._deviceInfo = info;
+  }
+
+  /** Set arbitrary metadata to be included in the session output. */
+  setMetadata(metadata: Record<string, unknown>): void {
+    this._metadata = metadata;
+  }
+
+  /** Feed an HR packet into the session. Updates samples, RR intervals, and streams. Ignored when paused. */
   ingest(packet: HRPacket): void {
+    if (this._paused) return;
+
     if (this.startTime === null) {
       this.startTime = packet.timestamp;
     }
+    this.lastPacketTime = packet.timestamp;
 
     const sample: TimestampedHR = { timestamp: packet.timestamp, hr: packet.hr };
     this.samples.push(sample);
@@ -113,7 +134,7 @@ export class SessionRecorder {
   /** Begin a new round. Subsequent ingested packets are recorded to this round. */
   startRound(meta?: RoundMeta): void {
     this.currentRound = {
-      startTime: Date.now(),
+      startTime: this.lastPacketTime ?? Date.now(),
       samples: [],
       rrIntervals: [],
       meta,
@@ -129,7 +150,7 @@ export class SessionRecorder {
     const round: Round = {
       index: this.rounds.length,
       startTime: this.currentRound.startTime,
-      endTime: Date.now(),
+      endTime: this.lastPacketTime ?? Date.now(),
       samples: this.currentRound.samples,
       rrIntervals: this.currentRound.rrIntervals,
       meta: meta ?? this.currentRound.meta,
@@ -138,6 +159,21 @@ export class SessionRecorder {
     this.rounds.push(round);
     this.currentRound = null;
     return round;
+  }
+
+  /** Pause recording. Ingested packets are ignored until `resume()` is called. */
+  pause(): void {
+    this._paused = true;
+  }
+
+  /** Resume recording after a pause. */
+  resume(): void {
+    this._paused = false;
+  }
+
+  /** Whether the recorder is currently paused. */
+  get paused(): boolean {
+    return this._paused;
   }
 
   /** Latest ingested heart rate, or `null` if no data yet. */
@@ -150,21 +186,25 @@ export class SessionRecorder {
     return this.zoneStream.get() ?? null;
   }
 
-  /** Seconds elapsed since the first ingested packet. */
+  /** Seconds elapsed since the first ingested packet (based on packet timestamps). */
   elapsedSeconds(): number {
-    if (this.startTime === null) return 0;
-    return (Date.now() - this.startTime) / 1000;
+    if (this.startTime === null || this.lastPacketTime === null) return 0;
+    return (this.lastPacketTime - this.startTime) / 1000;
   }
 
   /** Finalize the session and return the complete Session object. */
   end(): Session {
+    const now = this.lastPacketTime ?? Date.now();
     return {
-      startTime: this.startTime ?? Date.now(),
-      endTime: Date.now(),
+      schemaVersion: SESSION_SCHEMA_VERSION,
+      startTime: this.startTime ?? now,
+      endTime: now,
       samples: this.samples,
       rrIntervals: this.rrIntervals,
       rounds: this.rounds,
       config: this.config,
+      deviceInfo: this._deviceInfo,
+      metadata: this._metadata,
     };
   }
 }
