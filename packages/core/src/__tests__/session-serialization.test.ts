@@ -165,6 +165,88 @@ describe('sessionFromJSON', () => {
     const json = sessionToJSON(session);
     expect(() => sessionFromJSON(json)).not.toThrow();
   });
+
+  it('throws ParseError on malformed sample (missing hr)', () => {
+    const json = JSON.stringify({
+      schemaVersion: 1,
+      startTime: 0,
+      endTime: 1,
+      samples: [{ timestamp: 1000 }],
+      rrIntervals: [],
+      rounds: [],
+      config: { maxHR: 185 },
+    });
+    expect(() => sessionFromJSON(json)).toThrow(ParseError);
+    expect(() => sessionFromJSON(json)).toThrow('samples must contain objects with timestamp and hr fields');
+  });
+
+  it('throws ParseError on malformed RR intervals (strings)', () => {
+    const json = JSON.stringify({
+      schemaVersion: 1,
+      startTime: 0,
+      endTime: 1,
+      samples: [],
+      rrIntervals: ['bad', 'data'],
+      rounds: [],
+      config: { maxHR: 185 },
+    });
+    expect(() => sessionFromJSON(json)).toThrow(ParseError);
+    expect(() => sessionFromJSON(json)).toThrow('rrIntervals must contain numbers');
+  });
+
+  it('throws ParseError on malformed round (missing startTime)', () => {
+    const json = JSON.stringify({
+      schemaVersion: 1,
+      startTime: 0,
+      endTime: 1,
+      samples: [],
+      rrIntervals: [],
+      rounds: [{ index: 0, endTime: 5 }],
+      config: { maxHR: 185 },
+    });
+    expect(() => sessionFromJSON(json)).toThrow(ParseError);
+    expect(() => sessionFromJSON(json)).toThrow('rounds must contain objects with index, startTime, and endTime fields');
+  });
+
+  it('throws ParseError on missing config.maxHR', () => {
+    const json = JSON.stringify({
+      schemaVersion: 1,
+      startTime: 0,
+      endTime: 1,
+      samples: [],
+      rrIntervals: [],
+      rounds: [],
+      config: { restHR: 50 },
+    });
+    expect(() => sessionFromJSON(json)).toThrow(ParseError);
+    expect(() => sessionFromJSON(json)).toThrow('config must contain a maxHR field');
+  });
+
+  it('throws ParseError when endTime < startTime', () => {
+    const json = JSON.stringify({
+      schemaVersion: 1,
+      startTime: 5000,
+      endTime: 1000,
+      samples: [],
+      rrIntervals: [],
+      rounds: [],
+      config: { maxHR: 185 },
+    });
+    expect(() => sessionFromJSON(json)).toThrow(ParseError);
+    expect(() => sessionFromJSON(json)).toThrow('endTime must be >= startTime');
+  });
+
+  it('valid session still passes after deep validation (regression)', () => {
+    const session = makeSession();
+    const json = sessionToJSON(session);
+    const restored = sessionFromJSON(json);
+
+    expect(restored.schemaVersion).toBe(SESSION_SCHEMA_VERSION);
+    expect(restored.samples).toHaveLength(5);
+    expect(restored.rrIntervals).toEqual([833, 706, 500, 400, 462]);
+    expect(restored.rounds).toHaveLength(1);
+    expect(restored.config.maxHR).toBe(185);
+  });
 });
 
 describe('sessionToCSV', () => {
@@ -227,5 +309,23 @@ describe('roundsToCSV', () => {
     const lines = csv.split('\n');
 
     expect(lines[1]).toContain('""'); // empty label
+  });
+
+  it('escapes double quotes in round labels', () => {
+    const session = makeSession({
+      rounds: [{
+        index: 0,
+        startTime: 1000,
+        endTime: 3000,
+        samples: [{ timestamp: 1000, hr: 120 }],
+        rrIntervals: [],
+        meta: { label: 'Round "A"' },
+      }],
+    });
+    const csv = roundsToCSV(session);
+    const lines = csv.split('\n');
+
+    // Quotes inside the label should be doubled
+    expect(lines[1]).toContain('"Round ""A"""');
   });
 });
