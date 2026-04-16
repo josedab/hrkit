@@ -119,7 +119,9 @@ describe('SessionRecorder', () => {
 
     const session = recorder.end();
 
+    expect(session.schemaVersion).toBe(1);
     expect(session.startTime).toBe(1000);
+    expect(session.endTime).toBe(2000);
     expect(session.samples).toHaveLength(2);
     expect(session.rrIntervals).toEqual([833, 750]);
     expect(session.config).toEqual(config);
