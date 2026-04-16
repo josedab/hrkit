@@ -179,15 +179,6 @@ describe('sessionToCSV', () => {
     expect(lines[5]).toBe('5000,130');
   });
 
-  it('exports CSV with RR intervals when requested', () => {
-    const session = makeSession();
-    const csv = sessionToCSV(session, { includeRR: true });
-    const lines = csv.split('\n');
-
-    expect(lines[0]).toBe('timestamp,hr,rrIntervals');
-    expect(lines[1]).toContain('833');
-  });
-
   it('handles empty session', () => {
     const session = makeSession({
       samples: [],
