@@ -27,4 +27,7 @@ dist/
 # Environment
 .env
 .env.local
+
+
 CLAUDE.md
+hrkit-sdk-prd.md
