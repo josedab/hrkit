@@ -161,12 +161,16 @@ export class ReactNativeTransport implements BLETransport {
               return;
             }
 
-            const dataView = base64ToDataView(char.value);
-            const packet = parseHeartRate(dataView);
-            queue.push(packet);
-            if (resolve) {
-              resolve();
-              resolve = null;
+            try {
+              const dataView = base64ToDataView(char.value);
+              const packet = parseHeartRate(dataView);
+              queue.push(packet);
+              if (resolve) {
+                resolve();
+                resolve = null;
+              }
+            } catch {
+              // Skip malformed packets rather than crashing the stream
             }
           },
         );

@@ -95,11 +95,15 @@ export class WebBluetoothTransport implements BLETransport {
         const handler = (event: Event) => {
           const target = event.target as BluetoothRemoteGATTCharacteristic;
           if (target.value) {
-            const packet = parseHeartRate(target.value);
-            queue.push(packet);
-            if (resolve) {
-              resolve();
-              resolve = null;
+            try {
+              const packet = parseHeartRate(target.value);
+              queue.push(packet);
+              if (resolve) {
+                resolve();
+                resolve = null;
+              }
+            } catch {
+              // Skip malformed packets rather than crashing the stream
             }
           }
         };
