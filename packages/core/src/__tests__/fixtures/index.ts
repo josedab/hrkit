@@ -1,10 +1,10 @@
 import type { MockFixture } from '../../mock-transport.js';
 
 /**
- * Simulated Polar H10 BJJ sparring session.
- * High intensity, variable HR, includes RR intervals.
+ * Simulated Polar H10 high-intensity interval session.
+ * Variable HR with RR intervals — suitable for testing metrics under load.
  */
-export const BJJ_SESSION_FIXTURE: MockFixture = {
+export const HIGH_INTENSITY_FIXTURE: MockFixture = {
   device: { id: 'h10-001', name: 'Polar H10 A1B2C3', rssi: -45 },
   packets: [
     { timestamp: 1000, hr: 72, rrIntervals: [833], contactDetected: true },
@@ -29,6 +29,9 @@ export const BJJ_SESSION_FIXTURE: MockFixture = {
     { timestamp: 20000, hr: 168, rrIntervals: [357], contactDetected: true },
   ],
 };
+
+/** @deprecated Use HIGH_INTENSITY_FIXTURE instead. */
+export const BJJ_SESSION_FIXTURE = HIGH_INTENSITY_FIXTURE;
 
 /**
  * Simulated H10 morning 5-minute rest reading.
