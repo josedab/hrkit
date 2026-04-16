@@ -3,9 +3,9 @@ import type {
   DeviceProfile,
   HRConnection,
   ReadableStream,
-  Unsubscribe,
 } from './types.js';
 import { ConnectionError } from './errors.js';
+import { SimpleStream } from './stream.js';
 
 // ── Connection State ────────────────────────────────────────────────────
 
@@ -27,31 +27,6 @@ export interface ManagedConnection {
   readonly state: ConnectionState;
   /** Disconnect and stop any reconnection attempts. */
   disconnect(): Promise<void>;
-}
-
-// Minimal inline stream (avoids importing SessionRecorder internals)
-class StateStream<T> implements ReadableStream<T> {
-  private listeners = new Set<(value: T) => void>();
-  private current: T | undefined;
-
-  constructor(initial?: T) {
-    this.current = initial;
-  }
-
-  subscribe(listener: (value: T) => void): Unsubscribe {
-    this.listeners.add(listener);
-    if (this.current !== undefined) listener(this.current);
-    return () => this.listeners.delete(listener);
-  }
-
-  get(): T | undefined {
-    return this.current;
-  }
-
-  emit(value: T): void {
-    this.current = value;
-    for (const listener of this.listeners) listener(value);
-  }
 }
 
 // ── Reconnection ────────────────────────────────────────────────────────
@@ -76,6 +51,11 @@ export interface ReconnectConfig {
  * Note: this retries the initial connection only. It does not
  * automatically reconnect after a successful connection is lost.
  *
+ * @param transport - Platform-specific BLE transport implementation.
+ * @param deviceId - BLE device identifier to connect to.
+ * @param profile - Device profile describing capabilities and service UUIDs.
+ * @param config - Optional reconnection parameters (maxAttempts, delays, backoff).
+ * @returns A {@link ManagedConnection} wrapping the connected device.
  * @throws {ConnectionError} if all retry attempts are exhausted.
  */
 export async function connectWithRetry(
@@ -91,7 +71,8 @@ export async function connectWithRetry(
     backoffMultiplier = 1.5,
   } = config;
 
-  const stateStream = new StateStream<ConnectionState>('idle');
+  const stateStream = new SimpleStream<ConnectionState>();
+  stateStream.emit('idle');
   let currentConn: HRConnection | null = null;
   let stopped = false;
 
@@ -116,7 +97,9 @@ export async function connectWithRetry(
           );
         }
         await new Promise<void>((r) => setTimeout(r, delay));
-        delay = Math.min(delay * backoffMultiplier, maxDelayMs);
+        // Exponential backoff with ±10% jitter to prevent thundering herd
+        const jitter = delay * (0.9 + Math.random() * 0.2);
+        delay = Math.min(jitter * backoffMultiplier, maxDelayMs);
       }
     }
 
