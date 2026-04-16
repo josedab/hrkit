@@ -31,6 +31,11 @@ const sidebars: SidebarsConfig = {
         'guides/react-native',
         'guides/web-bluetooth',
         'guides/custom-transport',
+        'guides/multi-device',
+        'guides/server',
+        'guides/widgets',
+        'guides/workout-protocols',
+        'guides/troubleshooting',
       ],
     },
     {

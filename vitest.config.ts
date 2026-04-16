@@ -6,7 +6,10 @@ export default defineConfig({
     alias: {
       '@hrkit/core': path.resolve(__dirname, 'packages/core/src/index.ts'),
       '@hrkit/polar': path.resolve(__dirname, 'packages/polar/src/index.ts'),
+      '@hrkit/react-native': path.resolve(__dirname, 'packages/react-native/src/index.ts'),
+      '@hrkit/web': path.resolve(__dirname, 'packages/web/src/index.ts'),
       '@hrkit/server': path.resolve(__dirname, 'packages/server/src/index.ts'),
+      '@hrkit/widgets': path.resolve(__dirname, 'packages/widgets/src/index.ts'),
     },
   },
   test: {
