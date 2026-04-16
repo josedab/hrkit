@@ -83,5 +83,9 @@ export async function connectToDevice(
     throw new DeviceNotFoundError('No compatible device found');
   };
 
-  return Promise.race([scanLoop(), scanTimeout]);
+  try {
+    return await Promise.race([scanLoop(), scanTimeout]);
+  } finally {
+    await transport.stopScan().catch(() => {});
+  }
 }
