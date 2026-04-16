@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { useState } from 'react';
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { HistoryScreen } from './screens/HistoryScreen';
 import { ScanScreen } from './screens/ScanScreen';
 import { SessionScreen } from './screens/SessionScreen';
-import { HistoryScreen } from './screens/HistoryScreen';
 
 type Screen = 'scan' | 'session' | 'history';
 
@@ -33,26 +33,14 @@ export default function App() {
       </View>
       <View style={styles.tabBar}>
         <TabButton label="Scan" active={screen === 'scan'} onPress={() => setScreen('scan')} />
-        <TabButton
-          label="Session"
-          active={screen === 'session'}
-          onPress={() => deviceId && setScreen('session')}
-        />
+        <TabButton label="Session" active={screen === 'session'} onPress={() => deviceId && setScreen('session')} />
         <TabButton label="History" active={screen === 'history'} onPress={() => setScreen('history')} />
       </View>
     </SafeAreaView>
   );
 }
 
-function TabButton({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
+function TabButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
     <TouchableOpacity style={[styles.tab, active && styles.activeTab]} onPress={onPress}>
       <Text style={[styles.tabText, active && styles.activeTabText]}>{label}</Text>

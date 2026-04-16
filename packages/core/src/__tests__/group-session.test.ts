@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import type { AthleteConfig, AthleteState, GroupStats, ZoneHeatmap } from '../group-session.js';
 import { GroupSession } from '../group-session.js';
-import type { AthleteConfig, AthleteState, ZoneHeatmap, GroupStats } from '../group-session.js';
 import type { HRPacket } from '../types.js';
 
 function makePacket(hr: number, timestamp: number): HRPacket {

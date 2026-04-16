@@ -1,6 +1,6 @@
-import { useRef, useCallback, useState } from 'react';
-import { SessionRecorder, analyzeSession } from '@hrkit/core';
-import type { SessionConfig, SessionAnalysis, HRPacket } from '@hrkit/core';
+import type { HRPacket, SessionAnalysis, SessionConfig } from '@hrkit/core';
+import { analyzeSession, SessionRecorder } from '@hrkit/core';
+import { useCallback, useRef, useState } from 'react';
 
 export interface UseHRKitOptions {
   config: SessionConfig;
@@ -64,12 +64,12 @@ export function useHRKit(options: UseHRKitOptions): UseHRKitReturn {
 
   const startSession = useCallback(() => {
     // Clean up any previous session
-    unsubsRef.current.forEach((unsub) => unsub());
+    unsubsRef.current.forEach((unsub) => {
+      unsub();
+    });
     unsubsRef.current = [];
 
     const recorder = new SessionRecorder(options.config);
-
-    // Subscribe to real-time HR and zone streams
     const unsubHR = recorder.hr$.subscribe((value) => setHR(value));
     const unsubZone = recorder.zone$.subscribe((value) => setZone(value));
     unsubsRef.current = [unsubHR, unsubZone];
@@ -87,7 +87,9 @@ export function useHRKit(options: UseHRKitOptions): UseHRKitReturn {
     const analysis = analyzeSession(session);
 
     // Clean up subscriptions
-    unsubsRef.current.forEach((unsub) => unsub());
+    unsubsRef.current.forEach((unsub) => {
+      unsub();
+    });
     unsubsRef.current = [];
     recorderRef.current = null;
 

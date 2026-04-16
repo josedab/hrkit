@@ -1,14 +1,8 @@
-import type {
-  Session,
-  TRIMPConfig,
-  HRZoneConfig,
-  ZoneDistribution,
-  ArtifactFilterResult,
-} from './types.js';
-import { rmssd, sdnn, pnn50, meanHR } from './hrv.js';
-import { zoneDistribution } from './zones.js';
-import { trimp } from './trimp.js';
 import { filterArtifacts } from './artifact-filter.js';
+import { meanHR, pnn50, rmssd, sdnn } from './hrv.js';
+import { trimp } from './trimp.js';
+import type { ArtifactFilterResult, HRZoneConfig, Session, TRIMPConfig, ZoneDistribution } from './types.js';
+import { zoneDistribution } from './zones.js';
 
 /** Complete post-session analysis result. */
 export interface SessionAnalysis {
@@ -65,9 +59,7 @@ export function analyzeSession(session: Session): SessionAnalysis {
   const { samples, rrIntervals, config } = session;
 
   // Duration
-  const durationSec = samples.length >= 2
-    ? (samples[samples.length - 1]!.timestamp - samples[0]!.timestamp) / 1000
-    : 0;
+  const durationSec = samples.length >= 2 ? (samples[samples.length - 1]!.timestamp - samples[0]!.timestamp) / 1000 : 0;
 
   // HR statistics from samples
   const hrs = samples.map((s) => s.hr);

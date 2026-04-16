@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { parseHeartRate } from '../gatt-parser.js';
+import { describe, expect, it } from 'vitest';
 import { ParseError } from '../errors.js';
+import { parseHeartRate } from '../gatt-parser.js';
 
-function buildHRData(options: {
+function _buildHRData(options: {
   hr: number;
   is16Bit?: boolean;
   contactDetected?: boolean;
@@ -100,7 +100,7 @@ describe('parseHeartRate — bounds checking', () => {
   it('handles odd trailing byte in RR section', () => {
     // RR flag set with 3 extra bytes (1 complete RR + 1 trailing)
     const flags = 0x10 | 0x06;
-    const data = new DataView(new Uint8Array([flags, 72, 0x34, 0x03, 0xFF]).buffer);
+    const data = new DataView(new Uint8Array([flags, 72, 0x34, 0x03, 0xff]).buffer);
     const result = parseHeartRate(data);
     expect(result.rrIntervals).toHaveLength(1);
   });

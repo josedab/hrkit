@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import type { FusedHRPacket } from '../multi-device.js';
 import { MultiDeviceManager } from '../multi-device.js';
-import type { HRConnection, HRPacket, DeviceProfile } from '../types.js';
-import type { FusedHRPacket, DeviceQuality } from '../multi-device.js';
+import type { DeviceProfile, HRConnection, HRPacket } from '../types.js';
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
@@ -50,17 +50,10 @@ class MockConnection implements HRConnection {
 }
 
 /** Wait for a stream to emit at least `count` values, with timeout. */
-function collectFused(
-  manager: MultiDeviceManager,
-  count: number,
-  timeoutMs = 2000,
-): Promise<FusedHRPacket[]> {
-  return new Promise<FusedHRPacket[]>((resolve, reject) => {
+function collectFused(manager: MultiDeviceManager, count: number, timeoutMs = 2000): Promise<FusedHRPacket[]> {
+  return new Promise<FusedHRPacket[]>((resolve, _reject) => {
     const collected: FusedHRPacket[] = [];
-    const timer = setTimeout(
-      () => resolve(collected),
-      timeoutMs,
-    );
+    const timer = setTimeout(() => resolve(collected), timeoutMs);
     const unsub = manager.fused$.subscribe((pkt) => {
       collected.push(pkt);
       if (collected.length >= count) {
@@ -92,11 +85,7 @@ describe('MultiDeviceManager', () => {
 
   it('addConnection adds a device and emits fused packets', async () => {
     const manager = new MultiDeviceManager();
-    const packets = [
-      makePacket(72, 1000, [830]),
-      makePacket(75, 2000, [800]),
-      makePacket(78, 3000, [770]),
-    ];
+    const packets = [makePacket(72, 1000, [830]), makePacket(75, 2000, [800]), makePacket(78, 3000, [770])];
     const conn = new MockConnection('dev-1', 'Device 1', packets);
 
     const fusedPromise = collectFused(manager, 3);
@@ -189,15 +178,11 @@ describe('MultiDeviceManager', () => {
 
     // Device 1: clean RR intervals
     const cleanRR = [800, 810, 790, 805, 815];
-    const pkts1 = cleanRR.map((rr, i) =>
-      makePacket(75, 1000 + i * 1000, [rr]),
-    );
+    const pkts1 = cleanRR.map((rr, i) => makePacket(75, 1000 + i * 1000, [rr]));
 
     // Device 2: noisy RR intervals (artifacts)
     const noisyRR = [800, 1500, 400, 1200, 300];
-    const pkts2 = noisyRR.map((rr, i) =>
-      makePacket(85, 1000 + i * 1000, [rr]),
-    );
+    const pkts2 = noisyRR.map((rr, i) => makePacket(85, 1000 + i * 1000, [rr]));
 
     const conn1 = new MockConnection('clean', 'Clean Device', pkts1);
     const conn2 = new MockConnection('noisy', 'Noisy Device', pkts2);
@@ -215,9 +200,7 @@ describe('MultiDeviceManager', () => {
 
   it('removeConnection removes device', async () => {
     const manager = new MultiDeviceManager();
-    const conn = new MockConnection('dev-1', 'D1', [
-      makePacket(72, 1000),
-    ]);
+    const conn = new MockConnection('dev-1', 'D1', [makePacket(72, 1000)]);
 
     const fusedPromise = collectFused(manager, 1);
     manager.addConnection(conn);
@@ -230,10 +213,7 @@ describe('MultiDeviceManager', () => {
 
   it('getQuality returns quality metrics', async () => {
     const manager = new MultiDeviceManager();
-    const packets = [
-      makePacket(72, 1000, [830]),
-      makePacket(75, 2000, [800]),
-    ];
+    const packets = [makePacket(72, 1000, [830]), makePacket(75, 2000, [800])];
     const conn = new MockConnection('dev-1', 'Device 1', packets);
 
     const fusedPromise = collectFused(manager, 2);
@@ -264,10 +244,7 @@ describe('MultiDeviceManager', () => {
 
   it('quality score calculation is correct', async () => {
     const manager = new MultiDeviceManager({ staleThresholdMs: 3000 });
-    const packets = [
-      makePacket(72, Date.now() - 500, [830]),
-      makePacket(75, Date.now(), [800]),
-    ];
+    const packets = [makePacket(72, Date.now() - 500, [830]), makePacket(75, Date.now(), [800])];
     const conn = new MockConnection('dev-1', 'D1', packets);
 
     const fusedPromise = collectFused(manager, 2);
@@ -316,9 +293,7 @@ describe('MultiDeviceManager', () => {
   it('handles single device (degenerate case)', async () => {
     for (const strategy of ['primary-fallback', 'consensus', 'best-rr'] as const) {
       const manager = new MultiDeviceManager({ strategy });
-      const conn = new MockConnection('solo', 'Solo', [
-        makePacket(72, 1000, [830]),
-      ]);
+      const conn = new MockConnection('solo', 'Solo', [makePacket(72, 1000, [830])]);
 
       const fusedPromise = collectFused(manager, 1);
       manager.addConnection(conn);

@@ -11,22 +11,22 @@
  * In a real app, replace MockTransport with ReactNativeTransport or WebBluetoothTransport.
  */
 
+import type { HRPacket } from '@hrkit/core';
 import {
-  SessionRecorder,
   connectToDevice,
+  filterArtifacts,
+  hrBaseline,
   MockTransport,
+  meanHR,
+  readinessVerdict,
   rmssd,
+  SessionRecorder,
   sdnn,
   trimp,
   zoneDistribution,
-  readinessVerdict,
-  hrBaseline,
-  filterArtifacts,
-  meanHR,
 } from '@hrkit/core';
 import { GENERIC_HR } from '@hrkit/core/profiles';
-import { POLAR_H10, isPolarConnection } from '@hrkit/polar';
-import type { HRPacket, TimestampedHR, Session } from '@hrkit/core';
+import { isPolarConnection, POLAR_H10 } from '@hrkit/polar';
 
 // ── Mock fixture data (simulating a real BJJ session) ───────────────────
 
@@ -210,7 +210,7 @@ async function main() {
   console.log('\n  Zone Distribution:');
   for (const [zone, seconds] of Object.entries(zones.zones)) {
     const pct = zones.total > 0 ? ((seconds / zones.total) * 100).toFixed(0) : '0';
-    const bar = '█'.repeat(Math.round(seconds / zones.total * 20));
+    const bar = '█'.repeat(Math.round((seconds / zones.total) * 20));
     console.log(`    Zone ${zone}: ${seconds.toFixed(0)}s (${pct}%) ${bar}`);
   }
 
@@ -236,8 +236,7 @@ async function main() {
     console.log(`    HRV: ${roundHRV.toFixed(1)} ms`);
     console.log(`    TRIMP: ${roundTRIMP.toFixed(1)}`);
 
-    const topZone = (Object.entries(roundZones.zones) as [string, number][])
-      .sort((a, b) => b[1] - a[1])[0];
+    const topZone = (Object.entries(roundZones.zones) as [string, number][]).sort((a, b) => b[1] - a[1])[0];
     if (topZone && topZone[1] > 0) {
       console.log(`    Primary zone: Zone ${topZone[0]}`);
     }

@@ -1,12 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // ── @hrkit imports ──────────────────────────────────────────────────────
 // In your real app, uncomment these and remove the demo HRDevice type:
@@ -61,10 +54,7 @@ export function ScanScreen({ onDeviceSelected }: Props) {
   }, []);
 
   const renderDevice = ({ item }: { item: HRDevice }) => (
-    <TouchableOpacity
-      style={styles.deviceCard}
-      onPress={() => onDeviceSelected(item.id, item.name)}
-    >
+    <TouchableOpacity style={styles.deviceCard} onPress={() => onDeviceSelected(item.id, item.name)}>
       <View style={styles.deviceInfo}>
         <Text style={styles.deviceName}>{item.name || 'Unknown Device'}</Text>
         <Text style={styles.deviceId}>{item.id}</Text>
@@ -102,9 +92,7 @@ export function ScanScreen({ onDeviceSelected }: Props) {
         renderItem={renderDevice}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
-          !scanning ? (
-            <Text style={styles.emptyText}>No devices found. Tap scan to search.</Text>
-          ) : null
+          !scanning ? <Text style={styles.emptyText}>No devices found. Tap scan to search.</Text> : null
         }
       />
     </View>
@@ -116,10 +104,7 @@ function SignalBars({ rssi }: { rssi: number }) {
   return (
     <View style={styles.signalBars}>
       {[1, 2, 3, 4].map((i) => (
-        <View
-          key={i}
-          style={[styles.bar, { height: 4 + i * 3 }, i <= bars && styles.barActive]}
-        />
+        <View key={i} style={[styles.bar, { height: 4 + i * 3 }, i <= bars && styles.barActive]} />
       ))}
     </View>
   );

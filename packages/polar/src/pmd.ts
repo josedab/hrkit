@@ -1,4 +1,4 @@
-import type { ECGPacket, ACCPacket, ACCSample } from './types.js';
+import type { ACCPacket, ACCSample, ECGPacket } from './types.js';
 
 // ── PMD Measurement Types ───────────────────────────────────────────────
 
@@ -96,10 +96,7 @@ export function parseECGData(data: DataView): ECGPacket {
     // Delta frame: samples as 3-byte little-endian signed integers (14-bit)
     let offset = 10;
     while (offset + 2 < data.byteLength) {
-      const raw =
-        data.getUint8(offset) |
-        (data.getUint8(offset + 1) << 8) |
-        (data.getUint8(offset + 2) << 16);
+      const raw = data.getUint8(offset) | (data.getUint8(offset + 1) << 8) | (data.getUint8(offset + 2) << 16);
 
       // Sign-extend from 24-bit to 32-bit
       const signed = raw > 0x7fffff ? raw - 0x1000000 : raw;
@@ -161,11 +158,7 @@ export function parsePMDControlResponse(data: DataView): PMDControlResponse {
   const measurementType = data.getUint8(2);
   const status = data.getUint8(3);
 
-  const parameters = new Uint8Array(
-    data.buffer,
-    data.byteOffset + 4,
-    Math.max(0, data.byteLength - 4),
-  );
+  const parameters = new Uint8Array(data.buffer, data.byteOffset + 4, Math.max(0, data.byteLength - 4));
 
   return {
     opCode,
@@ -185,4 +178,4 @@ function readUint64LE(view: DataView, offset: number): number {
   return lo + hi * 0x100000000;
 }
 
-export { PMD_MEASUREMENT_ECG, PMD_MEASUREMENT_ACC };
+export { PMD_MEASUREMENT_ACC, PMD_MEASUREMENT_ECG };

@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { SessionRecorder } from '../session-recorder.js';
-import { SESSION_SCHEMA_VERSION } from '../types.js';
 import type { HRPacket } from '../types.js';
+import { SESSION_SCHEMA_VERSION } from '../types.js';
 
 function makePacket(timestamp: number, hr: number, rrIntervals: number[] = []): HRPacket {
   return { timestamp, hr, rrIntervals, contactDetected: true };

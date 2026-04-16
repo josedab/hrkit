@@ -27,11 +27,7 @@ export class HRKitZoneBar extends HTMLElement {
     this.refresh();
   }
 
-  attributeChangedCallback(
-    _name: string,
-    _oldValue: string | null,
-    _newValue: string | null,
-  ): void {
+  attributeChangedCallback(_name: string, _oldValue: string | null, _newValue: string | null): void {
     this.refresh();
   }
 
@@ -84,7 +80,7 @@ export class HRKitZoneBar extends HTMLElement {
       const seg = document.createElement('div');
       seg.className = 'segment';
       seg.style.background = ZONE_COLORS[z]!;
-      seg.dataset['zone'] = String(z);
+      seg.dataset.zone = String(z);
       seg.textContent = String(z);
       seg.setAttribute('role', 'meter');
       seg.setAttribute('aria-label', `Zone ${z}`);
@@ -109,7 +105,7 @@ export class HRKitZoneBar extends HTMLElement {
     }
 
     for (const seg of this.segments) {
-      const z = Number(seg.dataset['zone']);
+      const z = Number(seg.dataset.zone);
       const isActive = z === zone;
       seg.classList.toggle('active', isActive);
       seg.textContent = showLabels ? String(z) : '';

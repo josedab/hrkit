@@ -1,17 +1,17 @@
-import { describe, it, expect } from 'vitest';
+import type { HRConnection } from '@hrkit/core';
+import { GATT_HR_SERVICE_UUID } from '@hrkit/core';
+import { describe, expect, it } from 'vitest';
+import { isPolarConnection } from '../guards.js';
 import {
-  buildStartECGCommand,
   buildStartACCCommand,
-  buildStopECGCommand,
+  buildStartECGCommand,
   buildStopACCCommand,
-  parseECGData,
+  buildStopECGCommand,
   parseACCData,
+  parseECGData,
   parsePMDControlResponse,
 } from '../pmd.js';
-import { isPolarConnection } from '../guards.js';
-import { POLAR_H10, POLAR_H9, POLAR_OH1 } from '../profiles.js';
-import { GATT_HR_SERVICE_UUID } from '@hrkit/core';
-import type { HRConnection } from '@hrkit/core';
+import { POLAR_H9, POLAR_H10, POLAR_OH1 } from '../profiles.js';
 
 describe('PMD commands', () => {
   it('builds ECG start command', () => {
@@ -53,12 +53,23 @@ describe('parseECGData', () => {
   it('parses ECG data notification', () => {
     // Build a synthetic ECG frame
     const frame = new Uint8Array([
-      0x00,                         // measurement type: ECG
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // timestamp (0)
-      0x00,                         // frame type: 0 (delta)
+      0x00, // measurement type: ECG
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00, // timestamp (0)
+      0x00, // frame type: 0 (delta)
       // 2 samples, 3 bytes each (signed 24-bit LE)
-      0x64, 0x00, 0x00,            // 100 microvolts
-      0x9c, 0xff, 0xff,            // -100 microvolts (0xFFFF9C)
+      0x64,
+      0x00,
+      0x00, // 100 microvolts
+      0x9c,
+      0xff,
+      0xff, // -100 microvolts (0xFFFF9C)
     ]);
 
     const data = new DataView(frame.buffer);
@@ -73,7 +84,14 @@ describe('parseECGData', () => {
   it('parses timestamp from ECG data', () => {
     const frame = new Uint8Array([
       0x00,
-      0x40, 0x42, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, // 1000000 microseconds
+      0x40,
+      0x42,
+      0x0f,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00, // 1000000 microseconds
       0x00,
     ]);
 
@@ -87,13 +105,23 @@ describe('parseECGData', () => {
 describe('parseACCData', () => {
   it('parses ACC data notification', () => {
     const frame = new Uint8Array([
-      0x02,                         // measurement type: ACC
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // timestamp
-      0x00,                         // frame type: 0
+      0x02, // measurement type: ACC
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00, // timestamp
+      0x00, // frame type: 0
       // 1 sample: x=100, y=-50, z=1000 (int16 LE)
-      0x64, 0x00,                   // x = 100
-      0xce, 0xff,                   // y = -50
-      0xe8, 0x03,                   // z = 1000
+      0x64,
+      0x00, // x = 100
+      0xce,
+      0xff, // y = -50
+      0xe8,
+      0x03, // z = 1000
     ]);
 
     const data = new DataView(frame.buffer);

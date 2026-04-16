@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { sessionToTCX } from '../export-tcx.js';
-import { SESSION_SCHEMA_VERSION } from '../types.js';
 import type { Session } from '../types.js';
+import { SESSION_SCHEMA_VERSION } from '../types.js';
 
 function makeSession(overrides?: Partial<Session>): Session {
   return {

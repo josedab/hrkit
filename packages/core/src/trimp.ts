@@ -1,9 +1,9 @@
-import type { TimestampedHR, TRIMPConfig, Session } from './types.js';
+import type { Session, TimestampedHR, TRIMPConfig } from './types.js';
 
 const SEX_FACTORS: Record<TRIMPConfig['sex'], number> = {
   male: 1.92,
   female: 1.67,
-  neutral: 1.80,
+  neutral: 1.8,
 };
 
 /**
@@ -46,11 +46,7 @@ export function trimp(samples: TimestampedHR[], config: TRIMPConfig): number {
  * @param defaultSex - Default sex for TRIMP if session doesn't specify.
  * @returns Sum of TRIMP for sessions within the week.
  */
-export function weeklyTRIMP(
-  sessions: Session[],
-  weekStart: Date,
-  defaultSex: TRIMPConfig['sex'] = 'neutral',
-): number {
+export function weeklyTRIMP(sessions: Session[], weekStart: Date, defaultSex: TRIMPConfig['sex'] = 'neutral'): number {
   const weekStartMs = weekStart.getTime();
   const weekEndMs = weekStartMs + 7 * 24 * 60 * 60 * 1000;
 

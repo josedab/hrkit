@@ -1,11 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import {
-  ZONE_PRESETS,
-  toSessionConfig,
-  toZoneConfig,
-  toTRIMPConfig,
-} from '../zone-presets.js';
+import { describe, expect, it } from 'vitest';
 import type { AthleteProfile } from '../zone-presets.js';
+import { toSessionConfig, toTRIMPConfig, toZoneConfig, ZONE_PRESETS } from '../zone-presets.js';
 
 const athlete: AthleteProfile = {
   maxHR: 185,
@@ -77,20 +72,20 @@ describe('toTRIMPConfig', () => {
 
 describe('zone threshold validation', () => {
   it('rejects zones with values outside [0, 1]', () => {
-    expect(() => toSessionConfig({ ...athlete, zones: [-0.1, 0.7, 0.8, 0.9] }))
-      .toThrow('Zone threshold 0 must be between 0 and 1');
-    expect(() => toSessionConfig({ ...athlete, zones: [0.6, 0.7, 0.8, 1.1] }))
-      .toThrow('Zone threshold 3 must be between 0 and 1');
+    expect(() => toSessionConfig({ ...athlete, zones: [-0.1, 0.7, 0.8, 0.9] })).toThrow(
+      'Zone threshold 0 must be between 0 and 1',
+    );
+    expect(() => toSessionConfig({ ...athlete, zones: [0.6, 0.7, 0.8, 1.1] })).toThrow(
+      'Zone threshold 3 must be between 0 and 1',
+    );
   });
 
   it('rejects non-ascending zone thresholds', () => {
-    expect(() => toSessionConfig({ ...athlete, zones: [0.8, 0.7, 0.6, 0.5] }))
-      .toThrow('strictly ascending order');
+    expect(() => toSessionConfig({ ...athlete, zones: [0.8, 0.7, 0.6, 0.5] })).toThrow('strictly ascending order');
   });
 
   it('rejects equal adjacent zone thresholds', () => {
-    expect(() => toSessionConfig({ ...athlete, zones: [0.6, 0.6, 0.8, 0.9] }))
-      .toThrow('strictly ascending order');
+    expect(() => toSessionConfig({ ...athlete, zones: [0.6, 0.6, 0.8, 0.9] })).toThrow('strictly ascending order');
   });
 
   it('does not validate named presets (known-good)', () => {
@@ -99,8 +94,7 @@ describe('zone threshold validation', () => {
   });
 
   it('validates custom zones in toZoneConfig', () => {
-    expect(() => toZoneConfig({ ...athlete, zones: [0.9, 0.7, 0.8, 0.6] }))
-      .toThrow('strictly ascending order');
+    expect(() => toZoneConfig({ ...athlete, zones: [0.9, 0.7, 0.8, 0.6] })).toThrow('strictly ascending order');
   });
 
   it('does not validate named presets in toZoneConfig', () => {

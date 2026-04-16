@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { hrToZone, zoneDistribution } from '../zones.js';
+import { describe, expect, it } from 'vitest';
 import type { HRZoneConfig, TimestampedHR } from '../types.js';
+import { hrToZone, zoneDistribution } from '../zones.js';
 
 const defaultConfig: HRZoneConfig = {
   maxHR: 185,
@@ -47,7 +47,7 @@ describe('hrToZone', () => {
 describe('zoneDistribution', () => {
   it('computes time in each zone', () => {
     const samples: TimestampedHR[] = [
-      { timestamp: 0, hr: 100 },    // zone 1, 1s
+      { timestamp: 0, hr: 100 }, // zone 1, 1s
       { timestamp: 1000, hr: 120 }, // zone 2, 1s
       { timestamp: 2000, hr: 140 }, // zone 3, 1s
       { timestamp: 3000, hr: 165 }, // zone 4, 1s
@@ -76,10 +76,10 @@ describe('zoneDistribution', () => {
 
   it('skips gaps longer than 30 seconds', () => {
     const samples: TimestampedHR[] = [
-      { timestamp: 0, hr: 100 },       // zone 1, 1s
-      { timestamp: 1000, hr: 120 },    // zone 2, gap of 60s → skipped
-      { timestamp: 61000, hr: 140 },   // zone 3, 1s
-      { timestamp: 62000, hr: 150 },   // last
+      { timestamp: 0, hr: 100 }, // zone 1, 1s
+      { timestamp: 1000, hr: 120 }, // zone 2, gap of 60s → skipped
+      { timestamp: 61000, hr: 140 }, // zone 3, 1s
+      { timestamp: 62000, hr: 150 }, // last
     ];
 
     const result = zoneDistribution(samples, defaultConfig);

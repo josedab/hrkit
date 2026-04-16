@@ -1,5 +1,4 @@
-import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // ── @hrkit imports ──────────────────────────────────────────────────────
 // In your real app, use SessionAnalysis from @hrkit/core:
@@ -59,9 +58,7 @@ export function HistoryScreen({ onBack }: Props) {
         <Text style={styles.backButton}>← Back</Text>
       </TouchableOpacity>
       <Text style={styles.title}>Session History</Text>
-      <Text style={styles.subtitle}>
-        Review past workouts and training load
-      </Text>
+      <Text style={styles.subtitle}>Review past workouts and training load</Text>
 
       <FlatList
         data={DEMO_SESSIONS}
@@ -79,9 +76,7 @@ export function HistoryScreen({ onBack }: Props) {
             <MiniZoneBar zones={item.zones} />
           </View>
         )}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No sessions recorded yet.</Text>
-        }
+        ListEmptyComponent={<Text style={styles.emptyText}>No sessions recorded yet.</Text>}
       />
     </View>
   );
@@ -102,13 +97,7 @@ function MiniZoneBar({ zones }: { zones: Record<1 | 2 | 3 | 4 | 5, number> }) {
   return (
     <View style={styles.miniBar}>
       {([1, 2, 3, 4, 5] as const).map((z) => (
-        <View
-          key={z}
-          style={[
-            styles.miniSegment,
-            { flex: zones[z] / total, backgroundColor: COLORS[z - 1] },
-          ]}
-        />
+        <View key={z} style={[styles.miniSegment, { flex: zones[z] / total, backgroundColor: COLORS[z - 1] }]} />
       ))}
     </View>
   );

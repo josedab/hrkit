@@ -28,6 +28,9 @@ dist/
 .env
 .env.local
 
+# Coverage
+coverage/
+
 
 CLAUDE.md
 hrkit-sdk-prd.md

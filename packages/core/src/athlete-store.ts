@@ -1,7 +1,7 @@
-import type { Session } from './types.js';
+import { filterArtifacts } from './artifact-filter.js';
 import { rmssd as computeRmssd } from './hrv.js';
 import { trimp as computeTrimp } from './trimp.js';
-import { filterArtifacts } from './artifact-filter.js';
+import type { Session } from './types.js';
 
 // ── Types ───────────────────────────────────────────────────────────────
 
@@ -129,14 +129,9 @@ export class InMemoryAthleteStore implements AthleteStore {
     const durationSec = (session.endTime - session.startTime) / 1000;
 
     const meanHR =
-      session.samples.length > 0
-        ? session.samples.reduce((sum, s) => sum + s.hr, 0) / session.samples.length
-        : 0;
+      session.samples.length > 0 ? session.samples.reduce((sum, s) => sum + s.hr, 0) / session.samples.length : 0;
 
-    const maxHR =
-      session.samples.length > 0
-        ? Math.max(...session.samples.map((s) => s.hr))
-        : 0;
+    const maxHR = session.samples.length > 0 ? Math.max(...session.samples.map((s) => s.hr)) : 0;
 
     const trimpValue = computeTrimp(session.samples, {
       maxHR: session.config.maxHR,
@@ -152,10 +147,7 @@ export class InMemoryAthleteStore implements AthleteStore {
       }
     }
 
-    const activityType =
-      session.metadata?.activityType != null
-        ? String(session.metadata.activityType)
-        : undefined;
+    const activityType = session.metadata?.activityType != null ? String(session.metadata.activityType) : undefined;
 
     const summary: SessionSummary = {
       id,
@@ -254,14 +246,11 @@ export class InMemoryAthleteStore implements AthleteStore {
       }
 
       const rollingAvg =
-        windowValues.length > 0
-          ? windowValues.reduce((s, v) => s + v, 0) / windowValues.length
-          : dayMean;
+        windowValues.length > 0 ? windowValues.reduce((s, v) => s + v, 0) / windowValues.length : dayMean;
 
       let cv = 0;
       if (windowValues.length > 1 && rollingAvg > 0) {
-        const variance =
-          windowValues.reduce((s, v) => s + (v - rollingAvg) ** 2, 0) / windowValues.length;
+        const variance = windowValues.reduce((s, v) => s + (v - rollingAvg) ** 2, 0) / windowValues.length;
         cv = Math.sqrt(variance) / rollingAvg;
       }
 
@@ -332,7 +321,7 @@ export class InMemoryAthleteStore implements AthleteStore {
 
 /** Offset a YYYY-MM-DD date string by `offsetDays` days. */
 function offsetDate(dateStr: string, offsetDays: number): string {
-  const d = new Date(dateStr + 'T00:00:00');
+  const d = new Date(`${dateStr}T00:00:00`);
   d.setDate(d.getDate() + offsetDays);
   return toDateString(d.getTime());
 }

@@ -1,11 +1,5 @@
-import type {
-  BLETransport,
-  DeviceProfile,
-  HRConnection,
-  HRDevice,
-  HRPacket,
-} from './types.js';
 import { DeviceNotFoundError } from './errors.js';
+import type { BLETransport, DeviceProfile, HRConnection, HRDevice, HRPacket } from './types.js';
 
 /** Mock fixture for simulating BLE device data. */
 export interface MockFixture {
@@ -51,10 +45,7 @@ export class MockTransport implements BLETransport {
 
         if (profiles && profiles.length > 0) {
           for (const profile of profiles) {
-            if (
-              profile.namePrefix === '' ||
-              device.name.startsWith(profile.namePrefix)
-            ) {
+            if (profile.namePrefix === '' || device.name.startsWith(profile.namePrefix)) {
               device.profile = profile;
               break;
             }

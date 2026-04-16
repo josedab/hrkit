@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { rmssd, sdnn, pnn50, meanHR, hrBaseline, readinessVerdict } from '../hrv.js';
+import { describe, expect, it } from 'vitest';
+import { hrBaseline, meanHR, pnn50, readinessVerdict, rmssd, sdnn } from '../hrv.js';
 
 describe('rmssd', () => {
   it('returns 0 for fewer than 2 intervals', () => {

@@ -1,6 +1,6 @@
 # @hrkit — BLE Heart Rate SDK
 
-[![CI](https://github.com/josedab/hrkit/actions/workflows/ci.yml/badge.svg)](https://github.com/josedab/hrkit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)](https://www.typescriptlang.org/)
+[![CI](https://github.com/josedab/hrkit/actions/workflows/ci.yml/badge.svg)](https://github.com/josedab/hrkit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)](https://www.typescriptlang.org/) [![codecov](https://codecov.io/gh/josedab/hrkit/branch/main/graph/badge.svg)](https://codecov.io/gh/josedab/hrkit)
 
 A platform-agnostic TypeScript SDK for BLE heart rate sensors. Works with **any** standard BLE HR device (Polar, Garmin, Wahoo, Magene, generic straps). Polar devices with PMD support unlock additional protocol-level capabilities for ECG and accelerometer data parsing.
 
@@ -14,6 +14,8 @@ A platform-agnostic TypeScript SDK for BLE heart rate sensors. Works with **any*
 | [`@hrkit/polar`](packages/polar/) | Polar PMD protocol utilities: ECG + accelerometer command builders and parsers | [README](packages/polar/README.md) |
 | [`@hrkit/react-native`](packages/react-native/) | BLE adapter for `react-native-ble-plx` | [README](packages/react-native/README.md) |
 | [`@hrkit/web`](packages/web/) | BLE adapter for Web Bluetooth API | [README](packages/web/README.md) |
+| [`@hrkit/server`](packages/server/) | Streaming HR data server: WebSocket and SSE broadcasting | [README](packages/server/README.md) |
+| [`@hrkit/widgets`](packages/widgets/) | Live dashboard Web Components: heart rate gauge, zone bar, HR chart | [README](packages/widgets/README.md) |
 
 ## Architecture
 
@@ -23,11 +25,14 @@ graph TD
     POLAR["@hrkit/polar<br/><i>PMD protocol utilities</i>"]
     RN["@hrkit/react-native<br/><i>react-native-ble-plx</i>"]
     WEB["@hrkit/web<br/><i>Web Bluetooth API</i>"]
+    SERVER["@hrkit/server<br/><i>WebSocket + SSE</i>"]
+    WIDGETS["@hrkit/widgets<br/><i>Web Components</i>"]
     BJJ["apps/bjj<br/><i>reference app</i>"]
 
     POLAR -->|depends on| CORE
     RN -->|depends on| CORE
     WEB -->|depends on| CORE
+    SERVER -->|depends on| CORE
     BJJ -->|depends on| CORE
     BJJ -->|depends on| POLAR
 ```
@@ -45,6 +50,8 @@ BLE adapter → HRConnection → HRPacket → SessionRecorder → Session → me
 | Use HR metrics in a React Native app     | `@hrkit/core` + `@hrkit/react-native`    |
 | Use HR metrics in a browser app          | `@hrkit/core` + `@hrkit/web`             |
 | Parse Polar PMD protocol frames          | `@hrkit/core` + `@hrkit/polar`           |
+| Stream HR data to WebSocket/SSE clients  | `@hrkit/core` + `@hrkit/server`          |
+| Add live HR dashboard widgets            | `@hrkit/widgets`                         |
 | Prototype/test without BLE hardware      | `@hrkit/core` (includes `MockTransport`) |
 | Build a custom platform adapter          | `@hrkit/core` (implement `BLETransport`) |
 
@@ -188,9 +195,15 @@ if (isPolarConnection(conn) && conn.profile.capabilities.includes('ecg')) {
 ```bash
 pnpm install          # install all dependencies
 pnpm test             # run tests (vitest)
+pnpm test:watch       # run tests in watch mode
+pnpm test:coverage    # run tests with coverage report
 pnpm lint             # type-check all packages (tsc --noEmit)
+pnpm format           # auto-format all files (biome)
+pnpm check            # lint + format check (biome)
 pnpm build            # build all packages (tsup, ESM output)
 pnpm clean            # remove dist/ in all packages
+pnpm size             # check bundle sizes
+pnpm changeset        # create a changeset for versioning
 ```
 
 ## License

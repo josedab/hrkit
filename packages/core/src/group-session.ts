@@ -1,6 +1,6 @@
-import type { HRPacket, SessionConfig, HRZoneConfig, ReadableStream } from './types.js';
-import { hrToZone } from './zones.js';
 import { SimpleStream } from './stream.js';
+import type { HRPacket, HRZoneConfig, ReadableStream, SessionConfig } from './types.js';
+import { hrToZone } from './zones.js';
 
 // ── Public Types ────────────────────────────────────────────────────────
 
@@ -92,7 +92,7 @@ export interface GroupSessionConfig {
 const SEX_FACTORS: Record<'male' | 'female' | 'neutral', number> = {
   male: 1.92,
   female: 1.67,
-  neutral: 1.80,
+  neutral: 1.8,
 };
 
 /** Default resting heart rate (BPM) when not specified in athlete config. */
@@ -269,10 +269,7 @@ export class GroupSession {
   // ── Private Helpers ─────────────────────────────────────────────────
 
   private toAthleteState(a: InternalAthleteState): AthleteState {
-    const lastSeenAgo =
-      a.lastPacketTime < 0
-        ? Infinity
-        : (this.latestGlobalTimestamp - a.lastPacketTime) / 1000;
+    const lastSeenAgo = a.lastPacketTime < 0 ? Infinity : (this.latestGlobalTimestamp - a.lastPacketTime) / 1000;
 
     return {
       id: a.config.id,
@@ -308,17 +305,11 @@ export class GroupSession {
       return (this.latestGlobalTimestamp - a.lastPacketTime) / 1000 < this.activityTimeoutSec;
     });
 
-    const avgHR =
-      active.length > 0
-        ? Math.round(active.reduce((sum, a) => sum + a.hr, 0) / active.length)
-        : 0;
+    const avgHR = active.length > 0 ? Math.round(active.reduce((sum, a) => sum + a.hr, 0) / active.length) : 0;
 
     const maxHR = all.reduce((max, a) => Math.max(max, a.peakHR), 0);
 
-    const avgZone =
-      active.length > 0
-        ? Math.round(active.reduce((sum, a) => sum + a.zone, 0) / active.length)
-        : 0;
+    const avgZone = active.length > 0 ? Math.round(active.reduce((sum, a) => sum + a.zone, 0) / active.length) : 0;
 
     return {
       avgHR,

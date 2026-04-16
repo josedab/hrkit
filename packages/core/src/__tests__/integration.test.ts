@@ -1,20 +1,20 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  MockTransport,
-  SessionRecorder,
   connectToDevice,
+  filterArtifacts,
+  MockTransport,
   rmssd,
+  SessionRecorder,
   trimp,
   zoneDistribution,
-  filterArtifacts,
 } from '../index.js';
 import { GENERIC_HR } from '../profiles/index.js';
 import type { DeviceProfile } from '../types.js';
 import { GATT_HR_SERVICE_UUID, POLAR_PMD_SERVICE_UUID } from '../types.js';
 import {
   BJJ_SESSION_FIXTURE,
-  REST_READING_FIXTURE,
   CYCLING_HR_ONLY_FIXTURE,
+  REST_READING_FIXTURE,
   RR_WITH_ARTIFACTS,
 } from './fixtures/index.js';
 

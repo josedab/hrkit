@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
+  ConnectionError,
+  DeviceNotFoundError,
   HRKitError,
   ParseError,
-  ConnectionError,
   TimeoutError,
-  DeviceNotFoundError,
   ValidationError,
 } from '../errors.js';
 
@@ -53,8 +53,12 @@ describe('Error hierarchy', () => {
   });
 
   it('errors can be caught by parent type', () => {
-    const throwParse = () => { throw new ParseError('parse fail'); };
-    const throwTimeout = () => { throw new TimeoutError('timed out'); };
+    const throwParse = () => {
+      throw new ParseError('parse fail');
+    };
+    const throwTimeout = () => {
+      throw new TimeoutError('timed out');
+    };
 
     expect(throwParse).toThrow(HRKitError);
     expect(throwTimeout).toThrow(HRKitError);
@@ -130,7 +134,9 @@ describe('ValidationError', () => {
   });
 
   it('can be caught as HRKitError', () => {
-    const throwValidation = () => { throw new ValidationError('fail'); };
+    const throwValidation = () => {
+      throw new ValidationError('fail');
+    };
     expect(throwValidation).toThrow(HRKitError);
   });
 });

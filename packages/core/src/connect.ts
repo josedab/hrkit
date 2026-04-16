@@ -1,11 +1,5 @@
-import type {
-  BLETransport,
-  ConnectOptions,
-  DeviceProfile,
-  HRConnection,
-  HRDevice,
-} from './types.js';
 import { DeviceNotFoundError, TimeoutError } from './errors.js';
+import type { BLETransport, ConnectOptions, DeviceProfile, HRConnection, HRDevice } from './types.js';
 
 /**
  * Match a discovered device against profiles by service UUIDs and name prefix.
@@ -43,10 +37,7 @@ function matchProfile(device: HRDevice, profiles: DeviceProfile[]): DeviceProfil
  * });
  * ```
  */
-export async function connectToDevice(
-  transport: BLETransport,
-  options: ConnectOptions = {},
-): Promise<HRConnection> {
+export async function connectToDevice(transport: BLETransport, options: ConnectOptions = {}): Promise<HRConnection> {
   const { prefer = [], fallback, timeoutMs = 10000 } = options;
   const allProfiles = fallback ? [...prefer, fallback] : [...prefer];
 
@@ -66,7 +57,8 @@ export async function connectToDevice(
         // Try preferred profiles first (higher priority = lower index)
         for (let i = 0; i < prefer.length; i++) {
           const profile = prefer[i]!;
-          const nameMatches = profile.namePrefix === '' ||
+          const nameMatches =
+            profile.namePrefix === '' ||
             (device.name?.toLowerCase().startsWith(profile.namePrefix.toLowerCase()) ?? false);
           if (nameMatches) {
             await transport.stopScan();
@@ -102,6 +94,8 @@ export async function connectToDevice(
   try {
     return await Promise.race([scanLoop(), scanTimeout]);
   } finally {
-    await transport.stopScan().catch(() => { /* Ignore — scan may already be stopped. */ });
+    await transport.stopScan().catch(() => {
+      /* Ignore — scan may already be stopped. */
+    });
   }
 }

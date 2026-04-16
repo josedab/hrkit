@@ -10,12 +10,33 @@ permissions:
   contents: read
 
 jobs:
+  check:
+    name: Biome Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Biome check (lint + format)
+        run: pnpm check
+
   test:
     name: Test, Lint & Build
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [18, 20, 22, 24]
 
     steps:
       - uses: actions/checkout@v4
@@ -35,8 +56,50 @@ jobs:
       - name: Lint (type-check)
         run: pnpm lint
 
+      - name: Test with coverage
+        if: matrix.node-version == 22
+        run: pnpm test:coverage
+
       - name: Test
+        if: matrix.node-version != 22
         run: pnpm test
+
+      - name: Upload coverage
+        if: matrix.node-version == 22
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Build
         run: pnpm build
+
+      - name: Check bundle size
+        if: matrix.node-version == 22
+        run: pnpm size
+
+  docs:
+    name: Docs Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Docusaurus site
+        working-directory: website
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build

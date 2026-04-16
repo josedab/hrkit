@@ -1,21 +1,11 @@
-import type {
-  BLETransport,
-  DeviceProfile,
-  HRConnection,
-  ReadableStream,
-} from './types.js';
 import { ConnectionError } from './errors.js';
 import { SimpleStream } from './stream.js';
+import type { BLETransport, DeviceProfile, HRConnection, ReadableStream } from './types.js';
 
 // ── Connection State ────────────────────────────────────────────────────
 
 /** Connection lifecycle states. */
-export type ConnectionState =
-  | 'idle'
-  | 'connecting'
-  | 'connected'
-  | 'reconnecting'
-  | 'disconnected';
+export type ConnectionState = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'disconnected';
 
 /** A connection wrapper that exposes observable connection state. */
 export interface ManagedConnection {
@@ -64,12 +54,7 @@ export async function connectWithRetry(
   profile: DeviceProfile,
   config: ReconnectConfig = {},
 ): Promise<ManagedConnection> {
-  const {
-    maxAttempts = 5,
-    initialDelayMs = 1000,
-    maxDelayMs = 30000,
-    backoffMultiplier = 1.5,
-  } = config;
+  const { maxAttempts = 5, initialDelayMs = 1000, maxDelayMs = 30000, backoffMultiplier = 1.5 } = config;
 
   const stateStream = new SimpleStream<ConnectionState>();
   stateStream.emit('idle');

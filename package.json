@@ -6,17 +6,49 @@
     "build": "pnpm -r run build",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "lint": "tsc --noEmit && tsc --noEmit -p packages/web/tsconfig.lint.json && tsc --noEmit -p packages/server/tsconfig.lint.json && tsc --noEmit -p packages/widgets/tsconfig.lint.json",
-    "clean": "pnpm -r run clean"
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --fix .",
+    "clean": "pnpm -r run clean",
+    "size": "size-limit",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm build && changeset publish",
+    "prepare": "husky"
   },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json}": [
+      "biome check --fix --no-errors-on-unmatched"
+    ]
+  },
+  "size-limit": [
+    {
+      "path": "packages/core/dist/index.js",
+      "limit": "25 kB"
+    },
+    {
+      "path": "packages/polar/dist/index.js",
+      "limit": "10 kB"
+    }
+  ],
   "devDependencies": {
+    "@biomejs/biome": "^2.4.12",
+    "@changesets/changelog-github": "^0.6.0",
+    "@changesets/cli": "^2.30.0",
+    "@size-limit/file": "^12.1.0",
+    "@vitest/coverage-v8": "^2.1.9",
     "happy-dom": "^20.9.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "size-limit": "^12.1.0",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0",
     "vitest": "^2.0.0"
   },
   "engines": {
-    "node": ">=18",
+    "node": ">=22",
     "pnpm": ">=9"
   }
 }

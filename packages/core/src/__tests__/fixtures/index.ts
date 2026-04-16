@@ -77,11 +77,25 @@ export const CYCLING_HR_ONLY_FIXTURE: MockFixture = {
  * RR intervals with synthetic artifacts injected for artifact filter testing.
  */
 export const RR_WITH_ARTIFACTS: number[] = [
-  800, 810, 790, 820, 805,       // clean
-  1500,                            // artifact: missed beat
-  800, 815, 795, 810,             // clean
-  300,                             // artifact: extra beat
-  805, 790, 820, 800, 810,       // clean
-  1600,                            // artifact: missed beat
-  795, 810, 805, 800,             // clean
+  800,
+  810,
+  790,
+  820,
+  805, // clean
+  1500, // artifact: missed beat
+  800,
+  815,
+  795,
+  810, // clean
+  300, // artifact: extra beat
+  805,
+  790,
+  820,
+  800,
+  810, // clean
+  1600, // artifact: missed beat
+  795,
+  810,
+  805,
+  800, // clean
 ];

@@ -1,22 +1,26 @@
-import { describe, it, expect } from 'vitest';
-import {
-  SessionRecorder,
-  analyzeSession,
-  PluginRegistry,
-  InMemoryAthleteStore,
-  GroupSession,
-  WorkoutEngine,
-  tabataProtocol,
-} from '../index.js';
+import { describe, expect, it } from 'vitest';
 import type { HRKitPlugin, HRPacket } from '../index.js';
+import {
+  analyzeSession,
+  GroupSession,
+  InMemoryAthleteStore,
+  PluginRegistry,
+  SessionRecorder,
+  tabataProtocol,
+  WorkoutEngine,
+} from '../index.js';
 
 describe('feature integration', () => {
   it('plugin + session recorder + athlete store + insights', () => {
     // 1. Create a plugin that counts packets
     let packetCount = 0;
     const counterPlugin: HRKitPlugin = {
-      name: 'counter', version: '1.0',
-      onPacket: () => { packetCount++; return undefined; },
+      name: 'counter',
+      version: '1.0',
+      onPacket: () => {
+        packetCount++;
+        return undefined;
+      },
       onAnalyze: () => ({ customPacketCount: packetCount }),
     };
 
@@ -61,17 +65,17 @@ describe('feature integration', () => {
     group.addAthlete({ id: 'a1', name: 'Alice', config: { maxHR: 185, restHR: 60 } });
     group.addAthlete({ id: 'a2', name: 'Bob', config: { maxHR: 190, restHR: 55 } });
 
-    const engine = new WorkoutEngine(
-      tabataProtocol(),
-      { maxHR: 185, zones: [0.6, 0.7, 0.8, 0.9] },
-    );
+    const engine = new WorkoutEngine(tabataProtocol(), { maxHR: 185, zones: [0.6, 0.7, 0.8, 0.9] });
     engine.start(0);
 
     // Simulate warmup
     for (let t = 0; t < 60; t++) {
       const ts = t * 1000;
       const packet: HRPacket = {
-        timestamp: ts, hr: 100 + t, rrIntervals: [], contactDetected: true,
+        timestamp: ts,
+        hr: 100 + t,
+        rrIntervals: [],
+        contactDetected: true,
       };
       engine.ingest(packet);
       group.ingest('a1', packet);

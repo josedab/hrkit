@@ -1,18 +1,18 @@
+import { HRKitError } from './errors.js';
+import { SimpleStream } from './stream.js';
 import type {
+  DeviceProfile,
   HRPacket,
-  TimestampedHR,
-  SessionConfig,
-  Session,
-  Round,
-  RoundMeta,
   HRZoneConfig,
   ReadableStream,
-  DeviceProfile,
+  Round,
+  RoundMeta,
+  Session,
+  SessionConfig,
+  TimestampedHR,
 } from './types.js';
 import { SESSION_SCHEMA_VERSION } from './types.js';
 import { hrToZone } from './zones.js';
-import { HRKitError } from './errors.js';
-import { SimpleStream } from './stream.js';
 
 type Zone = 1 | 2 | 3 | 4 | 5;
 

@@ -16,10 +16,7 @@ import type { ArtifactFilterOptions, ArtifactFilterResult } from './types.js';
  * });
  * ```
  */
-export function filterArtifacts(
-  rr: number[],
-  options?: ArtifactFilterOptions,
-): ArtifactFilterResult {
+export function filterArtifacts(rr: number[], options?: ArtifactFilterOptions): ArtifactFilterResult {
   const threshold = options?.threshold ?? 0.2;
   const strategy = options?.strategy ?? 'remove';
   const windowSize = options?.windowSize ?? 5;
@@ -77,10 +74,16 @@ export function filterArtifacts(
     let prevClean = -1;
     let nextClean = -1;
     for (let j = i - 1; j >= 0; j--) {
-      if (!isArtifact[j]) { prevClean = j; break; }
+      if (!isArtifact[j]) {
+        prevClean = j;
+        break;
+      }
     }
     for (let j = i + 1; j < filtered.length; j++) {
-      if (!isArtifact[j]) { nextClean = j; break; }
+      if (!isArtifact[j]) {
+        nextClean = j;
+        break;
+      }
     }
 
     if (prevClean >= 0 && nextClean >= 0) {

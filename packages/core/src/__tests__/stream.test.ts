@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { SimpleStream } from '../stream.js';
 
 describe('SimpleStream', () => {
@@ -96,7 +96,9 @@ describe('SimpleStream', () => {
     const stream = new SimpleStream<number>();
     const values: number[] = [];
 
-    stream.subscribe(() => { throw new Error('boom'); });
+    stream.subscribe(() => {
+      throw new Error('boom');
+    });
     stream.subscribe((v) => values.push(v));
 
     // SimpleStream uses a plain for-of loop — errors propagate uncaught.
@@ -104,7 +106,10 @@ describe('SimpleStream', () => {
   });
 
   it('works with complex object types', () => {
-    interface State { hr: number; zone: number }
+    interface State {
+      hr: number;
+      zone: number;
+    }
     const stream = new SimpleStream<State>();
 
     stream.emit({ hr: 150, zone: 4 });

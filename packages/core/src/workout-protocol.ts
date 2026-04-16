@@ -1,7 +1,7 @@
-import type { HRPacket, HRZoneConfig, ReadableStream } from './types.js';
-import { hrToZone } from './zones.js';
 import { HRKitError } from './errors.js';
 import { SimpleStream } from './stream.js';
+import type { HRPacket, HRZoneConfig, ReadableStream } from './types.js';
+import { hrToZone } from './zones.js';
 
 /** Target for a workout step. */
 export interface StepTarget {
@@ -91,6 +91,7 @@ export class WorkoutEngine {
   private _currentStepIndex = 0;
   private stepStartTime = 0;
   private startTime = 0;
+  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: used in start() and pause/resume flow
   private pauseAccumulated = 0;
   private pauseStartTime = 0;
   private lastPacketTimestamp = 0;
@@ -300,9 +301,7 @@ export class WorkoutEngine {
  * @returns A {@link WorkoutProtocol} with warmup, 8 work/rest cycles, and cooldown.
  */
 export function tabataProtocol(): WorkoutProtocol {
-  const steps: WorkoutStep[] = [
-    { name: 'Warmup', type: 'warmup', durationSec: 60 },
-  ];
+  const steps: WorkoutStep[] = [{ name: 'Warmup', type: 'warmup', durationSec: 60 }];
 
   for (let i = 0; i < 8; i++) {
     steps.push({
@@ -404,9 +403,7 @@ export function pyramidProtocol(steps: number[], restSec: number): WorkoutProtoc
  * @returns A {@link WorkoutProtocol} with warmup, rounds, and cooldown.
  */
 export function bjjRoundsProtocol(rounds: number, workSec: number, restSec: number): WorkoutProtocol {
-  const steps: WorkoutStep[] = [
-    { name: 'Warmup', type: 'warmup', durationSec: 120 },
-  ];
+  const steps: WorkoutStep[] = [{ name: 'Warmup', type: 'warmup', durationSec: 120 }];
 
   for (let i = 0; i < rounds; i++) {
     steps.push({

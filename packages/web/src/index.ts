@@ -1,20 +1,16 @@
-import type {
-  BLETransport,
-  DeviceProfile,
-  HRConnection,
-  HRDevice,
-  HRPacket,
-} from '@hrkit/core';
-import { parseHeartRate, GATT_HR_SERVICE_UUID, GATT_HR_MEASUREMENT_UUID } from '@hrkit/core';
+import type { BLETransport, DeviceProfile, HRConnection, HRDevice, HRPacket } from '@hrkit/core';
+import { GATT_HR_MEASUREMENT_UUID, GATT_HR_SERVICE_UUID, parseHeartRate } from '@hrkit/core';
 
 /**
  * Check if Web Bluetooth is available in the current browser.
  * Returns false in Node.js, unsupported browsers, or non-HTTPS contexts.
  */
 export function isWebBluetoothSupported(): boolean {
-  return typeof navigator !== 'undefined'
-    && typeof navigator.bluetooth !== 'undefined'
-    && typeof navigator.bluetooth.requestDevice === 'function';
+  return (
+    typeof navigator !== 'undefined' &&
+    typeof navigator.bluetooth !== 'undefined' &&
+    typeof navigator.bluetooth.requestDevice === 'function'
+  );
 }
 
 /**
@@ -51,9 +47,9 @@ export class WebBluetoothTransport implements BLETransport {
       optionalServices,
     });
 
-    const matchedProfile = profiles?.find(
-      (p) => p.namePrefix && btDevice.name?.startsWith(p.namePrefix),
-    ) ?? profiles?.find((p) => p.namePrefix === '');
+    const matchedProfile =
+      profiles?.find((p) => p.namePrefix && btDevice.name?.startsWith(p.namePrefix)) ??
+      profiles?.find((p) => p.namePrefix === '');
 
     yield {
       id: btDevice.id,
@@ -130,7 +126,9 @@ export class WebBluetoothTransport implements BLETransport {
             if (queue.length > 0) {
               yield queue.shift()!;
             } else {
-              await new Promise<void>((r) => { resolve = r; });
+              await new Promise<void>((r) => {
+                resolve = r;
+              });
             }
           }
           // Yield remaining

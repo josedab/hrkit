@@ -1,5 +1,5 @@
-import type { HRPacket, Round, RoundMeta, Session } from './types.js';
 import { HRKitError } from './errors.js';
+import type { HRPacket, Round, RoundMeta, Session } from './types.js';
 
 /** Lifecycle hooks that a plugin can implement. All hooks are optional. */
 export interface HRKitPlugin {
@@ -11,7 +11,7 @@ export interface HRKitPlugin {
   /** Called when the plugin is registered. */
   onInit?(): void;
   /** Called for each incoming HR packet during recording. Can transform the packet. */
-  onPacket?(packet: HRPacket): HRPacket | void;
+  onPacket?(packet: HRPacket): HRPacket | undefined;
   /** Called when a round starts. */
   onRoundStart?(roundIndex: number, meta?: RoundMeta): void;
   /** Called when a round ends. */

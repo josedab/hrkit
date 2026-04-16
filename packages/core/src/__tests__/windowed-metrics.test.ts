@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { RollingRMSSD, TRIMPAccumulator } from '../windowed-metrics.js';
 
 describe('RollingRMSSD', () => {
@@ -30,7 +30,9 @@ describe('RollingRMSSD', () => {
   it('trims buffer to window size', () => {
     const calc = new RollingRMSSD(5, 3);
     let lastCount = 0;
-    calc.rmssd$.subscribe((v) => { lastCount = v.sampleCount; });
+    calc.rmssd$.subscribe((v) => {
+      lastCount = v.sampleCount;
+    });
 
     // Ingest 10 intervals
     for (let i = 0; i < 10; i++) {
@@ -58,7 +60,9 @@ describe('RollingRMSSD', () => {
   it('includes timestamp in output', () => {
     const calc = new RollingRMSSD(10, 2);
     let ts = 0;
-    calc.rmssd$.subscribe((v) => { ts = v.timestamp; });
+    calc.rmssd$.subscribe((v) => {
+      ts = v.timestamp;
+    });
 
     calc.ingest([800, 810], 5000);
     expect(ts).toBe(5000);
@@ -71,7 +75,9 @@ describe('TRIMPAccumulator', () => {
   it('starts at zero TRIMP', () => {
     const acc = new TRIMPAccumulator(config);
     let value = -1;
-    acc.trimp$.subscribe((v) => { value = v.trimp; });
+    acc.trimp$.subscribe((v) => {
+      value = v.trimp;
+    });
 
     acc.ingest(72, 0); // first sample has no delta
     expect(value).toBe(0);
@@ -95,8 +101,12 @@ describe('TRIMPAccumulator', () => {
     const accHigh = new TRIMPAccumulator(config);
     let lowTrimp = 0;
     let highTrimp = 0;
-    accLow.trimp$.subscribe((v) => { lowTrimp = v.trimp; });
-    accHigh.trimp$.subscribe((v) => { highTrimp = v.trimp; });
+    accLow.trimp$.subscribe((v) => {
+      lowTrimp = v.trimp;
+    });
+    accHigh.trimp$.subscribe((v) => {
+      highTrimp = v.trimp;
+    });
 
     for (let i = 0; i <= 60; i++) {
       accLow.ingest(100, i * 1000);
@@ -109,7 +119,9 @@ describe('TRIMPAccumulator', () => {
   it('skips gaps > 30s', () => {
     const acc = new TRIMPAccumulator(config);
     let trimp = 0;
-    acc.trimp$.subscribe((v) => { trimp = v.trimp; });
+    acc.trimp$.subscribe((v) => {
+      trimp = v.trimp;
+    });
 
     acc.ingest(150, 0);
     acc.ingest(150, 1000); // 1s gap — counted
@@ -125,7 +137,9 @@ describe('TRIMPAccumulator', () => {
   it('reset clears accumulation', () => {
     const acc = new TRIMPAccumulator(config);
     let trimp = 0;
-    acc.trimp$.subscribe((v) => { trimp = v.trimp; });
+    acc.trimp$.subscribe((v) => {
+      trimp = v.trimp;
+    });
 
     acc.ingest(150, 0);
     acc.ingest(150, 1000);

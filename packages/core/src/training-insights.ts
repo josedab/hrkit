@@ -20,7 +20,7 @@ const TSB_DELOAD_THRESHOLD = -20;
 
 // ── HRV Baseline Thresholds ───────────────────────────────────────────
 /** HRV ratio below this vs baseline indicates poor recovery. */
-const HRV_POOR_RECOVERY = 0.80;
+const HRV_POOR_RECOVERY = 0.8;
 /** HRV ratio above this vs baseline indicates well recovered. */
 const HRV_WELL_RECOVERED = 0.95;
 
@@ -30,7 +30,15 @@ const HRV_TREND_WINDOW = 7;
 /** Number of recent days used for monotony calculation. */
 const MONOTONY_WINDOW = 7;
 
-export { ACWR_CRITICAL, ACWR_HIGH, ACWR_UNDERTRAINED, MONOTONY_HIGH, TSB_DELOAD_THRESHOLD, HRV_POOR_RECOVERY, HRV_WELL_RECOVERED };
+export {
+  ACWR_CRITICAL,
+  ACWR_HIGH,
+  ACWR_UNDERTRAINED,
+  HRV_POOR_RECOVERY,
+  HRV_WELL_RECOVERED,
+  MONOTONY_HIGH,
+  TSB_DELOAD_THRESHOLD,
+};
 
 /** Training recommendation verdict. */
 export type TrainingVerdict = 'go_hard' | 'moderate' | 'easy' | 'rest' | 'deload';
@@ -74,9 +82,9 @@ export interface TrainingRecommendation {
   summary: string;
 }
 
-import type { TrainingLoadPoint, HRVTrendPoint } from './athlete-store.js';
+import type { HRVTrendPoint, TrainingLoadPoint } from './athlete-store.js';
 
-export type { TrainingLoadPoint, HRVTrendPoint } from './athlete-store.js';
+export type { HRVTrendPoint, TrainingLoadPoint } from './athlete-store.js';
 
 /** Input data for generating a training recommendation. */
 export interface InsightInput {
@@ -182,8 +190,7 @@ export function calculateMonotony(trainingLoad: TrainingLoadPoint[]): number {
   const dailyLoads = recent.map((p) => p.atl);
   const mean = dailyLoads.reduce((s, v) => s + v, 0) / dailyLoads.length;
 
-  const variance =
-    dailyLoads.reduce((s, v) => s + (v - mean) ** 2, 0) / dailyLoads.length;
+  const variance = dailyLoads.reduce((s, v) => s + (v - mean) ** 2, 0) / dailyLoads.length;
   const stddev = Math.sqrt(variance);
 
   if (stddev === 0) return Infinity;
@@ -209,9 +216,7 @@ export function calculateMonotony(trainingLoad: TrainingLoadPoint[]): number {
  * console.log(rec.verdict, rec.summary);
  * ```
  */
-export function getTrainingRecommendation(
-  input: InsightInput,
-): TrainingRecommendation {
+export function getTrainingRecommendation(input: InsightInput): TrainingRecommendation {
   const reasons: InsightReason[] = [];
   let verdict: TrainingVerdict = 'moderate';
   let riskLevel: RiskLevel = 'low';
@@ -322,7 +327,7 @@ export function getTrainingRecommendation(
   if (input.trainingLoad.length >= 2) {
     monotony = calculateMonotony(input.trainingLoad);
 
-    if (monotony > MONOTONY_HIGH && isFinite(monotony)) {
+    if (monotony > MONOTONY_HIGH && Number.isFinite(monotony)) {
       reasons.push({
         factor: 'training_monotony',
         message: `Training monotony is high (${monotony.toFixed(1)}). Add variety to your sessions.`,
@@ -363,12 +368,7 @@ export function getTrainingRecommendation(
     // Deload when very fatigued
     verdict = 'deload';
     riskLevel = riskLevel === 'low' ? 'moderate' : riskLevel;
-  } else if (
-    hrvAnalysis &&
-    (hrvAnalysis.direction === 'declining') &&
-    latestACWR != null &&
-    latestACWR > 1.0
-  ) {
+  } else if (hrvAnalysis && hrvAnalysis.direction === 'declining' && latestACWR != null && latestACWR > 1.0) {
     // HRV declining with above-average load
     verdict = 'easy';
     riskLevel = riskLevel === 'low' ? 'moderate' : riskLevel;
@@ -376,7 +376,7 @@ export function getTrainingRecommendation(
     // Poor recovery based on today's HRV
     verdict = 'rest';
     riskLevel = riskLevel === 'low' ? 'moderate' : riskLevel;
-  } else if (monotony > MONOTONY_HIGH && isFinite(monotony)) {
+  } else if (monotony > MONOTONY_HIGH && Number.isFinite(monotony)) {
     // High monotony → deload/easy
     verdict = 'easy';
   } else if (

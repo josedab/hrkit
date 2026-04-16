@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { weeklyTRIMP, trimp } from '../trimp.js';
-import { SESSION_SCHEMA_VERSION } from '../types.js';
+import { describe, expect, it } from 'vitest';
+import { trimp, weeklyTRIMP } from '../trimp.js';
 import type { Session, TimestampedHR } from '../types.js';
+import { SESSION_SCHEMA_VERSION } from '../types.js';
 
 describe('weeklyTRIMP — sex parameter', () => {
   const weekStart = new Date('2024-01-01');

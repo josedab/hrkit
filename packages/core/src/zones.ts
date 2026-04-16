@@ -33,10 +33,7 @@ export function hrToZone(hr: number, config: HRZoneConfig): Zone {
  * @param config - Zone configuration.
  * @returns Time spent in each zone and total duration.
  */
-export function zoneDistribution(
-  samples: TimestampedHR[],
-  config: HRZoneConfig,
-): ZoneDistribution {
+export function zoneDistribution(samples: TimestampedHR[], config: HRZoneConfig): ZoneDistribution {
   const zones: Record<Zone, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   let total = 0;
 
