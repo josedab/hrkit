@@ -37,8 +37,6 @@ export interface CapacitorBleClient {
  * environments (Node, web bundlers) where the plugin isn't installed.
  */
 async function loadBleClient(): Promise<CapacitorBleClient> {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error: optional peer dep, may not be installed
   const mod = (await import(/* @vite-ignore */ '@capacitor-community/bluetooth-le')) as {
     BleClient: CapacitorBleClient;
   };
