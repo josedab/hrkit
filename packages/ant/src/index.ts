@@ -78,7 +78,7 @@ class AntConnection implements HRConnection {
 
     channel.on('data', (d: AntDataPoint) => {
       if (typeof d.hr !== 'number') return; // only HR maps to HRPacket
-      const packet: HRPacket = { hr: d.hr, timestamp: d.timestamp };
+      const packet: HRPacket = { hr: d.hr, timestamp: d.timestamp, rrIntervals: [], contactDetected: true };
       this.dispatch(packet);
     });
   }

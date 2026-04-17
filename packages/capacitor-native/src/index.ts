@@ -45,8 +45,6 @@ let cachedPlugin: HrkitNativePlugin | null = null;
 /** Resolve the native plugin from `@capacitor/core`. */
 export async function loadNativePlugin(): Promise<HrkitNativePlugin> {
   if (cachedPlugin) return cachedPlugin;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error optional peer dep
   const mod = (await import(/* @vite-ignore */ '@capacitor/core')) as CapacitorCoreLike;
   if (!mod?.registerPlugin) throw new Error('@capacitor/core not available — install Capacitor in your app.');
   cachedPlugin = mod.registerPlugin<HrkitNativePlugin>('HrkitNative');
@@ -83,7 +81,12 @@ function hexToDataView(hex: string): DataView {
 }
 
 function b64ToDataView(b64: string): DataView {
-  const bin = typeof atob === 'function' ? atob(b64) : Buffer.from(b64, 'base64').toString('binary');
+  const bin =
+    typeof atob === 'function'
+      ? atob(b64)
+      : ((
+          globalThis as { Buffer?: { from(data: string, enc: string): { toString(enc: string): string } } }
+        ).Buffer?.from(b64, 'base64').toString('binary') ?? '');
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return new DataView(bytes.buffer);
@@ -139,7 +142,7 @@ export async function createCapacitorNativeTransport(
 
   const transport: BLETransport = {
     async *scan(profiles?: DeviceProfile[]): AsyncIterable<HRDevice> {
-      const services = profiles?.flatMap((pr) => pr.services).map((s) => s.uuid) ?? [GATT_HR_SERVICE_UUID];
+      const services = profiles?.flatMap((pr) => pr.serviceUUIDs) ?? [GATT_HR_SERVICE_UUID];
       const queue = new AsyncQueue<HRDevice>();
 
       const sub = await p.addListener('scanResult', (raw) => {

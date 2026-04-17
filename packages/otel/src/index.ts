@@ -62,7 +62,7 @@ function wrapConnection(conn: HRConnection, hooks: InstrumentationHooks): HRConn
     profile: conn.profile,
     async *heartRate(): AsyncIterable<HRPacket> {
       for await (const pkt of conn.heartRate()) {
-        hooks.onMetric('hrkit.hr.bpm', 'gauge', pkt.bpm, attrs);
+        hooks.onMetric('hrkit.hr.bpm', 'gauge', pkt.hr, attrs);
         if (pkt.rrIntervals) {
           for (const rr of pkt.rrIntervals) {
             hooks.onMetric('hrkit.rr.ms', 'histogram', rr, attrs);
