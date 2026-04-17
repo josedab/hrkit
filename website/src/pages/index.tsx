@@ -49,6 +49,12 @@ function HomepageHeader() {
             Get Started →
           </Link>
           <Link
+            className="button button--secondary button--lg"
+            style={{marginLeft: '1rem'}}
+            to="/demo/">
+            Live Demo ▶
+          </Link>
+          <Link
             className="button button--outline button--lg"
             style={{marginLeft: '1rem', color: '#fff', borderColor: '#fff'}}
             href="https://github.com/hrkit/hrkit">
@@ -94,6 +100,40 @@ function InstallSection() {
   );
 }
 
+function ComparisonSection() {
+  return (
+    <section className={styles.installSection} style={{background: 'var(--ifm-color-emphasis-100)'}}>
+      <div className="container">
+        <Heading as="h2">How it compares</Heading>
+        <p>
+          Most heart-rate APIs are vertically locked to a single vendor or hide the raw signal behind a
+          cloud subscription. <code>@hrkit</code> is the open, embeddable layer underneath your app.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>@hrkit</th>
+              <th>Terra API</th>
+              <th>Sahha</th>
+              <th>Polar SDK</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Open source (MIT)</td><td>✅</td><td>—</td><td>—</td><td>partial</td></tr>
+            <tr><td>Works offline / on-device</td><td>✅</td><td>—</td><td>—</td><td>✅</td></tr>
+            <tr><td>Vendor-neutral GATT (any HR strap)</td><td>✅</td><td>via cloud</td><td>via cloud</td><td>—</td></tr>
+            <tr><td>Raw RR + ECG + IBI access</td><td>✅</td><td>limited</td><td>—</td><td>✅</td></tr>
+            <tr><td>HRV / zones / TRIMP built-in</td><td>✅</td><td>—</td><td>partial</td><td>—</td></tr>
+            <tr><td>TypeScript-first, zero-dep core</td><td>✅</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>React Native + Web + Capacitor</td><td>✅</td><td>via SDKs</td><td>via SDKs</td><td>iOS/Android only</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 export default function Home(): ReactNode {
   return (
     <Layout
@@ -103,6 +143,7 @@ export default function Home(): ReactNode {
       <main>
         <HomepageFeatures />
         <InstallSection />
+        <ComparisonSection />
       </main>
     </Layout>
   );
