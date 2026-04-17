@@ -23,6 +23,24 @@ Plus a `useHRKit` hook that wraps `SessionRecorder` for idiomatic React usage.
 
 ## Setup
 
+### Quickest path: use the scaffold script
+
+If you've cloned the hrkit monorepo, you can scaffold a new app in one command after creating the Expo project:
+
+```bash
+# 1. Create the Expo app
+npx create-expo-app@latest my-hrkit-app --template blank-typescript
+
+# 2. From inside apps/starter-rn:
+pnpm scaffold ../../../my-hrkit-app
+
+# 3. Follow the printed next steps.
+```
+
+The script copies `src/` into your new project and prints the remaining install/permission steps.
+
+### Manual setup
+
 ### 1. Create a new Expo project
 
 ```bash

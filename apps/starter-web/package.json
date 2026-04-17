@@ -1,0 +1,21 @@
+{
+  "name": "@hrkit/starter-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Vite + Web Bluetooth example app for @hrkit",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@hrkit/core": "workspace:*",
+    "@hrkit/web": "workspace:*",
+    "@hrkit/widgets": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vite": "^5.4.0"
+  }
+}
