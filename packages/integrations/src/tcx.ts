@@ -29,7 +29,8 @@ export function sessionToTCX(session: Session, opts: TcxOptions = {}): string {
   const sport = opts.sport ?? 'Other';
   const startMs = session.startTime ?? session.samples[0]?.timestamp ?? Date.now();
   const activityId = opts.activityId ?? isoStamp(startMs);
-  const totalSec = (session.duration ?? 0) / 1000;
+  const totalSec =
+    session.endTime != null && session.startTime != null ? (session.endTime - session.startTime) / 1000 : 0;
 
   const trackpoints = session.samples
     .map((s) => {
