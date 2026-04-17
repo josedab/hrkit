@@ -8,6 +8,18 @@ export { filterArtifacts } from './artifact-filter.js';
 export type { AthleteStore, HRVTrendPoint, SessionSummary, TrainingLoadPoint } from './athlete-store.js';
 // Athlete longitudinal store
 export { InMemoryAthleteStore } from './athlete-store.js';
+// HRV advanced
+export type { CoherenceOptions, CoherenceResult } from './coherence.js';
+export { bpmFromHz, coherenceScore } from './coherence.js';
+// Conformance test rig
+export type { ConformanceFixture, ConformanceResult, RecordedNotification } from './conformance.js';
+export {
+  bytesToHex,
+  CONFORMANCE_FIXTURE_SCHEMA,
+  hexToDataView,
+  recordNotification,
+  verifyFixture,
+} from './conformance.js';
 // Connect
 export { connectToDevice } from './connect.js';
 export type { ConnectionState, ManagedConnection, ReconnectConfig } from './connection.js';
@@ -24,6 +36,16 @@ export {
 } from './errors.js';
 // TCX export
 export { sessionToTCX } from './export-tcx.js';
+export type { FusedSample, GlucoseReading, GlucoseSource } from './fusion.js';
+export {
+  encodeRequestControl,
+  encodeReset,
+  encodeSetIndoorBikeSimulation,
+  encodeSetTargetPower,
+  FTMS_OPCODE,
+  fuseStreams,
+  MemoryGlucoseSource,
+} from './fusion.js';
 // GATT parser
 export { parseHeartRate } from './gatt-parser.js';
 export type {
@@ -38,6 +60,8 @@ export type {
 export { GroupSession } from './group-session.js';
 // HRV metrics
 export { hrBaseline, meanHR, pnn50, readinessVerdict, rmssd, sdnn } from './hrv.js';
+export type { CleanedRR, FrequencyDomainResult, HRVReport, PoincareResult } from './hrv-advanced.js';
+export { cleanRR, dfaAlpha1, frequencyDomain, hrvReport, poincare } from './hrv-advanced.js';
 export type { MockFixture } from './mock-transport.js';
 // Mock transport
 export { MockTransport } from './mock-transport.js';
@@ -65,6 +89,20 @@ export {
 export type { ArtifactEvent } from './realtime-artifacts.js';
 // Real-time artifact detection
 export { RealtimeArtifactDetector } from './realtime-artifacts.js';
+// Sensor profiles & parsers (cycling power, CSC, RSC, SpO2)
+export type { CSCPacket, CyclingPowerPacket, RSCPacket, SpO2Packet } from './sensors.js';
+export {
+  CYCLING_CSC_PROFILE,
+  CYCLING_POWER_PROFILE,
+  computeCadenceRPM,
+  PULSE_OX_PROFILE,
+  parseCSC,
+  parseCyclingPower,
+  parsePulseOxContinuous,
+  parseRSC,
+  RUNNING_RSC_PROFILE,
+  sFloat16,
+} from './sensors.js';
 // Session recorder
 export { SessionRecorder } from './session-recorder.js';
 // Session serialization
@@ -133,6 +171,20 @@ export { validateHRPacket, validateSession, validateSessionConfig, validateZoneC
 export type { CumulativeTRIMP, WindowedHRV } from './windowed-metrics.js';
 // Windowed metrics
 export { RollingRMSSD, TRIMPAccumulator } from './windowed-metrics.js';
+// Workout DSL + cues + protocol library
+export type { SpeakLike, UtteranceCtor } from './workout-dsl.js';
+export {
+  BJJ_ROUNDS,
+  createBrowserCues,
+  MAF_45,
+  NORWEGIAN_4X4,
+  PROTOCOL_LIBRARY,
+  parseDuration,
+  parseWorkoutDSL,
+  TABATA,
+  WorkoutCues,
+  workoutToDSL,
+} from './workout-dsl.js';
 export type {
   StepChangeEvent,
   StepTarget,
