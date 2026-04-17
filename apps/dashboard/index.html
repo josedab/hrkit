@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>@hrkit — Multi-Athlete Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root { color-scheme: dark; font-family: system-ui, -apple-system, sans-serif; }
+      body { margin: 0; background: #0b0d10; color: #e6e8eb; }
+      header { padding: 16px 24px; border-bottom: 1px solid #1d2126; display: flex; align-items: center; gap: 16px; }
+      header h1 { margin: 0; font-size: 18px; font-weight: 600; }
+      header .pill { font-size: 11px; padding: 3px 8px; border-radius: 999px; background: #1d2126; color: #9ba0a6; }
+      header .ok { background: #143a23; color: #6fd693; }
+      main { padding: 24px; }
+      .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+      .card { background: #14181d; border: 1px solid #1d2126; border-radius: 12px; padding: 14px; }
+      .card h2 { margin: 0 0 8px; font-size: 14px; font-weight: 500; color: #9ba0a6; display: flex; justify-content: space-between; }
+      .card h2 .id { color: #4f8eff; font-family: ui-monospace, monospace; font-size: 11px; }
+      .card .stats { display: flex; gap: 12px; font-size: 12px; color: #9ba0a6; margin-top: 8px; }
+      .card .stat b { color: #e6e8eb; font-weight: 600; }
+      footer { padding: 12px 24px; color: #5a6068; font-size: 12px; border-top: 1px solid #1d2126; }
+      a { color: #4f8eff; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>hrkit dashboard</h1>
+      <span class="pill" id="status">connecting…</span>
+      <span class="pill" id="source"></span>
+    </header>
+    <main>
+      <div id="grid" class="grid"></div>
+    </main>
+    <footer>
+      Source: <code id="src-uri"></code> &middot; pass <code>?ws=ws://your-hrkit-server/stream</code> to attach a live <code>@hrkit/server</code> fan-out, otherwise a 4-athlete simulator runs locally.
+    </footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
