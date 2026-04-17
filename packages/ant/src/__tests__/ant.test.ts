@@ -3,12 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { type AntChannel, type AntDataPoint, type AntStick, AntTransport } from '../index.js';
 
 const PROFILE: DeviceProfile = {
-  id: 'ant-hr',
-  name: 'ANT+ HR',
-  vendor: 'Generic',
+  brand: 'Generic',
+  model: 'ANT+ HR',
+  namePrefix: 'ANT',
   capabilities: ['heartRate'],
-  services: ['180D'],
-  characteristics: { heartRate: '2A37' },
+  serviceUUIDs: ['0000180d-0000-1000-8000-00805f9b34fb'],
 };
 
 class MockStick implements AntStick {
