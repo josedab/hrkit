@@ -1,0 +1,73 @@
+name: Verified device fixture
+description: Submit a hardware capture to the @hrkit conformance corpus
+title: "[device] <vendor> <model> conformance fixture"
+labels: ["conformance", "device-fixture"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for contributing a verified device fixture! Once merged, your
+        device gets its own auto-generated SVG badge under
+        `fixtures/conformance/badges/` and is listed on the project README.
+
+        Capture a fixture with `hrkit submit-fixture` (see `packages/cli`) and
+        attach the resulting JSON below.
+  - type: input
+    id: vendor
+    attributes:
+      label: Vendor
+      placeholder: "e.g. Polar, Garmin, Wahoo, Magene"
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      placeholder: "e.g. H10, HRM-Pro Plus, TICKR X"
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware version
+      placeholder: "e.g. 3.2.0"
+  - type: dropdown
+    id: capabilities
+    attributes:
+      label: Capabilities reported by the device
+      multiple: true
+      options:
+        - Heart rate (0x180D / 0x2A37)
+        - RR intervals
+        - Skin contact bit
+        - Energy expended
+        - Cycling power (0x1818 / 0x2A63)
+        - Cycling speed/cadence
+        - ECG (vendor protocol)
+        - ACC (vendor protocol)
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Capture notes
+      description: How was the device worn? Any special pairing steps? Known firmware quirks?
+    validations:
+      required: false
+  - type: textarea
+    id: fixture
+    attributes:
+      label: Fixture JSON
+      description: Paste the contents of the fixture file produced by `hrkit submit-fixture`. (Or attach the file in a comment if it exceeds 65 KB.)
+      render: json
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: License & code of conduct
+      options:
+        - label: I license this fixture under MIT and certify it contains no PII (no athlete names, no exact GPS, no health identifiers).
+          required: true
+        - label: I agree to follow the project's Code of Conduct.
+          required: true
