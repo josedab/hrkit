@@ -1,0 +1,25 @@
+{
+  "name": "@hrkit/sync",
+  "version": "0.1.0",
+  "description": "Local-first append-only CRDT sync for @hrkit sessions. Zero deps.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist"],
+  "publishConfig": { "access": "public" },
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit -p tsconfig.lint.json"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  },
+  "license": "MIT",
+  "keywords": ["hrkit", "crdt", "sync", "local-first", "offline"],
+  "author": "@hrkit contributors"
+}
