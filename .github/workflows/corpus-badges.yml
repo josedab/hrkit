@@ -1,0 +1,46 @@
+name: Conformance corpus
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fixtures/conformance/**'
+      - 'packages/core/src/conformance.ts'
+      - 'packages/core/src/gatt-parser.ts'
+      - 'scripts/validate-corpus.mjs'
+      - 'scripts/generate-corpus-badges.mjs'
+  pull_request:
+    paths:
+      - 'fixtures/conformance/**'
+      - 'packages/core/src/conformance.ts'
+      - 'packages/core/src/gatt-parser.ts'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Build core (needed by validator)
+        run: pnpm --filter @hrkit/core build
+      - name: Validate corpus
+        run: node scripts/validate-corpus.mjs
+      - name: Regenerate device badges
+        run: node scripts/generate-corpus-badges.mjs
+      - name: Commit badges (main only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          if [ -n "$(git status --porcelain fixtures/conformance/badges)" ]; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add fixtures/conformance/badges
+            git commit -m "chore(corpus): refresh device badges [skip ci]"
+            git push
+          fi
