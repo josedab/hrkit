@@ -21,14 +21,38 @@
       "@hrkit/core": ["./packages/core/src/index.ts"],
       "@hrkit/core/*": ["./packages/core/src/*/index.ts"],
       "@hrkit/polar": ["./packages/polar/src/index.ts"],
-      "@hrkit/server": ["./packages/server/src/index.ts"]
+      "@hrkit/server": ["./packages/server/src/index.ts"],
+      "@hrkit/integrations": ["./packages/integrations/src/index.ts"],
+      "@hrkit/coach": ["./packages/coach/src/index.ts"],
+      "@hrkit/capacitor": ["./packages/capacitor/src/index.ts"],
+      "@hrkit/edge": ["./packages/edge/src/index.ts"],
+      "@hrkit/ai": ["./packages/ai/src/index.ts"],
+      "@hrkit/ant": ["./packages/ant/src/index.ts"],
+      "@hrkit/cli": ["./packages/cli/src/index.ts"],
+      "@hrkit/capacitor-native": ["./packages/capacitor-native/src/index.ts"],
+      "@hrkit/bundle": ["./packages/bundle/src/index.ts"],
+      "@hrkit/readiness": ["./packages/readiness/src/index.ts"],
+      "@hrkit/sync": ["./packages/sync/src/index.ts"],
+      "@hrkit/otel": ["./packages/otel/src/index.ts"]
     }
   },
   "include": [
     "packages/core/src/**/*.ts",
     "packages/polar/src/**/*.ts",
     "packages/react-native/src/**/*.ts",
-    "packages/server/src/**/*.ts"
+    "packages/server/src/**/*.ts",
+    "packages/integrations/src/**/*.ts",
+    "packages/coach/src/**/*.ts",
+    "packages/capacitor/src/**/*.ts",
+    "packages/edge/src/**/*.ts",
+    "packages/ai/src/**/*.ts",
+    "packages/ant/src/**/*.ts",
+    "packages/cli/src/**/*.ts",
+    "packages/capacitor-native/src/**/*.ts",
+    "packages/bundle/src/**/*.ts",
+    "packages/readiness/src/**/*.ts",
+    "packages/sync/src/**/*.ts",
+    "packages/otel/src/**/*.ts"
   ],
   "exclude": ["node_modules", "**/dist", "**/*.test.ts"]
 }
