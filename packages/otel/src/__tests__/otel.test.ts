@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { MemoryHooks, NOOP_HOOKS, recordHrSample, wrapTransport } from '../index.js';
 
 const profile: DeviceProfile = {
-  vendor: 'Mock',
+  brand: 'Mock',
   model: 'MockBand',
+  namePrefix: 'Mock',
   capabilities: ['heartRate'],
   serviceUUIDs: ['0000180d-0000-1000-8000-00805f9b34fb'],
 };
@@ -39,8 +40,8 @@ describe('wrapTransport', () => {
     const inner = new MockTransport({
       device: { id: 'd1', name: 'Mock' },
       packets: [
-        { bpm: 120, timestamp: 0 },
-        { bpm: 125, timestamp: 1000, rrIntervals: [800] },
+        { hr: 120, timestamp: 0, rrIntervals: [], contactDetected: true },
+        { hr: 125, timestamp: 1000, rrIntervals: [800], contactDetected: true },
       ],
     });
     const hooks = new MemoryHooks();
@@ -48,7 +49,7 @@ describe('wrapTransport', () => {
     const conn = await wrapped.connect('d1', profile);
     const seen: number[] = [];
     for await (const pkt of conn.heartRate()) {
-      seen.push(pkt.bpm);
+      seen.push(pkt.hr);
     }
     await conn.disconnect();
     expect(seen).toEqual([120, 125]);
