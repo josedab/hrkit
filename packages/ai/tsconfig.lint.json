@@ -10,7 +10,12 @@
     "esModuleInterop": true,
     "isolatedModules": true,
     "noEmit": true,
-    "types": []
+    "types": [],
+    "paths": {
+      "@hrkit/core": ["../core/src/index.ts"],
+      "@hrkit/core/*": ["../core/src/*"],
+      "@hrkit/coach": ["../coach/src/index.ts"]
+    }
   },
   "include": ["src"]
 }

@@ -11,7 +11,11 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@hrkit/core": ["../../packages/core/src/index.ts"],
+      "@hrkit/edge": ["../../packages/edge/src/index.ts"]
+    }
   },
   "include": ["src"]
 }
