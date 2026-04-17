@@ -47,7 +47,7 @@ export interface SessionToRecordsOptions {
 export function sessionToHealthRecords(session: Session, opts: SessionToRecordsOptions = {}): HealthRecord[] {
   const records: HealthRecord[] = [];
   const startMs = session.startTime ?? session.samples[0]?.timestamp ?? Date.now();
-  const endMs = startMs + (session.duration ?? 0);
+  const endMs = session.endTime ?? startMs;
 
   records.push({
     type: 'workout',

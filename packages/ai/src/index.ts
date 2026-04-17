@@ -155,7 +155,7 @@ ${snapshot.recentSessions
   .slice(0, 7)
   .map(
     (s) =>
-      `  - ${new Date(s.startTime).toISOString().slice(0, 10)}  duration=${Math.round(s.durationMs / 60000)}m  trimp=${(s.trimp ?? 0).toFixed(0)}  domZone=${s.dominantZone ?? '?'}`,
+      `  - ${new Date(s.startTime).toISOString().slice(0, 10)}  duration=${Math.round(s.durationSec / 60)}m  trimp=${(s.trimp ?? 0).toFixed(0)}  activity=${s.activityType ?? '?'}`,
   )
   .join('\n')}
 
