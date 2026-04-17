@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hrkit — open-source TypeScript SDK for BLE heart-rate sensors</title>
+    <meta name="description" content="Connect a Polar/Garmin/Wahoo BLE heart-rate sensor in your browser, or replay a recording. Zero-dep TypeScript core, research-grade HRV, multi-platform." />
+    <meta property="og:title" content="hrkit — BLE heart-rate SDK" />
+    <meta property="og:description" content="Live demo: connect a real sensor or replay a recording." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%E2%9D%A4%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+    <style>
+      :root {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --bg: #0b0d10;
+        --panel: #14181d;
+        --border: #232a32;
+        --text: #e9eef3;
+        --muted: #8a96a3;
+        --accent: #ff3860;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); min-height: 100vh; }
+      header { padding: 2rem 1.5rem 1rem; max-width: 960px; margin: 0 auto; }
+      h1 { margin: 0 0 0.25rem; font-size: 1.6rem; letter-spacing: -0.02em; }
+      .tag { color: var(--muted); font-size: 0.95rem; }
+      main { padding: 1rem 1.5rem 4rem; max-width: 960px; margin: 0 auto; display: grid; gap: 1.25rem; }
+      .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.25rem; }
+      .controls { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+      .controls label { font-size: 0.9rem; color: var(--muted); }
+      select, button {
+        background: #1f262d; color: var(--text); border: 1px solid var(--border);
+        padding: 0.55rem 0.9rem; border-radius: 6px; font-size: 0.95rem; cursor: pointer;
+      }
+      button.primary { background: var(--accent); border-color: var(--accent); color: white; font-weight: 600; }
+      button:disabled { opacity: 0.45; cursor: not-allowed; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+      pre { background: #0a0d10; color: #cdd6df; border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem; max-height: 220px; overflow: auto; font-size: 0.8rem; margin: 0; }
+      .warn { background: #2a1f0a; color: #f9d27a; border: 1px solid #4a3a18; padding: 0.75rem; border-radius: 6px; }
+      a { color: #6cb8ff; }
+      footer { text-align: center; color: var(--muted); padding: 2rem 1rem; font-size: 0.85rem; }
+      hrkit-heart-rate, hrkit-hr-chart, hrkit-zone-bar, hrkit-ecg-strip {
+        display: block; width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>❤️ hrkit live demo</h1>
+      <p class="tag">Open-source TypeScript SDK for BLE heart-rate sensors. Pick a scenario below.</p>
+    </header>
+
+    <main>
+      <section class="panel">
+        <div class="controls">
+          <label for="scenario">Source:</label>
+          <select id="scenario">
+            <option value="live">Live BLE sensor (Web Bluetooth)</option>
+            <option value="simulated" selected>Simulated workout (Tabata)</option>
+            <option value="replay">Replay sample recording</option>
+          </select>
+          <label for="brand" id="brand-label">Brand:</label>
+          <select id="brand">
+            <option value="polar" selected>Polar H10 (HR + ECG)</option>
+            <option value="garmin">Garmin HRM-Pro (HR-only)</option>
+            <option value="wahoo">Wahoo TICKR (HR-only)</option>
+            <option value="generic">Generic GATT</option>
+          </select>
+          <button id="start" class="primary">Start</button>
+          <button id="stop" disabled>Stop</button>
+        </div>
+        <div id="unsupported" class="warn" hidden style="margin-top: 0.75rem;">
+          Web Bluetooth is unavailable here. Use Chrome/Edge on desktop or Android (HTTPS or <code>localhost</code>); on iOS try the <a href="https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055">Bluefy</a> browser. Pick a non-live scenario to keep exploring.
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3 style="margin: 0 0 0.5rem; font-size: 1rem; color: var(--muted);">Platform support</h3>
+        <table style="width:100%; border-collapse: collapse; font-size: 0.9rem;">
+          <thead style="color: var(--muted);">
+            <tr><th align="left" style="padding: 0.3rem 0.5rem;">Runtime</th><th align="left" style="padding: 0.3rem 0.5rem;">Live BLE</th><th align="left" style="padding: 0.3rem 0.5rem;">Adapter</th></tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding: 0.3rem 0.5rem;">Chrome / Edge desktop</td><td>✅</td><td><code>@hrkit/web</code></td></tr>
+            <tr><td style="padding: 0.3rem 0.5rem;">Chrome Android</td><td>✅</td><td><code>@hrkit/web</code></td></tr>
+            <tr><td style="padding: 0.3rem 0.5rem;">iOS Safari / Firefox</td><td>—</td><td>use Capacitor or replay</td></tr>
+            <tr><td style="padding: 0.3rem 0.5rem;">React Native (iOS/Android)</td><td>✅</td><td><code>@hrkit/react-native</code></td></tr>
+            <tr><td style="padding: 0.3rem 0.5rem;">Capacitor (iOS/Android)</td><td>✅</td><td><code>@hrkit/capacitor</code> · <code>@hrkit/capacitor-native</code></td></tr>
+            <tr><td style="padding: 0.3rem 0.5rem;">ANT+ stick (Node, Linux)</td><td>✅</td><td><code>@hrkit/ant</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <hrkit-heart-rate id="display"></hrkit-heart-rate>
+        <hrkit-zone-bar id="zonebar" max-hr="190"></hrkit-zone-bar>
+      </section>
+
+      <section class="panel">
+        <h3 style="margin: 0 0 0.5rem; font-size: 1rem; color: var(--muted);">Heart rate</h3>
+        <hrkit-hr-chart id="chart" max-samples="240"></hrkit-hr-chart>
+      </section>
+
+      <section class="panel">
+        <h3 style="margin: 0 0 0.5rem; font-size: 1rem; color: var(--muted);">ECG (simulated 130 Hz)</h3>
+        <hrkit-ecg-strip id="ecg" sample-rate="130"></hrkit-ecg-strip>
+      </section>
+
+      <section class="panel">
+        <h3 style="margin: 0 0 0.5rem; font-size: 1rem; color: var(--muted);">Log</h3>
+        <pre id="log">Choose a source and press Start.</pre>
+      </section>
+
+      <footer>
+        <a href="https://github.com/josedab/hrkit">GitHub</a> · MIT licensed · Built with <code>@hrkit/web</code> + <code>@hrkit/widgets</code>
+      </footer>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
