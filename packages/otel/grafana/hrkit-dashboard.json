@@ -1,0 +1,26 @@
+{
+  "title": "hrkit observability",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Heart rate (bpm)",
+      "targets": [{ "expr": "hrkit_hr_bpm", "legendFormat": "{{deviceName}}" }]
+    },
+    {
+      "type": "histogram",
+      "title": "RR intervals (ms)",
+      "targets": [{ "expr": "hrkit_rr_ms_bucket" }]
+    },
+    {
+      "type": "stat",
+      "title": "Connected devices",
+      "targets": [{ "expr": "count(hrkit_hr_bpm)" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "BLE scan latency (p95)",
+      "targets": [{ "expr": "histogram_quantile(0.95, sum(rate(hrkit_ble_scan_duration_ms_bucket[5m])) by (le))" }]
+    }
+  ]
+}
