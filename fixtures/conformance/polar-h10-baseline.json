@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "device": {
+    "brand": "Polar",
+    "model": "H10",
+    "firmware": "3.1.1",
+    "serviceUuid": "180d",
+    "characteristicUuid": "2a37"
+  },
+  "notes": "Synthetic Polar H10 baseline — HR 75 bpm, single RR (~1024 ticks = 1000 ms).",
+  "notifications": [
+    { "timestamp": 0, "hex": "104b0004" },
+    { "timestamp": 1000, "hex": "104c0004" },
+    { "timestamp": 2000, "hex": "104dff03" }
+  ],
+  "expected": [
+    { "hr": 75 },
+    { "hr": 76 },
+    { "hr": 77 }
+  ]
+}

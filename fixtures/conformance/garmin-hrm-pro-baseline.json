@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "device": {
+    "brand": "Garmin",
+    "model": "HRM-Pro",
+    "firmware": "5.50",
+    "serviceUuid": "180d",
+    "characteristicUuid": "2a37"
+  },
+  "notes": "Synthetic Garmin HRM-Pro baseline — HR 142, no RR.",
+  "notifications": [
+    { "timestamp": 0, "hex": "008e" },
+    { "timestamp": 1000, "hex": "0090" }
+  ],
+  "expected": [
+    { "hr": 142 },
+    { "hr": 144 }
+  ]
+}
