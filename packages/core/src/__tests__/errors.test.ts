@@ -140,3 +140,62 @@ describe('ValidationError', () => {
     expect(throwValidation).toThrow(HRKitError);
   });
 });
+
+import { AuthError, formatError, isRetryable, RateLimitError, RequestError, ServerError } from '../errors.js';
+
+describe('HTTP error subclasses', () => {
+  it('all are instanceof RequestError / HRKitError', () => {
+    expect(new AuthError('x')).toBeInstanceOf(RequestError);
+    expect(new RateLimitError('x')).toBeInstanceOf(RequestError);
+    expect(new ServerError('x')).toBeInstanceOf(RequestError);
+    expect(new RequestError('x')).toBeInstanceOf(HRKitError);
+  });
+
+  it('RateLimitError carries retryAfterSeconds + status', () => {
+    const err = new RateLimitError('slow', { status: 429, retryAfterSeconds: 30 });
+    expect(err.retryAfterSeconds).toBe(30);
+    expect(err.status).toBe(429);
+    expect(err.code).toBe('RATE_LIMITED');
+  });
+
+  it('RequestError surfaces requestId & responseBody', () => {
+    const err = new RequestError('bad', { status: 400, requestId: 'req-1', responseBody: '{}' });
+    expect(err.requestId).toBe('req-1');
+    expect(err.responseBody).toBe('{}');
+  });
+});
+
+describe('isRetryable', () => {
+  it('retries 429/5xx/timeout', () => {
+    expect(isRetryable(new RateLimitError('x'))).toBe(true);
+    expect(isRetryable(new ServerError('x'))).toBe(true);
+    expect(isRetryable(new TimeoutError('x'))).toBe(true);
+  });
+  it('skips auth/validation', () => {
+    expect(isRetryable(new AuthError('x'))).toBe(false);
+    expect(isRetryable(new ValidationError('x'))).toBe(false);
+  });
+  it('retries 408/425, not other 4xx', () => {
+    expect(isRetryable(new RequestError('x', { status: 408 }))).toBe(true);
+    expect(isRetryable(new RequestError('x', { status: 425 }))).toBe(true);
+    expect(isRetryable(new RequestError('x', { status: 400 }))).toBe(false);
+  });
+  it('treats unknown errors as transient', () => {
+    expect(isRetryable(new Error('ECONNRESET'))).toBe(true);
+  });
+});
+
+describe('formatError', () => {
+  it('formats HRKit errors with code/status/requestId', () => {
+    const out = formatError(new RateLimitError('slow', { status: 429, requestId: 'r1' }));
+    expect(out).toContain('RateLimitError: slow');
+    expect(out).toContain('code=RATE_LIMITED');
+    expect(out).toContain('status=429');
+    expect(out).toContain('requestId=r1');
+  });
+  it('handles plain Errors and primitives', () => {
+    expect(formatError(new Error('boom'))).toBe('Error: boom');
+    expect(formatError('s')).toBe('s');
+    expect(formatError(42)).toBe('42');
+  });
+});
