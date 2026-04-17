@@ -7,7 +7,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint": "tsc --noEmit && tsc --noEmit -p packages/web/tsconfig.lint.json && tsc --noEmit -p packages/server/tsconfig.lint.json && tsc --noEmit -p packages/widgets/tsconfig.lint.json",
+    "lint": "pnpm -r --parallel run typecheck",
     "format": "biome format --write .",
     "check": "biome check .",
     "check:fix": "biome check --fix .",
@@ -25,12 +25,34 @@
   },
   "size-limit": [
     {
+      "name": "@hrkit/core",
       "path": "packages/core/dist/index.js",
       "limit": "25 kB"
     },
     {
+      "name": "@hrkit/polar",
       "path": "packages/polar/dist/index.js",
       "limit": "10 kB"
+    },
+    {
+      "name": "@hrkit/web",
+      "path": "packages/web/dist/index.js",
+      "limit": "5 kB"
+    },
+    {
+      "name": "@hrkit/react-native",
+      "path": "packages/react-native/dist/index.js",
+      "limit": "5 kB"
+    },
+    {
+      "name": "@hrkit/server",
+      "path": "packages/server/dist/index.js",
+      "limit": "10 kB"
+    },
+    {
+      "name": "@hrkit/widgets",
+      "path": "packages/widgets/dist/index.js",
+      "limit": "20 kB"
     }
   ],
   "devDependencies": {

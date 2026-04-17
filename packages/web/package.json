@@ -16,7 +16,8 @@
   ],
   "scripts": {
     "build": "tsup",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit -p tsconfig.lint.json"
   },
   "dependencies": {
     "@hrkit/core": "workspace:*"

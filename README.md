@@ -1,6 +1,6 @@
 # @hrkit — BLE Heart Rate SDK
 
-[![CI](https://github.com/josedab/hrkit/actions/workflows/ci.yml/badge.svg)](https://github.com/josedab/hrkit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)](https://www.typescriptlang.org/) [![codecov](https://codecov.io/gh/josedab/hrkit/branch/main/graph/badge.svg)](https://codecov.io/gh/josedab/hrkit)
+[![CI](https://github.com/josedab/hrkit/actions/workflows/ci.yml/badge.svg)](https://github.com/josedab/hrkit/actions/workflows/ci.yml) [![npm version](https://img.shields.io/npm/v/@hrkit/core.svg?label=%40hrkit%2Fcore)](https://www.npmjs.com/package/@hrkit/core) [![npm downloads](https://img.shields.io/npm/dm/@hrkit/core.svg)](https://www.npmjs.com/package/@hrkit/core) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)](https://www.typescriptlang.org/) [![codecov](https://codecov.io/gh/josedab/hrkit/branch/main/graph/badge.svg)](https://codecov.io/gh/josedab/hrkit)
 
 A platform-agnostic TypeScript SDK for BLE heart rate sensors. Works with **any** standard BLE HR device (Polar, Garmin, Wahoo, Magene, generic straps). Polar devices with PMD support unlock additional protocol-level capabilities for ECG and accelerometer data parsing.
 
@@ -59,11 +59,25 @@ BLE adapter → HRConnection → HRPacket → SessionRecorder → Session → me
 
 ### Connect to any BLE HR sensor
 
-```typescript
-import { SessionRecorder, connectToDevice } from '@hrkit/core';
-import { GENERIC_HR } from '@hrkit/core/profiles';
+The example below uses [`MockTransport`](#try-without-hardware) so you can run it as-is. In a real app, swap `MockTransport` for [`WebBluetoothTransport`](packages/web/) (browser) or [`ReactNativeTransport`](packages/react-native/) (RN).
 
-// Replace with ReactNativeTransport or WebBluetoothTransport for real BLE
+```typescript
+import {
+  SessionRecorder,
+  connectToDevice,
+  MockTransport,
+  GENERIC_HR,
+} from '@hrkit/core';
+
+const transport = new MockTransport({
+  device: { id: 'demo', name: 'Mock HR Strap' },
+  packets: [
+    { timestamp: 0,    hr: 72, rrIntervals: [833], contactDetected: true },
+    { timestamp: 1000, hr: 78, rrIntervals: [769], contactDetected: true },
+    { timestamp: 2000, hr: 85, rrIntervals: [706], contactDetected: true },
+  ],
+});
+
 const conn = await connectToDevice(transport, { prefer: [GENERIC_HR] });
 const recorder = new SessionRecorder({ maxHR: 185, restHR: 48 });
 
@@ -72,6 +86,7 @@ for await (const packet of conn.heartRate()) {
 }
 
 const session = recorder.end();
+console.log(`Recorded ${session.samples.length} samples`);
 ```
 
 ### One-Call Session Analysis

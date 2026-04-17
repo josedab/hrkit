@@ -5,7 +5,7 @@ Thank you for your interest in contributing! Here's how to get started.
 ## Development Setup
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/josedab/hrkit.git
 cd hrkit
 pnpm install    # requires pnpm >= 9, Node >= 18
 pnpm test       # run all tests
@@ -62,6 +62,16 @@ apps/
    pnpm changeset
    ```
 6. **Open a PR** with a clear description of the change.
+
+## Adding a new package
+
+To keep the monorepo consistent, every workspace package under `packages/` should:
+
+1. Have a `tsconfig.lint.json` extending the root `tsconfig.json` (lean, no `rootDir`/`outDir`, `noEmit: true`). Override `lib` (e.g. `["ES2022", "DOM"]`) or `types` (e.g. `["node"]`) as needed.
+2. Expose a `typecheck` script in `package.json`: `"typecheck": "tsc --noEmit -p tsconfig.lint.json"`. Root `pnpm lint` runs this for every package in parallel via `pnpm -r --parallel run typecheck` — packages without the script are silently skipped, so don't forget it.
+3. Add a vitest alias in `vitest.config.ts` so tests resolve to source, not `dist`.
+4. Add a `size-limit` entry in the root `package.json` if the package is published.
+5. Add a README entry in the root `README.md` "Packages" table and Mermaid diagram.
 
 ## Code Style
 

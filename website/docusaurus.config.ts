@@ -14,7 +14,7 @@ const config: Config = {
   url: 'https://hrkit.dev',
   baseUrl: '/',
 
-  organizationName: 'hrkit',
+  organizationName: 'josedab',
   projectName: 'hrkit',
 
   onBrokenLinks: 'throw',
@@ -39,7 +39,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/hrkit/hrkit/tree/main/website/',
+          editUrl: 'https://github.com/josedab/hrkit/tree/main/website/',
         },
         blog: false,
         theme: {
@@ -74,7 +74,7 @@ const config: Config = {
           position: 'left',
         },
         {
-          href: 'https://github.com/hrkit/hrkit',
+          href: 'https://github.com/josedab/hrkit',
           label: 'GitHub',
           position: 'right',
         },
@@ -97,12 +97,14 @@ const config: Config = {
             {label: '@hrkit/polar', href: 'https://www.npmjs.com/package/@hrkit/polar'},
             {label: '@hrkit/react-native', href: 'https://www.npmjs.com/package/@hrkit/react-native'},
             {label: '@hrkit/web', href: 'https://www.npmjs.com/package/@hrkit/web'},
+            {label: '@hrkit/server', href: 'https://www.npmjs.com/package/@hrkit/server'},
+            {label: '@hrkit/widgets', href: 'https://www.npmjs.com/package/@hrkit/widgets'},
           ],
         },
         {
           title: 'More',
           items: [
-            {label: 'GitHub', href: 'https://github.com/hrkit/hrkit'},
+            {label: 'GitHub', href: 'https://github.com/josedab/hrkit'},
           ],
         },
       ],

@@ -24,7 +24,8 @@
   },
   "scripts": {
     "build": "tsup",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit -p tsconfig.lint.json"
   },
   "devDependencies": {
     "typescript": "^5.4.0",

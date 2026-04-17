@@ -10,8 +10,36 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      docs: ${{ steps.filter.outputs.docs }}
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            docs:
+              - 'website/**'
+              - '.github/workflows/ci.yml'
+            code:
+              - 'packages/**'
+              - 'apps/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'tsconfig.json'
+              - 'vitest.config.ts'
+              - 'biome.json'
+              - '.github/workflows/ci.yml'
+
   check:
     name: Biome Check
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,6 +61,8 @@ jobs:
 
   test:
     name: Test, Lint & Build
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -82,6 +112,8 @@ jobs:
 
   docs:
     name: Docs Build
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -103,3 +135,21 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm build
+
+  ci-success:
+    name: CI Success
+    if: always()
+    needs: [changes, check, test, docs]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required jobs succeeded
+        run: |
+          # Skipped jobs (due to path filter) count as success.
+          # Only fail if a required job genuinely failed or was cancelled.
+          for result in "${{ needs.check.result }}" "${{ needs.test.result }}" "${{ needs.docs.result }}"; do
+            if [[ "$result" == "failure" || "$result" == "cancelled" ]]; then
+              echo "A required job failed or was cancelled: $result"
+              exit 1
+            fi
+          done
+          echo "All required jobs passed (or were skipped by path filter)."
