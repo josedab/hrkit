@@ -1,0 +1,24 @@
+name = "hrkit-cloud-api"
+main = "src/worker.ts"
+compatibility_date = "2024-09-23"
+
+[[durable_objects.bindings]]
+name = "ATHLETE"
+class_name = "AthleteSession"
+
+[[kv_namespaces]]
+binding = "API_KEYS"
+id = "replace-with-kv-namespace-id"
+
+[[r2_buckets]]
+binding = "ARCHIVE"
+bucket_name = "hrkit-archive"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["AthleteSession"]
+
+[vars]
+HRKIT_AUTH_TOKEN = "change-me-in-production"
+HRKIT_FREE_TIER_RPM = "60"
+HRKIT_PRO_TIER_RPM = "600"
