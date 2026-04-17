@@ -85,9 +85,13 @@ export async function exportPublicKey(key: CryptoKey): Promise<string> {
 
 /** Import a base64-encoded SPKI public key for verification. */
 export async function importPublicKey(spkiB64: string): Promise<CryptoKey> {
-  return await getSubtle().importKey('spki', base64ToBytes(spkiB64), { name: 'ECDSA', namedCurve: 'P-256' }, true, [
-    'verify',
-  ]);
+  return await getSubtle().importKey(
+    'spki',
+    base64ToBytes(spkiB64) as unknown as BufferSource,
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    true,
+    ['verify'],
+  );
 }
 
 export interface SignBundleOptions {
@@ -152,7 +156,7 @@ export async function verifyBundle<T>(
     ok = await getSubtle().verify(
       { name: 'ECDSA', hash: 'SHA-256' },
       key,
-      base64ToBytes(bundle.signature.sig),
+      base64ToBytes(bundle.signature.sig) as unknown as BufferSource,
       canonical,
     );
   } catch (e) {
