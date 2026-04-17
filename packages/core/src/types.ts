@@ -1,7 +1,15 @@
 // ── Capability & Device Profiles ─────────────────────────────────────────
 
-/** Capabilities a BLE HR device may support. */
-export type Capability = 'heartRate' | 'rrIntervals' | 'ecg' | 'accelerometer';
+/** Capabilities a BLE device may support. */
+export type Capability =
+  | 'heartRate'
+  | 'rrIntervals'
+  | 'ecg'
+  | 'accelerometer'
+  | 'cyclingPower'
+  | 'cyclingSpeedCadence'
+  | 'runningSpeedCadence'
+  | 'spo2';
 
 /**
  * Describes a BLE heart rate device's identity and capabilities.
@@ -30,6 +38,23 @@ export const POLAR_PMD_SERVICE_UUID = 'fb005c80-02e7-f387-1cad-8acd2d8df0c8';
 export const POLAR_PMD_CONTROL_UUID = 'fb005c81-02e7-f387-1cad-8acd2d8df0c8';
 /** Polar PMD Data Characteristic UUID. */
 export const POLAR_PMD_DATA_UUID = 'fb005c82-02e7-f387-1cad-8acd2d8df0c8';
+
+// Cycling Power Service (0x1818) and characteristics
+export const GATT_CYCLING_POWER_SERVICE_UUID = '00001818-0000-1000-8000-00805f9b34fb';
+export const GATT_CYCLING_POWER_MEASUREMENT_UUID = '00002a63-0000-1000-8000-00805f9b34fb';
+
+// Cycling Speed and Cadence (CSC) Service (0x1816)
+export const GATT_CSC_SERVICE_UUID = '00001816-0000-1000-8000-00805f9b34fb';
+export const GATT_CSC_MEASUREMENT_UUID = '00002a5b-0000-1000-8000-00805f9b34fb';
+
+// Running Speed and Cadence (RSC) Service (0x1814)
+export const GATT_RSC_SERVICE_UUID = '00001814-0000-1000-8000-00805f9b34fb';
+export const GATT_RSC_MEASUREMENT_UUID = '00002a53-0000-1000-8000-00805f9b34fb';
+
+// Pulse Oximeter Service (0x1822)
+export const GATT_PULSE_OX_SERVICE_UUID = '00001822-0000-1000-8000-00805f9b34fb';
+export const GATT_PULSE_OX_SPOT_CHECK_UUID = '00002a5e-0000-1000-8000-00805f9b34fb';
+export const GATT_PULSE_OX_CONTINUOUS_UUID = '00002a5f-0000-1000-8000-00805f9b34fb';
 
 // ── HR Packets ──────────────────────────────────────────────────────────
 
