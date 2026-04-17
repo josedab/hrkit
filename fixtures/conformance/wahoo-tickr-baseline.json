@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "device": {
+    "brand": "Wahoo",
+    "model": "TICKR",
+    "firmware": "2.4",
+    "serviceUuid": "180d",
+    "characteristicUuid": "2a37"
+  },
+  "notes": "Synthetic Wahoo TICKR baseline — single notification, HR 110.",
+  "notifications": [
+    { "timestamp": 0, "hex": "006e" }
+  ],
+  "expected": [
+    { "hr": 110 }
+  ]
+}
