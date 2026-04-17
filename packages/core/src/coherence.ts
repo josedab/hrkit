@@ -8,14 +8,12 @@
  * "in the zone". Range 0..1.
  */
 
-import { frequencyDomain } from './hrv-advanced.js';
-
 export interface CoherenceOptions {
   /** Target resonance frequency in Hz. Default 0.1 (≈ 6 breaths/min). */
   targetHz?: number;
   /** Half-width of the coherence band, Hz. Default 0.015 (so 0.085–0.115). */
   bandHz?: number;
-  /** Override Lomb-Scargle frequencies (advanced). */
+  /** Override Lomb-Scargle frequencies (advanced; currently unused). */
   frequencies?: number[];
 }
 
@@ -47,19 +45,12 @@ export function coherenceScore(rr: number[], opts: CoherenceOptions = {}): Coher
     return { score: 0, bandPower: 0, totalPower: 0, peakHz: 0, inBand: false };
   }
 
-  const fdOpts: { frequencies?: number[] } = {};
-  if (opts.frequencies) fdOpts.frequencies = opts.frequencies;
-  const fd = frequencyDomain(rr, fdOpts);
-
-  // Reconstruct band-resolved spectrum by re-running with a fine grid around target.
+  // Build a fine frequency grid around the LF/HF range.
   const grid: number[] = [];
   // 0.04..0.4 Hz at 0.005 Hz resolution
   for (let f = 0.04; f <= 0.4 + 1e-9; f += 0.005) grid.push(f);
-  const fdFine = frequencyDomain(rr, { frequencies: grid });
 
-  // Recompute fine spectrum: we need raw periodogram amplitudes — but
-  // frequencyDomain only returns integrated bands. Re-implement Lomb-Scargle
-  // here for the fine grid (cheap).
+  // Inline Lomb-Scargle on the fine grid (cheap; we need raw periodogram amplitudes).
   const t: number[] = [0];
   for (let i = 1; i < rr.length; i++) t.push(t[i - 1]! + (rr[i - 1] ?? 0) / 1000);
   const mean = rr.reduce((s, v) => s + v, 0) / rr.length;
@@ -101,9 +92,6 @@ export function coherenceScore(rr: number[], opts: CoherenceOptions = {}): Coher
   }
 
   const score = totalP > 0 ? Math.min(1, bandP / totalP) : 0;
-  // surface fdFine to keep the variable used (avoid dead code)
-  void fd;
-  void fdFine;
   return {
     score,
     bandPower: bandP,
