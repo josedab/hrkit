@@ -87,6 +87,27 @@ export interface GroupSessionConfig {
   activityTimeoutSec?: number;
 }
 
+/** Zone compliance alert for a single athlete. */
+export interface ZoneComplianceAlert {
+  athleteId: string;
+  athleteName: string;
+  currentZone: Zone;
+  targetZone: Zone;
+  direction: 'above' | 'below';
+  hr: number;
+}
+
+/** Full group state snapshot for late-join sync. */
+export interface GroupSnapshot {
+  athletes: AthleteState[];
+  heatmap: ZoneHeatmap;
+  stats: GroupStats;
+  leaderboard: LeaderboardEntry[];
+  targetZone: Zone | null;
+  complianceAlerts: ZoneComplianceAlert[];
+  timestamp: number;
+}
+
 // ── Sex Factor Constants ────────────────────────────────────────────────
 
 const SEX_FACTORS: Record<'male' | 'female' | 'neutral', number> = {
@@ -113,6 +134,7 @@ export class GroupSession {
   private athletes = new Map<string, InternalAthleteState>();
   private latestGlobalTimestamp = 0;
   private activityTimeoutSec: number;
+  private targetZone: Zone | null = null;
 
   private stateStream = new SimpleStream<AthleteState[]>();
   private heatmapStream = new SimpleStream<ZoneHeatmap>();
@@ -325,5 +347,65 @@ export class GroupSession {
     this.stateStream.emit(states);
     this.heatmapStream.emit(this.computeHeatmap());
     this.statsStream.emit(this.computeStats());
+  }
+
+  // ── Coach / Zone Compliance ─────────────────────────────────────────
+
+  /**
+   * Set a target zone for the entire group. Enables compliance alerting.
+   *
+   * @param zone - Target zone (1–5), or null to clear.
+   */
+  setTargetZone(zone: Zone | null): void {
+    this.targetZone = zone;
+  }
+
+  /** Current target zone, or null if not set. */
+  get currentTargetZone(): Zone | null {
+    return this.targetZone;
+  }
+
+  /**
+   * Get athletes who are currently off-target zone.
+   * Only considers active athletes.
+   *
+   * @returns Array of athletes with their deviation direction.
+   */
+  getComplianceAlerts(): ZoneComplianceAlert[] {
+    if (this.targetZone === null) return [];
+
+    const alerts: ZoneComplianceAlert[] = [];
+    for (const a of this.athletes.values()) {
+      const state = this.toAthleteState(a);
+      if (!state.active || a.packetCount === 0) continue;
+      if (a.zone !== this.targetZone) {
+        alerts.push({
+          athleteId: a.config.id,
+          athleteName: a.config.name,
+          currentZone: a.zone,
+          targetZone: this.targetZone,
+          direction: a.zone > this.targetZone ? 'above' : 'below',
+          hr: a.hr,
+        });
+      }
+    }
+    return alerts;
+  }
+
+  /**
+   * Snapshot the entire group state for late-join sync.
+   * A new coach/viewer can receive this snapshot and immediately
+   * render the current state without replaying all packets.
+   */
+  snapshot(): GroupSnapshot {
+    return {
+      athletes: Array.from(this.athletes.values()).map((a) => this.toAthleteState(a)),
+      heatmap: this.computeHeatmap(),
+      stats: this.computeStats(),
+      leaderboard: this.getLeaderboard('trimp'),
+      targetZone: this.targetZone,
+      complianceAlerts: this.getComplianceAlerts(),
+      timestamp: this.latestGlobalTimestamp,
+    };
   }
 }

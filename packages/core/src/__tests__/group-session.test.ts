@@ -398,3 +398,88 @@ describe('GroupSession edge cases', () => {
     expect(defaultGroup.getAthleteState('a1')!.active).toBe(true);
   });
 });
+
+describe('GroupSession coach features', () => {
+  function makePacket2(hr: number, timestamp: number): HRPacket {
+    return { hr, timestamp, rrIntervals: [], contactDetected: true };
+  }
+
+  function makeAthlete2(id: string, name: string, maxHR = 200, restHR = 60): AthleteConfig {
+    return { id, name, config: { maxHR, restHR, sex: 'male' } };
+  }
+
+  it('setTargetZone and getComplianceAlerts', () => {
+    const gs = new GroupSession();
+    gs.addAthlete(makeAthlete2('a1', 'Alice'));
+    gs.addAthlete(makeAthlete2('a2', 'Bob'));
+
+    gs.ingest('a1', makePacket2(100, 1000)); // ~zone 1 (50% of 200)
+    gs.ingest('a2', makePacket2(170, 1000)); // ~zone 5 (85% of 200)
+
+    gs.setTargetZone(3);
+    expect(gs.currentTargetZone).toBe(3);
+
+    const alerts = gs.getComplianceAlerts();
+    expect(alerts.length).toBe(2);
+    const alice = alerts.find((a) => a.athleteId === 'a1');
+    const bob = alerts.find((a) => a.athleteId === 'a2');
+    expect(alice!.direction).toBe('below');
+    expect(bob!.direction).toBe('above');
+  });
+
+  it('no alerts when target zone is null', () => {
+    const gs = new GroupSession();
+    gs.addAthlete(makeAthlete2('a1', 'Alice'));
+    gs.ingest('a1', makePacket2(100, 1000));
+    expect(gs.getComplianceAlerts()).toEqual([]);
+  });
+
+  it('no alert when athlete is in target zone', () => {
+    const gs = new GroupSession();
+    gs.addAthlete(makeAthlete2('a1', 'Alice'));
+    gs.ingest('a1', makePacket2(150, 1000)); // 75% of 200 → zone 3
+    gs.setTargetZone(3);
+    const alerts = gs.getComplianceAlerts();
+    const aliceAlert = alerts.find((a) => a.athleteId === 'a1');
+    expect(aliceAlert).toBeUndefined();
+  });
+
+  it('clearTargetZone with null', () => {
+    const gs = new GroupSession();
+    gs.setTargetZone(3);
+    gs.setTargetZone(null);
+    expect(gs.currentTargetZone).toBeNull();
+  });
+
+  it('snapshot returns complete group state', () => {
+    const gs = new GroupSession();
+    gs.addAthlete(makeAthlete2('a1', 'Alice'));
+    gs.addAthlete(makeAthlete2('a2', 'Bob'));
+    gs.ingest('a1', makePacket2(130, 1000));
+    gs.ingest('a2', makePacket2(160, 1000));
+    gs.setTargetZone(3);
+
+    const snap = gs.snapshot();
+    expect(snap.athletes).toHaveLength(2);
+    expect(snap.heatmap.total).toBe(2);
+    expect(snap.stats.activeCount).toBe(2);
+    expect(snap.leaderboard).toHaveLength(2);
+    expect(snap.targetZone).toBe(3);
+    expect(snap.complianceAlerts.length).toBeGreaterThanOrEqual(0);
+    expect(snap.timestamp).toBe(1000);
+  });
+
+  it('snapshot is usable for late-join sync', () => {
+    const gs = new GroupSession();
+    gs.addAthlete(makeAthlete2('a1', 'Alice'));
+    gs.ingest('a1', makePacket2(120, 1000));
+    gs.ingest('a1', makePacket2(130, 2000));
+    gs.ingest('a1', makePacket2(140, 3000));
+
+    const snap = gs.snapshot();
+    // A late-joining viewer can reconstruct current state from snapshot
+    expect(snap.athletes[0]!.hr).toBe(140);
+    expect(snap.athletes[0]!.packetCount).toBe(3);
+    expect(snap.stats.avgHR).toBe(140);
+  });
+});
