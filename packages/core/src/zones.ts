@@ -14,6 +14,12 @@ type Zone = 1 | 2 | 3 | 4 | 5;
  * @param hr - Heart rate in BPM.
  * @param config - Zone configuration with maxHR and zone thresholds.
  * @returns Zone number (1-5).
+ *
+ * @example
+ * ```ts
+ * const zone = hrToZone(150, { maxHR: 190, zones: [0.6, 0.7, 0.8, 0.9] });
+ * console.log(zone); // 4 (150 is 79% of 190 → zone 4)
+ * ```
  */
 export function hrToZone(hr: number, config: HRZoneConfig): Zone {
   const thresholds = config.zones.map((z) => z * config.maxHR);

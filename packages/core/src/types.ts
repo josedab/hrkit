@@ -9,7 +9,16 @@ export type Capability =
   | 'cyclingPower'
   | 'cyclingSpeedCadence'
   | 'runningSpeedCadence'
-  | 'spo2';
+  | 'spo2'
+  // ── Capability v2 (multi-sensor fusion) ─────────────────────────────────
+  /** Smart trainer with FTMS control (resistance, target power, simulation). */
+  | 'smartTrainer'
+  /** Continuous glucose monitor (CGM) — vendor-cloud or BLE 0x1808. */
+  | 'glucose'
+  /** Body composition / weight scale (BLE 0x181B). */
+  | 'bodyComposition'
+  /** Environmental temperature/humidity (BLE 0x181A). */
+  | 'environment';
 
 /**
  * Describes a BLE heart rate device's identity and capabilities.
@@ -97,12 +106,29 @@ export interface HRDevice {
  * Implement this for your target platform (React Native, Web, Node, etc.).
  */
 export interface BLETransport {
-  /** Scan for BLE HR devices. Optionally filter by profiles. Returns an async iterable. */
-  scan(profiles?: DeviceProfile[]): AsyncIterable<HRDevice>;
+  /**
+   * Scan for BLE HR devices. Optionally filter by profiles.
+   *
+   * @param profiles - Restrict discovery to devices matching these profiles.
+   * @param options - Optional scan controls.
+   * @param options.signal - Abort the scan when the signal fires. The returned
+   *   async iterable ends gracefully (no error thrown). Adapters that cannot
+   *   honor cancellation must document the limitation in their JSDoc.
+   */
+  scan(profiles?: DeviceProfile[], options?: { signal?: AbortSignal }): AsyncIterable<HRDevice>;
   /** Stop an active scan. */
   stopScan(): Promise<void>;
-  /** Connect to a device by ID using the given profile. */
-  connect(deviceId: string, profile: DeviceProfile): Promise<HRConnection>;
+  /**
+   * Connect to a device by ID using the given profile.
+   *
+   * @param deviceId - BLE device identifier from {@link scan}.
+   * @param profile - Device profile describing required capabilities.
+   * @param options - Optional connect controls.
+   * @param options.signal - Abort an in-flight connection attempt. When the
+   *   signal fires the returned promise rejects with an `'ABORTED'` error.
+   *   Adapters that cannot honor cancellation must document the limitation.
+   */
+  connect(deviceId: string, profile: DeviceProfile, options?: { signal?: AbortSignal }): Promise<HRConnection>;
 }
 
 /**
@@ -114,8 +140,15 @@ export interface HRConnection {
   readonly deviceName: string;
   readonly profile: DeviceProfile;
 
-  /** Stream of HR packets from the GATT Heart Rate Measurement characteristic. */
-  heartRate(): AsyncIterable<HRPacket>;
+  /**
+   * Stream of HR packets from the GATT Heart Rate Measurement characteristic.
+   *
+   * @param options - Optional stream controls.
+   * @param options.signal - Abort the stream cleanly when the signal fires
+   *   (the iterator returns; no error is thrown). The connection itself is
+   *   left intact — call {@link disconnect} to release the device.
+   */
+  heartRate(options?: { signal?: AbortSignal }): AsyncIterable<HRPacket>;
   /** Disconnect from the device. */
   disconnect(): Promise<void>;
   /** Resolves when the device disconnects (explicitly or due to connection loss). */
