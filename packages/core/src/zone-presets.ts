@@ -40,6 +40,12 @@ function validateZoneThresholds(zones: [number, number, number, number]): void {
  *
  * @param profile - Athlete profile to derive config from.
  * @returns SessionConfig suitable for SessionRecorder.
+ *
+ * @example
+ * ```ts
+ * const config = toSessionConfig({ maxHR: 190, restHR: 55, sex: 'male', zones: '5-zone' });
+ * const recorder = new SessionRecorder(config);
+ * ```
  */
 export function toSessionConfig(profile: AthleteProfile): SessionConfig {
   const zones =
@@ -63,6 +69,12 @@ export function toSessionConfig(profile: AthleteProfile): SessionConfig {
  *
  * @param profile - Athlete profile.
  * @returns HRZoneConfig for zone calculations.
+ *
+ * @example
+ * ```ts
+ * const zoneConfig = toZoneConfig({ maxHR: 190, restHR: 55, sex: 'male' });
+ * const zone = hrToZone(150, zoneConfig);
+ * ```
  */
 export function toZoneConfig(profile: AthleteProfile): HRZoneConfig {
   const zones =
@@ -81,6 +93,12 @@ export function toZoneConfig(profile: AthleteProfile): HRZoneConfig {
  *
  * @param profile - Athlete profile.
  * @returns TRIMPConfig for TRIMP calculations.
+ *
+ * @example
+ * ```ts
+ * const trimpConfig = toTRIMPConfig({ maxHR: 190, restHR: 55, sex: 'male' });
+ * const load = trimp(session.samples, trimpConfig);
+ * ```
  */
 export function toTRIMPConfig(profile: AthleteProfile): TRIMPConfig {
   return { maxHR: profile.maxHR, restHR: profile.restHR, sex: profile.sex };
