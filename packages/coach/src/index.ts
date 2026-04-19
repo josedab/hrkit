@@ -1,3 +1,5 @@
+export { SDK_NAME, SDK_VERSION } from './version.js';
+
 import { analyzeSession, hrToZone, rmssd, type Session, type SessionAnalysis } from '@hrkit/core';
 
 // ── Public types ────────────────────────────────────────────────────────
@@ -325,5 +327,16 @@ export function liveCue(
   return 'Push it — you are below target.';
 }
 
+// ── Adaptive workout recommender ───────────────────────────────────────
+export {
+  evalRecommender,
+  performanceRecommender,
+  polarisedRecommender,
+  type RecommenderEvalCase,
+  type RecommenderEvalResult,
+  type RecommenderPort,
+  recoveryFirstRecommender,
+  type WorkoutRecommendation,
+} from './recommender.js';
 /** Re-export rmssd convenience for consumers building their own coach. */
 export { rmssd as sessionRmssd };
