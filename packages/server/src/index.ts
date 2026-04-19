@@ -1,3 +1,5 @@
+export { SDK_NAME, SDK_VERSION } from './version.js';
+
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { URL } from 'node:url';
 import type { HRPacket } from '@hrkit/core';
@@ -46,6 +48,12 @@ export interface StreamServerConfig {
   maxRateHz?: number;
   /** Authentication token. If set, clients must provide it as ?token=xxx query param. */
   authToken?: string;
+  /**
+   * Maximum bytes a single client may have buffered before it's considered
+   * "slow". Slow clients are skipped (and counted via `getSlowClientDrops()`)
+   * so one stalled consumer can't OOM the server. Default: 1 MiB.
+   */
+  maxBufferedBytesPerClient?: number;
 }
 
 // ── Pure helpers (exported for testing) ─────────────────────────────────
@@ -77,6 +85,7 @@ function resolveConfig(config?: StreamServerConfig): ResolvedConfig {
     cors: config?.cors ?? true,
     maxRateHz: config?.maxRateHz ?? 10,
     authToken: config?.authToken ?? '',
+    maxBufferedBytesPerClient: config?.maxBufferedBytesPerClient ?? 1024 * 1024,
   };
 }
 
@@ -126,6 +135,7 @@ export class HRStreamServer {
   private readonly sseClients: Set<ServerResponse> = new Set();
   private lastBroadcastTime = 0;
   private running = false;
+  private slowClientDrops = 0;
 
   /** Number of connected WebSocket clients. */
   get wsClientCount(): number {
@@ -220,20 +230,35 @@ export class HRStreamServer {
   broadcastRaw(payload: BroadcastPayload): void {
     const json = JSON.stringify(payload);
     this.lastBroadcastTime = Date.now();
+    const cap = this.config.maxBufferedBytesPerClient;
 
     // WebSocket clients
     if (this.wsServer) {
       for (const client of this.wsServer.clients) {
-        if (client.readyState === 1 /* WebSocket.OPEN */) {
-          client.send(json);
+        if (client.readyState !== 1 /* WebSocket.OPEN */) continue;
+        // Skip clients with too much queued data — protects the server from
+        // a single slow consumer dragging memory up unboundedly.
+        const buffered = typeof client.bufferedAmount === 'number' ? client.bufferedAmount : 0;
+        if (buffered > cap) {
+          this.slowClientDrops += 1;
+          continue;
         }
+        client.send(json);
       }
     }
 
     // SSE clients
     for (const res of this.sseClients) {
-      res.write(`data: ${json}\n\n`);
+      const ok = res.write(`data: ${json}\n\n`);
+      // Node returns false when the kernel buffer is full; record the drop
+      // (the underlying socket will drain async — we simply skipped one event).
+      if (!ok) this.slowClientDrops += 1;
     }
+  }
+
+  /** Cumulative count of broadcast events skipped because of slow clients. */
+  getSlowClientDrops(): number {
+    return this.slowClientDrops;
   }
 
   // ── Private ─────────────────────────────────────────────────────────
@@ -321,4 +346,5 @@ export class HRStreamServer {
     }
   }
 }
+export * from './group-room.js';
 export * from './webrtc.js';

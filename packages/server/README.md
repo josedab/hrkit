@@ -62,6 +62,7 @@ new HRStreamServer(config?: StreamServerConfig)
 | `cors` | `boolean` | `true` | Enable CORS headers |
 | `maxRateHz` | `number` | `10` | Maximum broadcast rate (packets per second) |
 | `authToken` | `string` | `''` | Auth token — clients must pass as `?token=xxx` |
+| `maxBufferedBytesPerClient` | `number` | `1_048_576` | Per-client outbound buffer cap. WebSocket clients exceeding this are disconnected; SSE writes that fail backpressure are skipped. Set `0` to disable. |
 
 #### Methods
 
@@ -80,6 +81,12 @@ new HRStreamServer(config?: StreamServerConfig)
 | `clientCount` | `number` | Total connected clients (WebSocket + SSE) |
 | `wsClientCount` | `number` | Connected WebSocket clients |
 | `sseClientCount` | `number` | Connected SSE clients |
+
+#### Observability
+
+| Method | Description |
+|--------|-------------|
+| `getSlowClientDrops()` | Cumulative count of clients dropped because their outbound buffer exceeded `maxBufferedBytesPerClient`. Useful as a metric to detect lagging consumers. |
 
 ### `BroadcastPayload`
 
@@ -163,6 +170,58 @@ Unauthenticated requests receive a `401 Unauthorized` response.
 ## Security Note
 
 The server binds to `127.0.0.1` by default. **Do not expose to public networks without adding proper authentication and TLS.** If you need external access, set `host: '0.0.0.0'` and use a reverse proxy with HTTPS.
+
+## Group Rooms (multi-tenant)
+
+For multi-class deployments, `@hrkit/server` ships an in-memory room registry that wraps `@hrkit/core`'s `GroupSession` per room.
+
+```ts
+import {
+  InMemoryRoomStore,
+  joinRoom,
+  applyPacketToRoom,
+  snapshotRoom,
+} from '@hrkit/server';
+
+const rooms = new InMemoryRoomStore();
+rooms.create('class-7am');
+
+joinRoom(rooms, 'class-7am', { id: 'a1', name: 'Alex', maxHR: 190 });
+applyPacketToRoom(rooms, 'class-7am', 'a1', { hr: 165, timestamp: Date.now() });
+
+const snap = snapshotRoom(rooms, 'class-7am', 'trimp');
+// { roomId, athletes, leaderboard, createdAt }
+
+// Periodically drop silent athletes (default 60s).
+setInterval(() => rooms.pruneStale(), 30_000);
+```
+
+`RoomStore` is an interface — swap `InMemoryRoomStore` for a Redis/Durable Object implementation in multi-instance deployments.
+
+## WebRTC Signaling
+
+For peer-to-peer broadcasts (low-latency, server-bandwidth-free), `SignalingRoom` is a transport-agnostic relay:
+
+```ts
+import { SignalingRoom, type SignalingMessage } from '@hrkit/server';
+
+const signaling = new SignalingRoom();
+
+// On WebSocket message:
+signaling.route(msg as SignalingMessage);
+
+// On connect:
+signaling.join(roomId, {
+  peerId,
+  role: 'broadcaster', // or 'viewer'
+  send: (m) => ws.send(JSON.stringify(m)),
+});
+
+// On disconnect:
+signaling.leave(roomId, peerId);
+```
+
+The server is a pure relay — bring your own STUN/TURN servers for production. `WebRTCBroadcaster` is also exported for sending `HRPacket`s over a `RTCDataChannel`-shaped sink.
 
 ## License
 
