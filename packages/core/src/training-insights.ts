@@ -116,6 +116,12 @@ const PRESCRIPTIONS: Record<TrainingVerdict, ZonePrescription> = {
  *
  * @param acwr - Acute:Chronic Workload Ratio.
  * @returns Risk level: 'low', 'moderate', 'high', or 'critical'.
+ *
+ * @example
+ * ```ts
+ * const risk = assessACWRRisk(1.4);
+ * console.log(risk); // 'high'
+ * ```
  */
 export function assessACWRRisk(acwr: number): RiskLevel {
   if (acwr > ACWR_CRITICAL) return 'critical';
@@ -130,6 +136,12 @@ export function assessACWRRisk(acwr: number): RiskLevel {
  *
  * @param trend - Array of recent HRV trend data points.
  * @returns Direction ('improving' | 'stable' | 'declining'), magnitude (%), and whether it raises concern.
+ *
+ * @example
+ * ```ts
+ * const trend = analyzeHRVTrend(store.getHRVTrend());
+ * if (trend.concern) console.warn('HRV declining — consider a rest day');
+ * ```
  */
 export function analyzeHRVTrend(trend: HRVTrendPoint[]): {
   direction: 'improving' | 'stable' | 'declining';
@@ -182,6 +194,12 @@ export function analyzeHRVTrend(trend: HRVTrendPoint[]): {
  *
  * @param trainingLoad - Recent training load data points.
  * @returns Monotony value. `Infinity` if all days have the same load. 0 if insufficient data.
+ *
+ * @example
+ * ```ts
+ * const mono = calculateMonotony(store.getTrainingLoadTrend());
+ * if (mono > 2.0) console.warn('Training too repetitive — add variety');
+ * ```
  */
 export function calculateMonotony(trainingLoad: TrainingLoadPoint[]): number {
   const recent = trainingLoad.slice(-MONOTONY_WINDOW);
@@ -218,203 +236,248 @@ export function calculateMonotony(trainingLoad: TrainingLoadPoint[]): number {
  */
 export function getTrainingRecommendation(input: InsightInput): TrainingRecommendation {
   const reasons: InsightReason[] = [];
-  let verdict: TrainingVerdict = 'moderate';
-  let riskLevel: RiskLevel = 'low';
+  const confidence = computeConfidence(input);
 
-  // --- Confidence ---
+  // Assess each factor independently
+  const acwrFactor = assessACWRFactor(input.trainingLoad, reasons);
+  const hrvTrendFactor = assessHRVTrendFactor(input.hrvTrend, reasons);
+  const hrvBaselineFactor = assessHRVBaselineFactor(input.todayRmssd, input.baselineRmssd, reasons);
+  const monotonyFactor = assessMonotonyFactor(input.trainingLoad, reasons);
+  const freshnessFactor = assessFreshnessFactor(input.trainingLoad, reasons);
+
+  // Combine factors into final verdict
+  const { verdict, riskLevel } = buildVerdict(
+    acwrFactor,
+    hrvTrendFactor,
+    hrvBaselineFactor,
+    monotonyFactor,
+    freshnessFactor,
+  );
+
+  return {
+    verdict,
+    riskLevel,
+    prescription: { ...PRESCRIPTIONS[verdict] },
+    confidence,
+    reasons,
+    summary: buildSummary(verdict, acwrFactor.acwr, hrvTrendFactor.analysis, freshnessFactor.tsb),
+  };
+}
+
+// ── Factor Assessment Helpers ───────────────────────────────────────────
+
+interface ACWRFactor {
+  acwr: number | null;
+  risk: RiskLevel;
+}
+
+function computeConfidence(input: InsightInput): number {
   let confidence = 0.5;
   if (input.trainingLoad.length > 0) confidence += 0.1;
   if (input.hrvTrend.length > 0) confidence += 0.1;
   if (input.todayRmssd != null) confidence += 0.1;
   if (input.baselineRmssd != null) confidence += 0.1;
-  confidence = Math.min(confidence, 1.0);
+  return Math.min(confidence, 1.0);
+}
 
-  // --- 1. ACWR ---
-  let latestACWR: number | null = null;
-  if (input.trainingLoad.length > 0) {
-    latestACWR = input.trainingLoad[input.trainingLoad.length - 1]!.acwr;
-    riskLevel = assessACWRRisk(latestACWR);
+function assessACWRFactor(trainingLoad: TrainingLoadPoint[], reasons: InsightReason[]): ACWRFactor {
+  if (trainingLoad.length === 0) return { acwr: null, risk: 'low' };
 
-    if (latestACWR > ACWR_CRITICAL) {
-      verdict = 'rest';
-      reasons.push({
-        factor: 'acwr',
-        message: `ACWR is critically high (${latestACWR.toFixed(1)}). Injury risk is elevated.`,
-        concern: true,
-      });
-    } else if (latestACWR > ACWR_HIGH) {
-      verdict = 'easy';
-      reasons.push({
-        factor: 'acwr',
-        message: `ACWR is elevated (${latestACWR.toFixed(1)}). Reduce training load.`,
-        concern: true,
-      });
-    } else if (latestACWR >= ACWR_UNDERTRAINED) {
-      reasons.push({
-        factor: 'acwr',
-        message: `ACWR is in the sweet spot (${latestACWR.toFixed(1)}).`,
-        concern: false,
-      });
-    } else {
-      reasons.push({
-        factor: 'acwr',
-        message: `ACWR is low (${latestACWR.toFixed(1)}). You may be undertrained.`,
-        concern: false,
-      });
-    }
+  const acwr = trainingLoad[trainingLoad.length - 1]!.acwr;
+  const risk = assessACWRRisk(acwr);
+
+  if (acwr > ACWR_CRITICAL) {
+    reasons.push({
+      factor: 'acwr',
+      message: `ACWR is critically high (${acwr.toFixed(1)}). Injury risk is elevated.`,
+      concern: true,
+    });
+  } else if (acwr > ACWR_HIGH) {
+    reasons.push({
+      factor: 'acwr',
+      message: `ACWR is elevated (${acwr.toFixed(1)}). Reduce training load.`,
+      concern: true,
+    });
+  } else if (acwr >= ACWR_UNDERTRAINED) {
+    reasons.push({ factor: 'acwr', message: `ACWR is in the sweet spot (${acwr.toFixed(1)}).`, concern: false });
+  } else {
+    reasons.push({
+      factor: 'acwr',
+      message: `ACWR is low (${acwr.toFixed(1)}). You may be undertrained.`,
+      concern: false,
+    });
   }
 
-  // --- 2. HRV trend ---
-  let hrvAnalysis: ReturnType<typeof analyzeHRVTrend> | null = null;
-  if (input.hrvTrend.length > 0) {
-    hrvAnalysis = analyzeHRVTrend(input.hrvTrend);
+  return { acwr, risk };
+}
 
-    if (hrvAnalysis.concern) {
-      reasons.push({
-        factor: 'hrv_trend',
-        message: `HRV has been declining (${hrvAnalysis.magnitude.toFixed(0)}% drop). Accumulated fatigue likely.`,
-        concern: true,
-      });
-    } else if (hrvAnalysis.direction === 'declining') {
-      reasons.push({
-        factor: 'hrv_trend',
-        message: `HRV is trending down (${hrvAnalysis.magnitude.toFixed(0)}%).`,
-        concern: true,
-      });
-    } else if (hrvAnalysis.direction === 'improving') {
-      reasons.push({
-        factor: 'hrv_trend',
-        message: `HRV is trending up (${hrvAnalysis.magnitude.toFixed(0)}%). Recovery looks good.`,
-        concern: false,
-      });
-    } else {
-      reasons.push({
-        factor: 'hrv_trend',
-        message: 'HRV is stable.',
-        concern: false,
-      });
-    }
+interface HRVTrendFactor {
+  analysis: ReturnType<typeof analyzeHRVTrend> | null;
+}
+
+function assessHRVTrendFactor(hrvTrend: HRVTrendPoint[], reasons: InsightReason[]): HRVTrendFactor {
+  if (hrvTrend.length === 0) return { analysis: null };
+
+  const analysis = analyzeHRVTrend(hrvTrend);
+
+  if (analysis.concern) {
+    reasons.push({
+      factor: 'hrv_trend',
+      message: `HRV has been declining (${analysis.magnitude.toFixed(0)}% drop). Accumulated fatigue likely.`,
+      concern: true,
+    });
+  } else if (analysis.direction === 'declining') {
+    reasons.push({
+      factor: 'hrv_trend',
+      message: `HRV is trending down (${analysis.magnitude.toFixed(0)}%).`,
+      concern: true,
+    });
+  } else if (analysis.direction === 'improving') {
+    reasons.push({
+      factor: 'hrv_trend',
+      message: `HRV is trending up (${analysis.magnitude.toFixed(0)}%). Recovery looks good.`,
+      concern: false,
+    });
+  } else {
+    reasons.push({ factor: 'hrv_trend', message: 'HRV is stable.', concern: false });
   }
 
-  // --- 3. HRV vs baseline ---
-  let hrvBaselineRatio: number | null = null;
-  if (input.todayRmssd != null && input.baselineRmssd != null && input.baselineRmssd > 0) {
-    hrvBaselineRatio = input.todayRmssd / input.baselineRmssd;
+  return { analysis };
+}
 
-    if (hrvBaselineRatio < HRV_POOR_RECOVERY) {
-      reasons.push({
-        factor: 'hrv_baseline',
-        message: `Today's rMSSD is ${(hrvBaselineRatio * 100).toFixed(0)}% of baseline. Recovery is poor.`,
-        concern: true,
-      });
-    } else if (hrvBaselineRatio >= HRV_WELL_RECOVERED) {
-      reasons.push({
-        factor: 'hrv_baseline',
-        message: `Today's rMSSD is ${(hrvBaselineRatio * 100).toFixed(0)}% of baseline. Well recovered.`,
-        concern: false,
-      });
-    } else {
-      reasons.push({
-        factor: 'hrv_baseline',
-        message: `Today's rMSSD is ${(hrvBaselineRatio * 100).toFixed(0)}% of baseline.`,
-        concern: false,
-      });
-    }
+interface HRVBaselineFactor {
+  ratio: number | null;
+}
+
+function assessHRVBaselineFactor(
+  todayRmssd: number | undefined,
+  baselineRmssd: number | undefined,
+  reasons: InsightReason[],
+): HRVBaselineFactor {
+  if (todayRmssd == null || baselineRmssd == null || baselineRmssd <= 0) return { ratio: null };
+
+  const ratio = todayRmssd / baselineRmssd;
+
+  if (ratio < HRV_POOR_RECOVERY) {
+    reasons.push({
+      factor: 'hrv_baseline',
+      message: `Today's rMSSD is ${(ratio * 100).toFixed(0)}% of baseline. Recovery is poor.`,
+      concern: true,
+    });
+  } else if (ratio >= HRV_WELL_RECOVERED) {
+    reasons.push({
+      factor: 'hrv_baseline',
+      message: `Today's rMSSD is ${(ratio * 100).toFixed(0)}% of baseline. Well recovered.`,
+      concern: false,
+    });
+  } else {
+    reasons.push({
+      factor: 'hrv_baseline',
+      message: `Today's rMSSD is ${(ratio * 100).toFixed(0)}% of baseline.`,
+      concern: false,
+    });
   }
 
-  // --- 4. Monotony ---
-  let monotony = 0;
-  if (input.trainingLoad.length >= 2) {
-    monotony = calculateMonotony(input.trainingLoad);
+  return { ratio };
+}
 
-    if (monotony > MONOTONY_HIGH && Number.isFinite(monotony)) {
-      reasons.push({
-        factor: 'training_monotony',
-        message: `Training monotony is high (${monotony.toFixed(1)}). Add variety to your sessions.`,
-        concern: true,
-      });
-    }
+interface MonotonyFactor {
+  value: number;
+}
+
+function assessMonotonyFactor(trainingLoad: TrainingLoadPoint[], reasons: InsightReason[]): MonotonyFactor {
+  if (trainingLoad.length < 2) return { value: 0 };
+
+  const monotony = calculateMonotony(trainingLoad);
+
+  if (monotony > MONOTONY_HIGH && Number.isFinite(monotony)) {
+    reasons.push({
+      factor: 'training_monotony',
+      message: `Training monotony is high (${monotony.toFixed(1)}). Add variety to your sessions.`,
+      concern: true,
+    });
   }
 
-  // --- 5. Freshness (TSB) ---
-  let latestTSB: number | null = null;
-  if (input.trainingLoad.length > 0) {
-    latestTSB = input.trainingLoad[input.trainingLoad.length - 1]!.tsb;
+  return { value: monotony };
+}
 
-    if (latestTSB < TSB_DELOAD_THRESHOLD) {
-      reasons.push({
-        factor: 'freshness',
-        message: `Training stress balance is very negative (${latestTSB.toFixed(0)}). A deload is recommended.`,
-        concern: true,
-      });
-    } else if (latestTSB > 0) {
-      reasons.push({
-        factor: 'freshness',
-        message: `Positive training stress balance (${latestTSB.toFixed(0)}). You're fresh.`,
-        concern: false,
-      });
-    }
+interface FreshnessFactor {
+  tsb: number | null;
+}
+
+function assessFreshnessFactor(trainingLoad: TrainingLoadPoint[], reasons: InsightReason[]): FreshnessFactor {
+  if (trainingLoad.length === 0) return { tsb: null };
+
+  const tsb = trainingLoad[trainingLoad.length - 1]!.tsb;
+
+  if (tsb < TSB_DELOAD_THRESHOLD) {
+    reasons.push({
+      factor: 'freshness',
+      message: `Training stress balance is very negative (${tsb.toFixed(0)}). A deload is recommended.`,
+      concern: true,
+    });
+  } else if (tsb > 0) {
+    reasons.push({
+      factor: 'freshness',
+      message: `Positive training stress balance (${tsb.toFixed(0)}). You're fresh.`,
+      concern: false,
+    });
   }
 
-  // --- Combine factors into final verdict ---
+  return { tsb };
+}
+
+// ── Verdict Builder ─────────────────────────────────────────────────────
+
+function buildVerdict(
+  acwr: ACWRFactor,
+  hrv: HRVTrendFactor,
+  baseline: HRVBaselineFactor,
+  monotony: MonotonyFactor,
+  freshness: FreshnessFactor,
+): { verdict: TrainingVerdict; riskLevel: RiskLevel } {
+  let verdict: TrainingVerdict = 'moderate';
+  let riskLevel: RiskLevel = acwr.risk;
+
   // Critical ACWR overrides everything
-  if (latestACWR != null && latestACWR > ACWR_CRITICAL) {
-    verdict = 'rest';
-    riskLevel = 'critical';
-  } else if (latestACWR != null && latestACWR > ACWR_HIGH) {
-    verdict = 'easy';
-    riskLevel = 'high';
-  } else if (latestTSB != null && latestTSB < TSB_DELOAD_THRESHOLD) {
-    // Deload when very fatigued
+  if (acwr.acwr != null && acwr.acwr > ACWR_CRITICAL) {
+    return { verdict: 'rest', riskLevel: 'critical' };
+  }
+  if (acwr.acwr != null && acwr.acwr > ACWR_HIGH) {
+    return { verdict: 'easy', riskLevel: 'high' };
+  }
+
+  // Deload when very fatigued
+  if (freshness.tsb != null && freshness.tsb < TSB_DELOAD_THRESHOLD) {
     verdict = 'deload';
     riskLevel = riskLevel === 'low' ? 'moderate' : riskLevel;
-  } else if (hrvAnalysis && hrvAnalysis.direction === 'declining' && latestACWR != null && latestACWR > 1.0) {
-    // HRV declining with above-average load
+  } else if (hrv.analysis?.direction === 'declining' && acwr.acwr != null && acwr.acwr > 1.0) {
     verdict = 'easy';
     riskLevel = riskLevel === 'low' ? 'moderate' : riskLevel;
-  } else if (hrvBaselineRatio != null && hrvBaselineRatio < HRV_POOR_RECOVERY) {
-    // Poor recovery based on today's HRV
+  } else if (baseline.ratio != null && baseline.ratio < HRV_POOR_RECOVERY) {
     verdict = 'rest';
     riskLevel = riskLevel === 'low' ? 'moderate' : riskLevel;
-  } else if (monotony > MONOTONY_HIGH && Number.isFinite(monotony)) {
-    // High monotony → deload/easy
+  } else if (monotony.value > MONOTONY_HIGH && Number.isFinite(monotony.value)) {
     verdict = 'easy';
   } else if (
-    hrvAnalysis &&
-    hrvAnalysis.direction === 'improving' &&
-    latestACWR != null &&
-    latestACWR >= ACWR_UNDERTRAINED &&
-    latestACWR <= ACWR_HIGH
+    hrv.analysis?.direction === 'improving' &&
+    acwr.acwr != null &&
+    acwr.acwr >= ACWR_UNDERTRAINED &&
+    acwr.acwr <= ACWR_HIGH
   ) {
-    // Sweet spot + improving HRV → go hard
     verdict = 'go_hard';
   } else if (
-    latestACWR != null &&
-    latestACWR < ACWR_UNDERTRAINED &&
-    hrvAnalysis &&
-    (hrvAnalysis.direction === 'stable' || hrvAnalysis.direction === 'improving')
+    acwr.acwr != null &&
+    acwr.acwr < ACWR_UNDERTRAINED &&
+    hrv.analysis &&
+    (hrv.analysis.direction === 'stable' || hrv.analysis.direction === 'improving')
   ) {
-    // Undertrained but ready
     verdict = 'go_hard';
-  } else if (hrvBaselineRatio != null && hrvBaselineRatio >= HRV_WELL_RECOVERED) {
-    // Well recovered → supports pushing harder
+  } else if (baseline.ratio != null && baseline.ratio >= HRV_WELL_RECOVERED) {
     if (verdict === 'moderate') verdict = 'go_hard';
   }
 
-  // --- Build prescription ---
-  const prescription = { ...PRESCRIPTIONS[verdict] };
-
-  // --- Build summary ---
-  const summary = buildSummary(verdict, latestACWR, hrvAnalysis, latestTSB);
-
-  return {
-    verdict,
-    riskLevel,
-    prescription,
-    confidence,
-    reasons,
-    summary,
-  };
+  return { verdict, riskLevel };
 }
 
 function buildSummary(
