@@ -1,7 +1,7 @@
 {
   "name": "@hrkit/widgets",
   "version": "0.1.0",
-  "description": "Live dashboard Web Components for @hrkit — heart rate gauge, zone bar, HR chart",
+  "description": "Live dashboard Web Components for @hrkit \u2014 heart rate gauge, zone bar, HR chart",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,7 +20,9 @@
     "tsup": "^8.0.0",
     "typescript": "^5.4.0"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -41,5 +43,8 @@
   "bugs": {
     "url": "https://github.com/josedab/hrkit/issues"
   },
-  "homepage": "https://github.com/josedab/hrkit/tree/main/packages/widgets"
+  "homepage": "https://github.com/josedab/hrkit/tree/main/packages/widgets",
+  "engines": {
+    "node": ">=18"
+  }
 }

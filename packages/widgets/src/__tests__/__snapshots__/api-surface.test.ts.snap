@@ -1,0 +1,20 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`public API surface (DOM) > @hrkit/widgets exports 1`] = `
+[
+  "HRKitBreathPacer",
+  "HRKitDashboard",
+  "HRKitECGStrip",
+  "HRKitHRChart",
+  "HRKitHeartRate",
+  "HRKitWorkoutBuilder",
+  "HRKitZoneBar",
+  "SDK_NAME",
+  "SDK_VERSION",
+  "ZONE_COLORS",
+  "detectRPeaks",
+  "hrToColor",
+  "hrToZone",
+  "registerAll",
+]
+`;

@@ -1,16 +1,24 @@
+export { SDK_NAME, SDK_VERSION } from './version.js';
+
 import { HRKitBreathPacer } from './breath-pacer.js';
+import { HRKitDashboard } from './dashboard.js';
 import { HRKitECGStrip } from './ecg-strip.js';
 import { HRKitHeartRate } from './heart-rate.js';
 import { HRKitHRChart } from './hr-chart.js';
+import { HRKitWorkoutBuilder } from './workout-builder.js';
 import { HRKitZoneBar } from './zone-bar.js';
 
 export { HRKitBreathPacer } from './breath-pacer.js';
 export { hrToColor, hrToZone, ZONE_COLORS } from './colors.js';
+export type { DashboardLayout } from './dashboard.js';
+export { HRKitDashboard } from './dashboard.js';
 export { HRKitECGStrip } from './ecg-strip.js';
 export { HRKitHeartRate } from './heart-rate.js';
 export { HRKitHRChart } from './hr-chart.js';
 export type { RPeakOptions, RPeakResult } from './r-peak.js';
 export { detectRPeaks } from './r-peak.js';
+export type { BuilderStep, StepType } from './workout-builder.js';
+export { HRKitWorkoutBuilder } from './workout-builder.js';
 export { HRKitZoneBar } from './zone-bar.js';
 
 /**
@@ -33,6 +41,12 @@ export function registerAll(): void {
   }
   if (!customElements.get('hrkit-breath-pacer')) {
     customElements.define('hrkit-breath-pacer', HRKitBreathPacer);
+  }
+  if (!customElements.get('hrkit-workout-builder')) {
+    customElements.define('hrkit-workout-builder', HRKitWorkoutBuilder);
+  }
+  if (!customElements.get('hrkit-dashboard')) {
+    customElements.define('hrkit-dashboard', HRKitDashboard);
   }
 }
 
