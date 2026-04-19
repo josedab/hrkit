@@ -1,3 +1,5 @@
+export { SDK_NAME, SDK_VERSION } from './version.js';
+
 import {
   type BLETransport,
   type DeviceProfile,
@@ -84,7 +86,15 @@ export class CapacitorBLETransport implements BLETransport {
     return client;
   }
 
-  async *scan(profiles?: DeviceProfile[]): AsyncIterable<HRDevice> {
+  async *scan(profiles?: DeviceProfile[], options?: { signal?: AbortSignal }): AsyncIterable<HRDevice> {
+    if (options?.signal?.aborted) return;
+    options?.signal?.addEventListener(
+      'abort',
+      () => {
+        void this.stopScan();
+      },
+      { once: true },
+    );
     const client = await this.ensureInit();
     const seen = new Set<string>();
     const queue: HRDevice[] = [];
@@ -154,7 +164,10 @@ export class CapacitorBLETransport implements BLETransport {
     await client.stopLEScan().catch(() => {});
   }
 
-  async connect(deviceId: string, profile: DeviceProfile): Promise<HRConnection> {
+  async connect(deviceId: string, profile: DeviceProfile, options?: { signal?: AbortSignal }): Promise<HRConnection> {
+    if (options?.signal?.aborted) {
+      throw new Error('connect aborted');
+    }
     const client = await this.ensureInit();
 
     let resolveDisconnect!: () => void;
@@ -162,7 +175,23 @@ export class CapacitorBLETransport implements BLETransport {
       resolveDisconnect = resolve;
     });
 
+    if (options?.signal?.aborted) throw new Error('connect aborted');
     await client.connect(deviceId, () => resolveDisconnect());
+    if (options?.signal?.aborted) {
+      await client.disconnect(deviceId).catch(() => {});
+      resolveDisconnect();
+      throw new Error('connect aborted');
+    }
+
+    const connectAbort = (): void => {
+      client.disconnect(deviceId).catch(() => {
+        /* already gone */
+      });
+    };
+    options?.signal?.addEventListener('abort', connectAbort, { once: true });
+    void onDisconnect.then(() => {
+      options?.signal?.removeEventListener('abort', connectAbort);
+    });
 
     return new CapacitorHRConnection(client, deviceId, profile, onDisconnect, resolveDisconnect);
   }
@@ -187,20 +216,25 @@ class CapacitorHRConnection implements HRConnection {
     this.onDisconnect = onDisconnect;
   }
 
-  async *heartRate(): AsyncIterable<HRPacket> {
+  async *heartRate(options?: { signal?: AbortSignal }): AsyncIterable<HRPacket> {
+    if (options?.signal?.aborted) return;
     const queue: HRPacket[] = [];
     let resolveNext: (() => void) | null = null;
     let done = false;
+
+    const wake = (): void => {
+      if (resolveNext) {
+        const r = resolveNext;
+        resolveNext = null;
+        r();
+      }
+    };
 
     const onValue = (value: DataView): void => {
       try {
         const packet = parseHeartRate(value);
         queue.push(packet);
-        if (resolveNext) {
-          const r = resolveNext;
-          resolveNext = null;
-          r();
-        }
+        wake();
       } catch {
         // skip malformed frames
       }
@@ -210,12 +244,14 @@ class CapacitorHRConnection implements HRConnection {
 
     this.onDisconnect.then(() => {
       done = true;
-      if (resolveNext) {
-        const r = resolveNext;
-        resolveNext = null;
-        r();
-      }
+      wake();
     });
+
+    const onAbort = (): void => {
+      done = true;
+      wake();
+    };
+    options?.signal?.addEventListener('abort', onAbort, { once: true });
 
     try {
       while (!done) {
@@ -229,6 +265,7 @@ class CapacitorHRConnection implements HRConnection {
         if (next) yield next;
       }
     } finally {
+      options?.signal?.removeEventListener('abort', onAbort);
       await this.client
         .stopNotifications(this.deviceId, GATT_HR_SERVICE_UUID, GATT_HR_MEASUREMENT_UUID)
         .catch(() => {});
