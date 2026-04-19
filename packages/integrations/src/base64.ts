@@ -1,7 +1,6 @@
 /** Runtime-portable base64 encoder for ASCII strings (no Buffer dependency). */
 export function base64EncodeString(s: string): string {
-  // biome-ignore lint/suspicious/noExplicitAny: env-dependent
-  const g = globalThis as any;
+  const g = globalThis as { btoa?: (s: string) => string };
   const bytes = new TextEncoder().encode(s);
   let bin = '';
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]!);

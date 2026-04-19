@@ -1,7 +1,7 @@
 {
   "name": "@hrkit/integrations",
   "version": "0.1.0",
-  "description": "Third-party integrations for @hrkit — FIT export and Strava/Garmin/TrainingPeaks/Intervals.icu uploaders",
+  "description": "Third-party integrations for @hrkit \u2014 FIT export and Strava/Garmin/TrainingPeaks/Intervals.icu uploaders",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -17,10 +17,18 @@
     "./providers": {
       "types": "./dist/providers/index.d.ts",
       "import": "./dist/providers/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.js"
     }
   },
-  "files": ["dist"],
-  "publishConfig": { "access": "public" },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist",
@@ -39,8 +47,21 @@
     "url": "https://github.com/josedab/hrkit.git",
     "directory": "packages/integrations"
   },
-  "keywords": ["fit", "strava", "garmin", "trainingpeaks", "intervals.icu", "heart-rate", "hrkit"],
+  "keywords": [
+    "fit",
+    "strava",
+    "garmin",
+    "trainingpeaks",
+    "intervals.icu",
+    "heart-rate",
+    "hrkit"
+  ],
   "author": "@hrkit contributors",
-  "bugs": { "url": "https://github.com/josedab/hrkit/issues" },
-  "homepage": "https://github.com/josedab/hrkit/tree/main/packages/integrations"
+  "bugs": {
+    "url": "https://github.com/josedab/hrkit/issues"
+  },
+  "homepage": "https://github.com/josedab/hrkit/tree/main/packages/integrations",
+  "engines": {
+    "node": ">=18"
+  }
 }
