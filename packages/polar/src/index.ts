@@ -1,3 +1,4 @@
+export { SDK_NAME, SDK_VERSION } from './version.js';
 // Types
 
 // Guards

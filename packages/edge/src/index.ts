@@ -1,3 +1,5 @@
+export { SDK_NAME, SDK_VERSION } from './version.js';
+
 import type { HRPacket } from '@hrkit/core';
 
 /**
@@ -11,6 +13,8 @@ export interface EdgeStore {
   put(key: string, value: string): Promise<void>;
   get(key: string): Promise<string | null>;
   list(prefix: string): Promise<string[]>;
+  /** Remove a key. No-op if it doesn't exist. */
+  delete(key: string): Promise<void>;
 }
 
 /** Simple in-memory store useful for tests and dev. */
@@ -27,6 +31,9 @@ export class MemoryStore implements EdgeStore {
     return Array.from(this.map.keys())
       .filter((k) => k.startsWith(prefix))
       .sort();
+  }
+  async delete(key: string): Promise<void> {
+    this.map.delete(key);
   }
 }
 

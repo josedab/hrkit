@@ -1,15 +1,22 @@
 {
   "name": "@hrkit/ai",
   "version": "0.1.0",
-  "description": "Agentic training planner for @hrkit — uses an LLM with structured tool calls to generate next-week workout plans as Workout DSL.",
+  "description": "Agentic training planner for @hrkit \u2014 uses an LLM with structured tool calls to generate next-week workout plans as Workout DSL.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "files": ["dist"],
-  "publishConfig": { "access": "public" },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist",
@@ -29,6 +36,17 @@
     "url": "https://github.com/josedab/hrkit.git",
     "directory": "packages/ai"
   },
-  "keywords": ["ai", "agent", "training", "planner", "llm", "hrkit"],
-  "author": "@hrkit contributors"
+  "keywords": [
+    "ai",
+    "agent",
+    "training",
+    "planner",
+    "llm",
+    "hrkit"
+  ],
+  "author": "@hrkit contributors",
+  "engines": {
+    "node": ">=18"
+  },
+  "homepage": "https://hrkit.dev"
 }

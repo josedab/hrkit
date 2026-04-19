@@ -1,5 +1,5 @@
 import type { HRConnection } from '@hrkit/core';
-import { GATT_HR_SERVICE_UUID } from '@hrkit/core';
+import { GATT_HR_SERVICE_UUID, POLAR_PMD_SERVICE_UUID } from '@hrkit/core';
 import { describe, expect, it } from 'vitest';
 import { isPolarConnection } from '../guards.js';
 import {
@@ -220,5 +220,27 @@ describe('Polar profiles', () => {
   it('OH1 supports accelerometer but not ECG', () => {
     expect(POLAR_OH1.capabilities).toContain('accelerometer');
     expect(POLAR_OH1.capabilities).not.toContain('ecg');
+  });
+});
+
+describe('isPolarConnection', () => {
+  const makeConn = (serviceUUIDs: string[]): HRConnection =>
+    ({
+      profile: { serviceUUIDs },
+    }) as HRConnection;
+
+  it('returns true for a connection with the Polar PMD service UUID', () => {
+    const conn = makeConn([GATT_HR_SERVICE_UUID, POLAR_PMD_SERVICE_UUID]);
+    expect(isPolarConnection(conn)).toBe(true);
+  });
+
+  it('returns false for a non-Polar connection', () => {
+    const conn = makeConn([GATT_HR_SERVICE_UUID]);
+    expect(isPolarConnection(conn)).toBe(false);
+  });
+
+  it('returns false for empty serviceUUIDs', () => {
+    const conn = makeConn([]);
+    expect(isPolarConnection(conn)).toBe(false);
   });
 });

@@ -131,3 +131,19 @@ describe('ingest handler', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('MemoryStore', () => {
+  it('supports put/get/list/delete', async () => {
+    const s = new MemoryStore();
+    await s.put('a/1', 'one');
+    await s.put('a/2', 'two');
+    await s.put('b/1', 'three');
+    expect(await s.get('a/1')).toBe('one');
+    expect(await s.list('a/')).toEqual(['a/1', 'a/2']);
+    await s.delete('a/1');
+    expect(await s.get('a/1')).toBeNull();
+    expect(await s.list('a/')).toEqual(['a/2']);
+    // Deleting a missing key is a no-op.
+    await expect(s.delete('does-not-exist')).resolves.toBeUndefined();
+  });
+});

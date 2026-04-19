@@ -1,3 +1,5 @@
+export { SDK_NAME, SDK_VERSION } from './version.js';
+
 import type { BLETransport, DeviceProfile, HRConnection, HRDevice, HRPacket } from '@hrkit/core';
 import { GATT_HR_MEASUREMENT_UUID, GATT_HR_SERVICE_UUID, parseHeartRate } from '@hrkit/core';
 
@@ -69,12 +71,21 @@ function base64ToDataView(b64: string): DataView {
  */
 export class ReactNativeTransport implements BLETransport {
   private manager: BleManager;
+  private activeScanStops = new Set<() => void>();
 
   constructor(manager: BleManager) {
     this.manager = manager;
   }
 
-  async *scan(profiles?: DeviceProfile[]): AsyncIterable<HRDevice> {
+  async *scan(profiles?: DeviceProfile[], options?: { signal?: AbortSignal }): AsyncIterable<HRDevice> {
+    if (options?.signal?.aborted) return;
+    options?.signal?.addEventListener(
+      'abort',
+      () => {
+        void this.stopScan();
+      },
+      { once: true },
+    );
     const serviceUUIDs: string[] = [];
     if (profiles) {
       for (const profile of profiles) {
@@ -88,11 +99,25 @@ export class ReactNativeTransport implements BLETransport {
 
     const queue: HRDevice[] = [];
     let resolve: (() => void) | null = null;
-    const done = false;
+    let done = false;
     const seen = new Set<string>();
 
+    const wakeConsumer = (): void => {
+      if (resolve) {
+        const r = resolve;
+        resolve = null;
+        r();
+      }
+    };
+
     this.manager.startDeviceScan(serviceUUIDs.length > 0 ? serviceUUIDs : null, null, (error, device) => {
-      if (error || !device) return;
+      if (error) {
+        // Surface scan termination as an end-of-iterator rather than a hang.
+        done = true;
+        wakeConsumer();
+        return;
+      }
+      if (!device) return;
       if (seen.has(device.id)) return;
       seen.add(device.id);
 
@@ -109,11 +134,15 @@ export class ReactNativeTransport implements BLETransport {
       };
 
       queue.push(hrDevice);
-      if (resolve) {
-        resolve();
-        resolve = null;
-      }
+      wakeConsumer();
     });
+
+    // Track this scan's stop signal so stopScan() can terminate the iterator.
+    const stopSignal = (): void => {
+      done = true;
+      wakeConsumer();
+    };
+    this.activeScanStops.add(stopSignal);
 
     try {
       while (!done) {
@@ -125,17 +154,32 @@ export class ReactNativeTransport implements BLETransport {
           });
         }
       }
+      // Drain any remaining buffered devices before returning.
+      while (queue.length > 0) {
+        yield queue.shift()!;
+      }
     } finally {
+      this.activeScanStops.delete(stopSignal);
       this.manager.stopDeviceScan();
     }
   }
 
   async stopScan(): Promise<void> {
     this.manager.stopDeviceScan();
+    // Signal every active scan iterator to terminate cleanly.
+    for (const stop of this.activeScanStops) stop();
+    this.activeScanStops.clear();
   }
 
-  async connect(deviceId: string, profile: DeviceProfile): Promise<HRConnection> {
+  async connect(deviceId: string, profile: DeviceProfile, options?: { signal?: AbortSignal }): Promise<HRConnection> {
+    if (options?.signal?.aborted) {
+      throw new Error('connect aborted');
+    }
     const device = await this.manager.connectToDevice(deviceId);
+    if (options?.signal?.aborted) {
+      await device.cancelConnection().catch(() => {});
+      throw new Error('connect aborted');
+    }
     await device.discoverAllServicesAndCharacteristics();
 
     let resolveDisconnect: () => void;
@@ -147,12 +191,20 @@ export class ReactNativeTransport implements BLETransport {
       resolveDisconnect();
     });
 
+    const connectAbort = (): void => {
+      device.cancelConnection().catch(() => {
+        /* already gone */
+      });
+    };
+    options?.signal?.addEventListener('abort', connectAbort, { once: true });
+
     const connection: HRConnection = {
       deviceId: device.id,
       deviceName: device.name ?? 'Unknown',
       profile,
 
-      async *heartRate(): AsyncIterable<HRPacket> {
+      async *heartRate(hrOptions?: { signal?: AbortSignal }): AsyncIterable<HRPacket> {
+        if (hrOptions?.signal?.aborted) return;
         const queue: HRPacket[] = [];
         let resolve: (() => void) | null = null;
         let done = false;
@@ -181,6 +233,12 @@ export class ReactNativeTransport implements BLETransport {
           },
         );
 
+        const onHrAbort = (): void => {
+          done = true;
+          if (resolve) resolve();
+        };
+        hrOptions?.signal?.addEventListener('abort', onHrAbort, { once: true });
+
         try {
           while (!done) {
             if (queue.length > 0) {
@@ -196,10 +254,12 @@ export class ReactNativeTransport implements BLETransport {
           }
         } finally {
           subscription.remove();
+          hrOptions?.signal?.removeEventListener('abort', onHrAbort);
         }
       },
 
       async disconnect(): Promise<void> {
+        options?.signal?.removeEventListener('abort', connectAbort);
         disconnectSub.remove();
         await device.cancelConnection();
         resolveDisconnect();

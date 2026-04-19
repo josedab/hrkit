@@ -22,6 +22,16 @@ Web Bluetooth is supported in:
 
 Check [Can I Use](https://caniuse.com/web-bluetooth) for current status.
 
+Detect support at runtime before showing a "Connect" button:
+
+```typescript
+import { isWebBluetoothSupported } from '@hrkit/web';
+
+if (!isWebBluetoothSupported()) {
+  showFallbackUI('Your browser does not support Web Bluetooth.');
+}
+```
+
 ## Important Constraints
 
 - **User gesture required:** `scan()` triggers the browser's device picker dialog and must be called from a user-initiated event handler (click, tap, etc.).
@@ -98,6 +108,14 @@ await conn.disconnect();
 ```
 
 ## API
+
+### `isWebBluetoothSupported()`
+
+```typescript
+function isWebBluetoothSupported(): boolean;
+```
+
+Returns `true` when `navigator.bluetooth` exists. Safe to call from SSR (returns `false` when `navigator` is undefined).
 
 ### `WebBluetoothTransport`
 

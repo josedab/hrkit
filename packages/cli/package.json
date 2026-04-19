@@ -1,18 +1,26 @@
 {
   "name": "@hrkit/cli",
   "version": "0.1.0",
-  "description": "Command-line tools for @hrkit — simulate sensors, replay fixtures, and submit recordings to the conformance corpus.",
+  "description": "Command-line tools for @hrkit \u2014 simulate sensors, replay fixtures, and submit recordings to the conformance corpus.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
   "bin": {
     "hrkit": "./bin/hrkit.js"
   },
-  "files": ["dist", "bin"],
-  "publishConfig": { "access": "public" },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist",
@@ -32,6 +40,16 @@
     "url": "https://github.com/josedab/hrkit.git",
     "directory": "packages/cli"
   },
-  "keywords": ["cli", "hrkit", "simulator", "fixture", "ble"],
-  "author": "@hrkit contributors"
+  "keywords": [
+    "cli",
+    "hrkit",
+    "simulator",
+    "fixture",
+    "ble"
+  ],
+  "author": "@hrkit contributors",
+  "engines": {
+    "node": ">=18"
+  },
+  "homepage": "https://hrkit.dev"
 }

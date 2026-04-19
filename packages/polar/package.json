@@ -1,7 +1,7 @@
 {
   "name": "@hrkit/polar",
   "version": "0.1.0",
-  "description": "Polar PMD protocol utilities for @hrkit — ECG and accelerometer data streaming",
+  "description": "Polar PMD protocol utilities for @hrkit \u2014 ECG and accelerometer data streaming",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -47,5 +47,8 @@
     "url": "https://github.com/josedab/hrkit/issues"
   },
   "homepage": "https://github.com/josedab/hrkit/tree/main/packages/polar",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
 }
