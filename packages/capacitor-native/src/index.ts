@@ -1,3 +1,5 @@
+export { SDK_NAME, SDK_VERSION } from './version.js';
+
 /**
  * @hrkit/capacitor-native — JS bridge for the native Capacitor plugin.
  *
@@ -141,7 +143,15 @@ export async function createCapacitorNativeTransport(
   const scanTimeoutMs = opts.scanTimeoutMs ?? 10_000;
 
   const transport: BLETransport = {
-    async *scan(profiles?: DeviceProfile[]): AsyncIterable<HRDevice> {
+    async *scan(profiles?: DeviceProfile[], options?: { signal?: AbortSignal }): AsyncIterable<HRDevice> {
+      if (options?.signal?.aborted) return;
+      options?.signal?.addEventListener(
+        'abort',
+        () => {
+          void p.stopScan();
+        },
+        { once: true },
+      );
       const services = profiles?.flatMap((pr) => pr.serviceUUIDs) ?? [GATT_HR_SERVICE_UUID];
       const queue = new AsyncQueue<HRDevice>();
 
@@ -167,8 +177,13 @@ export async function createCapacitorNativeTransport(
       await p.stopScan();
     },
 
-    async connect(deviceId: string, profile: DeviceProfile): Promise<HRConnection> {
+    async connect(deviceId: string, profile: DeviceProfile, options?: { signal?: AbortSignal }): Promise<HRConnection> {
+      if (options?.signal?.aborted) throw new Error('connect aborted');
       const info = await p.connect({ deviceId });
+      if (options?.signal?.aborted) {
+        await p.disconnect({ deviceId }).catch(() => {});
+        throw new Error('connect aborted');
+      }
 
       let resolveDisconnect: (() => void) | null = null;
       const onDisconnect = new Promise<void>((res) => {
@@ -179,12 +194,23 @@ export async function createCapacitorNativeTransport(
         if (evt.deviceId === deviceId && !evt.connected) resolveDisconnect?.();
       });
 
+      const connectAbort = (): void => {
+        p.disconnect({ deviceId }).catch(() => {
+          /* already gone */
+        });
+      };
+      options?.signal?.addEventListener('abort', connectAbort, { once: true });
+
       const connection: HRConnection = {
         deviceId: info.deviceId,
         deviceName: info.name ?? 'Unknown',
         profile,
-        onDisconnect: onDisconnect.finally(() => stateSub.remove()),
-        async *heartRate(): AsyncIterable<HRPacket> {
+        onDisconnect: onDisconnect.finally(() => {
+          options?.signal?.removeEventListener('abort', connectAbort);
+          stateSub.remove();
+        }),
+        async *heartRate(hrOptions?: { signal?: AbortSignal }): AsyncIterable<HRPacket> {
+          if (hrOptions?.signal?.aborted) return;
           const queue = new AsyncQueue<HRPacket>();
           const sub = await p.addListener('gattNotification', (raw) => {
             const evt = raw as GattNotificationEvent;
@@ -204,9 +230,12 @@ export async function createCapacitorNativeTransport(
             service: GATT_HR_SERVICE_UUID,
             characteristic: GATT_HR_MEASUREMENT_UUID,
           });
+          const onAbort = (): void => queue.close();
+          hrOptions?.signal?.addEventListener('abort', onAbort, { once: true });
           try {
             for await (const pkt of queue) yield pkt;
           } finally {
+            hrOptions?.signal?.removeEventListener('abort', onAbort);
             await sub.remove();
             await p
               .stopNotifications({ deviceId, service: GATT_HR_SERVICE_UUID, characteristic: GATT_HR_MEASUREMENT_UUID })
@@ -214,6 +243,7 @@ export async function createCapacitorNativeTransport(
           }
         },
         async disconnect(): Promise<void> {
+          options?.signal?.removeEventListener('abort', connectAbort);
           await p.disconnect({ deviceId });
           resolveDisconnect?.();
         },

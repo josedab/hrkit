@@ -32,15 +32,17 @@ Min SDK: 26.
 
 ```ts
 import { createCapacitorNativeTransport } from '@hrkit/capacitor-native';
-import { GENERIC_HR_PROFILE, scan, recordSession } from '@hrkit/core';
+import { GENERIC_HR } from '@hrkit/core';
 
 const transport = await createCapacitorNativeTransport();
 
-for await (const dev of transport.scan([GENERIC_HR_PROFILE])) {
+for await (const dev of transport.scan([GENERIC_HR])) {
   console.log('Found', dev.name, dev.id);
   break;
 }
 ```
+
+The `loadNativePlugin()` helper is also exported if you need direct access to the underlying Capacitor plugin (for example to call `addListener('connectionStateChange', …)` from app code outside the transport).
 
 ## Plugin contract
 
