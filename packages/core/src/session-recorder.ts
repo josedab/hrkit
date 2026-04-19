@@ -16,6 +16,12 @@ import { hrToZone } from './zones.js';
 
 type Zone = 1 | 2 | 3 | 4 | 5;
 
+/** Explicit state of the session recorder. */
+export type RecorderState = 'idle' | 'recording' | 'paused' | 'ended';
+
+/** Maximum physiological heart rate (bpm). Packets above this are discarded as artifacts. */
+const MAX_PHYSIOLOGICAL_HR = 300;
+
 /**
  * Stateful session recorder that ingests HRPacket events and builds a Session.
  *
@@ -49,7 +55,7 @@ export class SessionRecorder {
     rrIntervals: number[];
     meta?: RoundMeta;
   } | null = null;
-  private _paused = false;
+  private _state: RecorderState = 'idle';
 
   private hrStream = new SimpleStream<number>();
   private zoneStream = new SimpleStream<Zone>();
@@ -91,12 +97,12 @@ export class SessionRecorder {
 
   /**
    * Feed an HR packet into the session. Updates samples, RR intervals, and streams.
-   * Ignored when paused. Silently skips backward timestamps and physiologically invalid HR (< 0 or > 300 bpm).
+   * Ignored when paused. Silently skips backward timestamps and physiologically invalid HR (< 0 or > {@link MAX_PHYSIOLOGICAL_HR} bpm).
    *
    * @param packet - Parsed HR packet from BLE or mock transport.
    */
   ingest(packet: HRPacket): void {
-    if (this._paused) return;
+    if (this._state === 'paused' || this._state === 'ended') return;
 
     // Validate timestamp monotonicity (skip backward timestamps)
     if (this.lastPacketTime !== null && packet.timestamp < this.lastPacketTime) {
@@ -104,12 +110,13 @@ export class SessionRecorder {
     }
 
     // Validate HR is in physiological range (skip obviously bad data)
-    if (packet.hr < 0 || packet.hr > 300) {
+    if (packet.hr < 0 || packet.hr > MAX_PHYSIOLOGICAL_HR) {
       return;
     }
 
     if (this.startTime === null) {
       this.startTime = packet.timestamp;
+      this._state = 'recording';
     }
     this.lastPacketTime = packet.timestamp;
 
@@ -172,17 +179,22 @@ export class SessionRecorder {
 
   /** Pause recording. Ingested packets are ignored until `resume()` is called. */
   pause(): void {
-    this._paused = true;
+    this._state = 'paused';
   }
 
   /** Resume recording after a pause. */
   resume(): void {
-    this._paused = false;
+    if (this._state === 'paused') this._state = 'recording';
   }
 
   /** Whether the recorder is currently paused. */
   get paused(): boolean {
-    return this._paused;
+    return this._state === 'paused';
+  }
+
+  /** Current recorder state. */
+  get state(): RecorderState {
+    return this._state;
   }
 
   /**
@@ -226,6 +238,7 @@ export class SessionRecorder {
     }
 
     const now = this.lastPacketTime ?? 0;
+    this._state = 'ended';
     return {
       schemaVersion: SESSION_SCHEMA_VERSION,
       startTime: this.startTime ?? now,

@@ -1,22 +1,63 @@
 import { ParseError } from './errors.js';
+import { migrateSession, type SessionMigrator } from './session-migrations.js';
 import type { Session } from './types.js';
 import { SESSION_SCHEMA_VERSION } from './types.js';
 
 /**
  * Serialize a Session to a JSON string.
  * Includes schema version for forward compatibility.
+ *
+ * @param session - The session to serialize.
+ * @returns JSON string.
+ *
+ * @example
+ * ```ts
+ * const json = sessionToJSON(session);
+ * localStorage.setItem('session', json);
+ * ```
  */
 export function sessionToJSON(session: Session): string {
   return JSON.stringify(session);
 }
 
 /**
+ * Options for {@link sessionFromJSON}.
+ */
+export interface SessionFromJSONOptions {
+  /**
+   * When true, validate every sample and round (not just the first one).
+   * Defaults to false to preserve the fast O(1) path. Recommended when
+   * deserializing untrusted JSON (e.g. from network or user upload), since
+   * a malformed sample at index N>0 would otherwise pass validation and
+   * crash downstream code that assumes well-typed fields.
+   */
+  strict?: boolean;
+  /**
+   * Custom migrators applied in addition to the built-ins. Useful for
+   * downstream consumers who store extended session shapes and want to keep
+   * historical files readable without forking @hrkit/core.
+   */
+  migrators?: readonly SessionMigrator[];
+}
+
+/**
  * Deserialize a Session from a JSON string.
  * Validates schema version and required fields.
  *
+ * @param json - JSON string produced by {@link sessionToJSON}.
+ * @param options - Optional deserialization options. Pass `{ strict: true }` to
+ *   validate every sample and round (slower; use for untrusted input).
+ * @returns Deserialized and validated Session.
  * @throws {ParseError} if the JSON is invalid or schema version is unsupported.
+ *
+ * @example
+ * ```ts
+ * const session = sessionFromJSON(json, { strict: true });
+ * const analysis = analyzeSession(session);
+ * ```
  */
-export function sessionFromJSON(json: string): Session {
+export function sessionFromJSON(json: string, options?: SessionFromJSONOptions): Session {
+  const strict = options?.strict ?? false;
   let raw: unknown;
   try {
     raw = JSON.parse(json);
@@ -42,29 +83,33 @@ export function sessionFromJSON(json: string): Session {
     );
   }
 
+  // Run version-by-version migrations if older than the current schema.
+  const migrated = obj.schemaVersion < SESSION_SCHEMA_VERSION ? migrateSession(obj, options?.migrators) : obj;
+
   // Validate required fields
   const requiredFields = ['startTime', 'endTime', 'samples', 'rrIntervals', 'rounds', 'config'] as const;
   for (const field of requiredFields) {
-    if (!(field in obj)) {
+    if (!(field in migrated)) {
       throw new ParseError(`Missing required field: ${field}`);
     }
   }
 
-  if (!Array.isArray(obj.samples)) {
+  if (!Array.isArray(migrated.samples)) {
     throw new ParseError('Invalid session data: samples must be an array');
   }
 
-  if (!Array.isArray(obj.rrIntervals)) {
+  if (!Array.isArray(migrated.rrIntervals)) {
     throw new ParseError('Invalid session data: rrIntervals must be an array');
   }
 
-  if (!Array.isArray(obj.rounds)) {
+  if (!Array.isArray(migrated.rounds)) {
     throw new ParseError('Invalid session data: rounds must be an array');
   }
 
-  // Validate sample shapes
-  const samples = obj.samples as unknown[];
-  for (let i = 0; i < Math.min(samples.length, 1); i++) {
+  // Validate sample shapes — first sample always; all samples in strict mode.
+  const samples = migrated.samples as unknown[];
+  const sampleCheckLimit = strict ? samples.length : Math.min(samples.length, 1);
+  for (let i = 0; i < sampleCheckLimit; i++) {
     const s = samples[i];
     if (
       typeof s !== 'object' ||
@@ -72,19 +117,31 @@ export function sessionFromJSON(json: string): Session {
       typeof (s as Record<string, unknown>).timestamp !== 'number' ||
       typeof (s as Record<string, unknown>).hr !== 'number'
     ) {
-      throw new ParseError('Invalid session data: samples must contain objects with timestamp and hr fields');
+      throw new ParseError(
+        i === 0
+          ? 'Invalid session data: samples must contain objects with timestamp and hr fields'
+          : `Invalid session data: samples[${i}] must be an object with numeric timestamp and hr fields`,
+      );
     }
   }
 
-  // Validate RR interval types
-  const rr = obj.rrIntervals as unknown[];
+  // Validate RR interval types — first element always; all elements in strict mode.
+  const rr = migrated.rrIntervals as unknown[];
   if (rr.length > 0 && typeof rr[0] !== 'number') {
     throw new ParseError('Invalid session data: rrIntervals must contain numbers');
   }
+  if (strict) {
+    for (let i = 1; i < rr.length; i++) {
+      if (typeof rr[i] !== 'number') {
+        throw new ParseError(`Invalid session data: rrIntervals[${i}] must be a number`);
+      }
+    }
+  }
 
-  // Validate round shapes
-  const rounds = obj.rounds as unknown[];
-  for (let i = 0; i < Math.min(rounds.length, 1); i++) {
+  // Validate round shapes — first round always; all rounds in strict mode.
+  const rounds = migrated.rounds as unknown[];
+  const roundCheckLimit = strict ? rounds.length : Math.min(rounds.length, 1);
+  for (let i = 0; i < roundCheckLimit; i++) {
     const r = rounds[i];
     if (
       typeof r !== 'object' ||
@@ -94,25 +151,27 @@ export function sessionFromJSON(json: string): Session {
       typeof (r as Record<string, unknown>).endTime !== 'number'
     ) {
       throw new ParseError(
-        'Invalid session data: rounds must contain objects with index, startTime, and endTime fields',
+        i === 0
+          ? 'Invalid session data: rounds must contain objects with index, startTime, and endTime fields'
+          : `Invalid session data: rounds[${i}] must be an object with index, startTime, and endTime fields`,
       );
     }
   }
 
   // Validate config shape
-  const config = obj.config;
+  const config = migrated.config;
   if (typeof config !== 'object' || config === null || typeof (config as Record<string, unknown>).maxHR !== 'number') {
     throw new ParseError('Invalid session data: config must contain a maxHR field');
   }
 
   // Validate time ordering
-  if (typeof obj.startTime === 'number' && typeof obj.endTime === 'number') {
-    if (obj.endTime < obj.startTime) {
+  if (typeof migrated.startTime === 'number' && typeof migrated.endTime === 'number') {
+    if (migrated.endTime < migrated.startTime) {
       throw new ParseError('Invalid session data: endTime must be >= startTime');
     }
   }
 
-  return obj as unknown as Session;
+  return migrated as unknown as Session;
 }
 
 /**
