@@ -1,0 +1,395 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`public API surface > @hrkit/ai exports 1`] = `
+[
+  "SDK_NAME",
+  "SDK_VERSION",
+  "buildSnapshot",
+  "makeTools",
+  "planNextWeek",
+]
+`;
+
+exports[`public API surface > @hrkit/ant exports 1`] = `
+[
+  "AntTransport",
+  "SDK_NAME",
+  "SDK_VERSION",
+  "loadGarminStick",
+]
+`;
+
+exports[`public API surface > @hrkit/bundle exports 1`] = `
+[
+  "SDK_NAME",
+  "SDK_VERSION",
+  "SIGN_ALG",
+  "canonicalJSON",
+  "exportPublicKey",
+  "generateKeyPair",
+  "importPublicKey",
+  "signBundle",
+  "verifyBundle",
+]
+`;
+
+exports[`public API surface > @hrkit/capacitor exports 1`] = `
+[
+  "CapacitorBLETransport",
+  "SDK_NAME",
+  "SDK_VERSION",
+]
+`;
+
+exports[`public API surface > @hrkit/capacitor-native exports 1`] = `
+[
+  "SDK_NAME",
+  "SDK_VERSION",
+  "createCapacitorNativeTransport",
+  "loadNativePlugin",
+]
+`;
+
+exports[`public API surface > @hrkit/cli exports 1`] = `
+[
+  "SDK_NAME",
+  "SDK_VERSION",
+  "buildConformanceFixture",
+  "dslToHrProfile",
+  "encodeHrPacket",
+  "parseArgv",
+  "workoutToHrProfile",
+]
+`;
+
+exports[`public API surface > @hrkit/coach exports 1`] = `
+[
+  "AnthropicProvider",
+  "OllamaProvider",
+  "OpenAIProvider",
+  "SDK_NAME",
+  "SDK_VERSION",
+  "evalRecommender",
+  "generateCoachSummary",
+  "liveCue",
+  "performanceRecommender",
+  "polarisedRecommender",
+  "recoveryFirstRecommender",
+  "ruleEngineSummary",
+  "sessionRmssd",
+]
+`;
+
+exports[`public API surface > @hrkit/core exports 1`] = `
+[
+  "ACWR_CRITICAL",
+  "ACWR_HIGH",
+  "ACWR_UNDERTRAINED",
+  "AuthError",
+  "BJJ_ROUNDS",
+  "BUILTIN_MIGRATORS",
+  "CONFORMANCE_FIXTURE_SCHEMA",
+  "COOSPO_H6",
+  "COOSPO_H808S",
+  "CYCLING_CSC_PROFILE",
+  "CYCLING_POWER_PROFILE",
+  "ConnectionError",
+  "ConsoleLogger",
+  "DEFAULT_HR_THRESHOLDS",
+  "DEFAULT_RMSSD_THRESHOLDS",
+  "DEXCOM_SHARE_CGM",
+  "DeviceNotFoundError",
+  "FTMS_OPCODE",
+  "GARMIN_HRM_DUAL",
+  "GARMIN_HRM_PRO",
+  "GARMIN_HRM_RUN",
+  "GATT_FTMS_SERVICE_UUID",
+  "GATT_GLUCOSE_SERVICE_UUID",
+  "GATT_HR_MEASUREMENT_UUID",
+  "GATT_HR_SERVICE_UUID",
+  "GENERIC_FTMS_TRAINER",
+  "GENERIC_GLUCOSE_METER",
+  "GENERIC_HR",
+  "GroupSession",
+  "HRKitError",
+  "HRV_POOR_RECOVERY",
+  "HRV_WELL_RECOVERED",
+  "InMemoryAthleteStore",
+  "LIBRE_LINKUP_CGM",
+  "MAF_45",
+  "MAGENE_H303",
+  "MAGENE_H64",
+  "MONOTONY_HIGH",
+  "MemoryGlucoseSource",
+  "MockTransport",
+  "MultiDeviceManager",
+  "NORWEGIAN_4X4",
+  "NoopLogger",
+  "POLAR_PMD_CONTROL_UUID",
+  "POLAR_PMD_DATA_UUID",
+  "POLAR_PMD_SERVICE_UUID",
+  "PROTOCOL_LIBRARY",
+  "PULSE_OX_PROFILE",
+  "ParseError",
+  "PlanRunner",
+  "PluginRegistry",
+  "REDACTED",
+  "RUNNING_RSC_PROFILE",
+  "RateLimitError",
+  "RealtimeArtifactDetector",
+  "RequestError",
+  "RollingRMSSD",
+  "SARIS_H3",
+  "SDK_NAME",
+  "SDK_VERSION",
+  "SESSION_JSON_SCHEMA",
+  "SESSION_SCHEMA_VERSION",
+  "SUUNTO_SMART_SENSOR",
+  "SensorBus",
+  "SensorFusion",
+  "ServerError",
+  "SessionPlayer",
+  "SessionRecorder",
+  "SimpleStream",
+  "TABATA",
+  "TACX_NEO",
+  "TRIMPAccumulator",
+  "TSB_DELOAD_THRESHOLD",
+  "TimeoutError",
+  "ValidationError",
+  "WAHOO_KICKR",
+  "WAHOO_TICKR",
+  "WAHOO_TICKR_FIT",
+  "WAHOO_TICKR_X",
+  "WorkoutCues",
+  "WorkoutEngine",
+  "ZONE_PRESETS",
+  "analyzeHRVTrend",
+  "analyzeSession",
+  "assessACWRRisk",
+  "bjjRoundsProtocol",
+  "blandAltman",
+  "bpmFromHz",
+  "bytesToHex",
+  "calculateMonotony",
+  "cleanRR",
+  "coherenceScore",
+  "computeCadenceRPM",
+  "computeStress",
+  "connectToDevice",
+  "connectWithReconnect",
+  "connectWithRetry",
+  "createBrowserCues",
+  "createWeeklyPlan",
+  "dfaAlpha1",
+  "emomProtocol",
+  "encodeRequestControl",
+  "encodeReset",
+  "encodeSetIndoorBikeSimulation",
+  "encodeSetTargetPower",
+  "estimateBloodPressure",
+  "estimateBreathingRate",
+  "estimateVO2maxCooper",
+  "estimateVO2maxFromSession",
+  "estimateVO2maxUth",
+  "extractPTT",
+  "filterArtifacts",
+  "fitnessScore",
+  "formatError",
+  "frequencyDomain",
+  "fuseStreams",
+  "getLogger",
+  "getTrainingRecommendation",
+  "hexToDataView",
+  "hrBaseline",
+  "hrToZone",
+  "hrvReport",
+  "intervalProtocol",
+  "isCurrentSchema",
+  "isRetryable",
+  "mape",
+  "meanHR",
+  "migrateSession",
+  "parseCSC",
+  "parseCyclingPower",
+  "parseDuration",
+  "parseHeartRate",
+  "parsePulseOxContinuous",
+  "parseRSC",
+  "parseWorkoutDSL",
+  "pnn50",
+  "poincare",
+  "poincareDescriptors",
+  "pyramidProtocol",
+  "readinessVerdict",
+  "recordNotification",
+  "redact",
+  "retry",
+  "rmssd",
+  "roundsToCSV",
+  "sFloat16",
+  "screenForAFib",
+  "sdnn",
+  "sessionFromJSON",
+  "sessionToCSV",
+  "sessionToJSON",
+  "sessionToTCX",
+  "setLogger",
+  "shannonEntropyRR",
+  "sleep",
+  "tabataProtocol",
+  "timeout",
+  "toSessionConfig",
+  "toTRIMPConfig",
+  "toZoneConfig",
+  "trimp",
+  "turningPointRatio",
+  "validateAgainstReference",
+  "validateHRPacket",
+  "validateSession",
+  "validateSessionConfig",
+  "validateZoneConfig",
+  "verifyFixture",
+  "weeklyTRIMP",
+  "workoutToDSL",
+  "zoneDistribution",
+]
+`;
+
+exports[`public API surface > @hrkit/edge exports 1`] = `
+[
+  "MemoryStore",
+  "SDK_NAME",
+  "SDK_VERSION",
+  "createIngestHandler",
+  "validateSample",
+]
+`;
+
+exports[`public API surface > @hrkit/integrations exports 1`] = `
+[
+  "GarminUploader",
+  "HRKIT_USER_AGENT",
+  "IntervalsIcuUploader",
+  "MemoryHealthStore",
+  "SDK_NAME",
+  "SDK_VERSION",
+  "StravaUploader",
+  "TrainingPeaksUploader",
+  "parseRetryAfter",
+  "sessionToFIT",
+  "sessionToHealthRecords",
+  "sessionToTCX",
+  "staticTokenProvider",
+  "summarizeUploads",
+  "uploadToAll",
+  "verifyFIT",
+  "withAuth",
+  "withRetry",
+  "withUserAgent",
+]
+`;
+
+exports[`public API surface > @hrkit/ml exports 1`] = `
+[
+  "ModelRegistry",
+  "SDK_NAME",
+  "SDK_VERSION",
+  "fatigueBaseline",
+  "lactateThresholdBaseline",
+]
+`;
+
+exports[`public API surface > @hrkit/otel exports 1`] = `
+[
+  "MemoryHooks",
+  "NOOP_HOOKS",
+  "SDK_NAME",
+  "SDK_VERSION",
+  "recordHrSample",
+  "wrapTransport",
+]
+`;
+
+exports[`public API surface > @hrkit/polar exports 1`] = `
+[
+  "PMD_MEASUREMENT_ACC",
+  "PMD_MEASUREMENT_ECG",
+  "POLAR_H10",
+  "POLAR_H9",
+  "POLAR_OH1",
+  "POLAR_VERITY_SENSE",
+  "SDK_NAME",
+  "SDK_VERSION",
+  "buildGetSettingsCommand",
+  "buildStartACCCommand",
+  "buildStartECGCommand",
+  "buildStopACCCommand",
+  "buildStopCommand",
+  "buildStopECGCommand",
+  "isPolarConnection",
+  "parseACCData",
+  "parseECGData",
+  "parsePMDControlResponse",
+]
+`;
+
+exports[`public API surface > @hrkit/react-native exports 1`] = `
+[
+  "ReactNativeTransport",
+  "SDK_NAME",
+  "SDK_VERSION",
+  "isBleManagerReady",
+]
+`;
+
+exports[`public API surface > @hrkit/readiness exports 1`] = `
+[
+  "DEFAULT_WEIGHTS",
+  "SDK_NAME",
+  "SDK_VERSION",
+  "computeReadiness",
+  "updateBaseline",
+]
+`;
+
+exports[`public API surface > @hrkit/server exports 1`] = `
+[
+  "DEFAULT_PRESENCE_TIMEOUT_MS",
+  "HRStreamServer",
+  "InMemoryRoomStore",
+  "SDK_NAME",
+  "SDK_VERSION",
+  "SignalingRoom",
+  "WebRTCBroadcaster",
+  "applyPacketToRoom",
+  "buildPayload",
+  "joinRoom",
+  "snapshotRoom",
+]
+`;
+
+exports[`public API surface > @hrkit/sync exports 1`] = `
+[
+  "CrdtLog",
+  "MemoryStore",
+  "NoopSyncLogger",
+  "ReconnectingWebSocketSyncTransport",
+  "SDK_NAME",
+  "SDK_VERSION",
+  "SYNC_WIRE_VERSION",
+  "SyncEngine",
+  "WebSocketSyncTransport",
+  "createIndexedDBStore",
+  "createMockTransportPair",
+]
+`;
+
+exports[`public API surface > @hrkit/web exports 1`] = `
+[
+  "SDK_NAME",
+  "SDK_VERSION",
+  "WebBluetoothTransport",
+  "isWebBluetoothSupported",
+]
+`;
