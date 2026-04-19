@@ -1,7 +1,7 @@
 {
   "name": "@hrkit/capacitor-native",
   "version": "0.1.0",
-  "description": "Native Capacitor plugin for @hrkit — direct CoreBluetooth (iOS) and android.bluetooth (Android) bindings, no community deps.",
+  "description": "Native Capacitor plugin for @hrkit \u2014 direct CoreBluetooth (iOS) and android.bluetooth (Android) bindings, no community deps.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -11,8 +11,15 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "ios", "android", "HrkitCapacitorNative.podspec"],
-  "publishConfig": { "access": "public" },
+  "files": [
+    "dist",
+    "ios",
+    "android",
+    "HrkitCapacitorNative.podspec"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist",
@@ -29,16 +36,35 @@
     "typescript": "^5.4.0"
   },
   "capacitor": {
-    "ios": { "src": "ios" },
-    "android": { "src": "android" }
+    "ios": {
+      "src": "ios"
+    },
+    "android": {
+      "src": "android"
+    }
   },
   "license": "MIT",
-  "keywords": ["capacitor", "plugin", "ble", "bluetooth", "ios", "android", "heart-rate", "ecg", "hrkit"],
+  "keywords": [
+    "capacitor",
+    "plugin",
+    "ble",
+    "bluetooth",
+    "ios",
+    "android",
+    "heart-rate",
+    "ecg",
+    "hrkit"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/josedab/hrkit.git",
     "directory": "packages/capacitor-native"
   },
   "homepage": "https://github.com/josedab/hrkit/tree/main/packages/capacitor-native",
-  "bugs": { "url": "https://github.com/josedab/hrkit/issues" }
+  "bugs": {
+    "url": "https://github.com/josedab/hrkit/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }
