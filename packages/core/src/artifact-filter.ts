@@ -1,3 +1,4 @@
+import { DEFAULT_ARTIFACT_DEVIATION, DEFAULT_ARTIFACT_WINDOW } from './constants.js';
 import type { ArtifactFilterOptions, ArtifactFilterResult } from './types.js';
 
 /**
@@ -17,9 +18,9 @@ import type { ArtifactFilterOptions, ArtifactFilterResult } from './types.js';
  * ```
  */
 export function filterArtifacts(rr: number[], options?: ArtifactFilterOptions): ArtifactFilterResult {
-  const threshold = options?.threshold ?? 0.2;
+  const threshold = options?.threshold ?? DEFAULT_ARTIFACT_DEVIATION;
   const strategy = options?.strategy ?? 'remove';
-  const windowSize = options?.windowSize ?? 5;
+  const windowSize = options?.windowSize ?? DEFAULT_ARTIFACT_WINDOW;
 
   if (rr.length === 0) {
     return { filtered: [], artifactRate: 0 };

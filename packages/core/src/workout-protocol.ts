@@ -83,6 +83,15 @@ function expandSteps(steps: WorkoutStep[]): WorkoutStep[] {
  *
  * The engine expands steps with `repeat > 1` into individual step entries.
  * Steps advance based on elapsed time from HR packet timestamps.
+ *
+ * @example
+ * ```ts
+ * const engine = new WorkoutEngine(protocol, { maxHR: 190 });
+ * engine.step$.subscribe(e => console.log(`Step: ${e.step.name}`));
+ * engine.target$.subscribe(e => console.log(`On target: ${e.onTarget}`));
+ * engine.start(Date.now());
+ * for await (const pkt of conn.heartRate()) engine.ingest(pkt);
+ * ```
  */
 export class WorkoutEngine {
   private expandedSteps: WorkoutStep[];
@@ -91,8 +100,6 @@ export class WorkoutEngine {
   private _currentStepIndex = 0;
   private stepStartTime = 0;
   private startTime = 0;
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: used in start() and pause/resume flow
-  private pauseAccumulated = 0;
   private pauseStartTime = 0;
   private lastPacketTimestamp = 0;
 
@@ -127,7 +134,6 @@ export class WorkoutEngine {
     this.startTime = timestamp;
     this._currentStepIndex = 0;
     this.stepStartTime = timestamp;
-    this.pauseAccumulated = 0;
     this.lastPacketTimestamp = timestamp;
 
     if (this.expandedSteps.length > 0) {
@@ -208,7 +214,6 @@ export class WorkoutEngine {
   resume(timestamp: number): void {
     if (this._state !== 'paused') return;
     const pausedDuration = timestamp - this.pauseStartTime;
-    this.pauseAccumulated += pausedDuration;
     this.stepStartTime += pausedDuration;
     this.startTime += pausedDuration;
     this._state = 'running';
@@ -299,6 +304,11 @@ export class WorkoutEngine {
  * Create a Tabata protocol (20s work / 10s rest × 8 rounds).
  *
  * @returns A {@link WorkoutProtocol} with warmup, 8 work/rest cycles, and cooldown.
+ *
+ * @example
+ * ```ts
+ * const engine = new WorkoutEngine(tabataProtocol(), { maxHR: 190 });
+ * ```
  */
 export function tabataProtocol(): WorkoutProtocol {
   const steps: WorkoutStep[] = [{ name: 'Warmup', type: 'warmup', durationSec: 60 }];
@@ -333,6 +343,11 @@ export function tabataProtocol(): WorkoutProtocol {
  * @param minutes - Total number of minutes.
  * @param workSec - Seconds of work at the top of each minute.
  * @returns A {@link WorkoutProtocol} with alternating work/rest steps.
+ *
+ * @example
+ * ```ts
+ * const emom = emomProtocol(10, 40); // 40s work, 20s rest × 10
+ * ```
  */
 export function emomProtocol(minutes: number, workSec: number): WorkoutProtocol {
   const steps: WorkoutStep[] = [];
@@ -368,6 +383,11 @@ export function emomProtocol(minutes: number, workSec: number): WorkoutProtocol 
  * @param steps - Array of work durations in seconds (e.g., `[30, 60, 90, 60, 30]`).
  * @param restSec - Rest duration between work steps in seconds.
  * @returns A {@link WorkoutProtocol} with work/rest steps following the given pyramid.
+ *
+ * @example
+ * ```ts
+ * const pyramid = pyramidProtocol([30, 60, 90, 60, 30], 30);
+ * ```
  */
 export function pyramidProtocol(steps: number[], restSec: number): WorkoutProtocol {
   const workoutSteps: WorkoutStep[] = [];
@@ -401,6 +421,11 @@ export function pyramidProtocol(steps: number[], restSec: number): WorkoutProtoc
  * @param workSec - Duration of each round in seconds.
  * @param restSec - Rest duration between rounds in seconds.
  * @returns A {@link WorkoutProtocol} with warmup, rounds, and cooldown.
+ *
+ * @example
+ * ```ts
+ * const bjj = bjjRoundsProtocol(5, 300, 60); // 5×5min rounds, 1min rest
+ * ```
  */
 export function bjjRoundsProtocol(rounds: number, workSec: number, restSec: number): WorkoutProtocol {
   const steps: WorkoutStep[] = [{ name: 'Warmup', type: 'warmup', durationSec: 120 }];
@@ -438,6 +463,11 @@ export function bjjRoundsProtocol(rounds: number, workSec: number, restSec: numb
  * @param workSec - Duration of each work interval in seconds.
  * @param restSec - Duration of each rest interval in seconds.
  * @returns A {@link WorkoutProtocol} with alternating work/rest steps.
+ *
+ * @example
+ * ```ts
+ * const intervals = intervalProtocol(6, 180, 60); // 6×3min on, 1min off
+ * ```
  */
 export function intervalProtocol(rounds: number, workSec: number, restSec: number): WorkoutProtocol {
   const steps: WorkoutStep[] = [];

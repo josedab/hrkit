@@ -320,3 +320,36 @@ describe('InMemoryAthleteStore edge cases', () => {
     expect(store.getSessionCount()).toBe(0);
   });
 });
+
+describe('InMemoryAthleteStore.getSessionsBetween', () => {
+  it('returns only sessions in range, newest first', () => {
+    const store = new InMemoryAthleteStore();
+    const day = 24 * 60 * 60 * 1000;
+    const base = new Date('2025-01-15T00:00:00Z').getTime();
+    store.saveSession(makeSession({ startTime: base, endTime: base + 60_000 }));
+    store.saveSession(makeSession({ startTime: base - day, endTime: base - day + 60_000 }));
+    store.saveSession(makeSession({ startTime: base - 5 * day, endTime: base - 5 * day + 60_000 }));
+    const r = store.getSessionsBetween(base - 2 * day, base);
+    expect(r).toHaveLength(2);
+    expect(r[0]!.startTime).toBe(base);
+    expect(r[1]!.startTime).toBe(base - day);
+  });
+
+  it('throws RangeError if from > to', () => {
+    const store = new InMemoryAthleteStore();
+    expect(() => store.getSessionsBetween(2000, 1000)).toThrow(RangeError);
+  });
+
+  it('throws RangeError on NaN bounds', () => {
+    const store = new InMemoryAthleteStore();
+    expect(() => store.getSessionsBetween(Number.NaN, 0)).toThrow(RangeError);
+  });
+
+  it('half-open with infinity', () => {
+    const store = new InMemoryAthleteStore();
+    const t = Date.now();
+    store.saveSession(makeSession({ startTime: t, endTime: t + 1000 }));
+    const r = store.getSessionsBetween(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY);
+    expect(r).toHaveLength(1);
+  });
+});

@@ -118,11 +118,15 @@ function appendRRExtension(lines: string[], rrIntervals: number[], indent: strin
   lines.push(`${indent}  </Extensions>`);
 }
 
+// Keytel et al. (2005) calorie estimation coefficients
+const CALORIE_HR_COEFFICIENT = 0.6309;
+const CALORIE_HR_INTERCEPT = 30.4523;
+
 function estimateCalories(durationSec: number, samples: TimestampedHR[]): number {
   if (samples.length === 0) return 0;
   const avgHR = samples.reduce((sum, s) => sum + s.hr, 0) / samples.length;
   const durationMin = durationSec / 60;
-  return Math.max(0, (durationMin * (avgHR * 0.6309 - 30.4523)) / 60);
+  return Math.max(0, (durationMin * (avgHR * CALORIE_HR_COEFFICIENT - CALORIE_HR_INTERCEPT)) / 60);
 }
 
 function escapeXml(str: string): string {

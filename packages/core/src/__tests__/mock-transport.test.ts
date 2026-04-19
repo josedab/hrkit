@@ -57,4 +57,62 @@ describe('MockTransport error/disconnect simulation', () => {
     }
     expect(packets).toHaveLength(2);
   });
+
+  it('honors AbortSignal during scan', async () => {
+    const fixtures: MockFixture[] = [
+      { device: { id: 'd1', name: 'A' }, packets: [] },
+      { device: { id: 'd2', name: 'B' }, packets: [] },
+      { device: { id: 'd3', name: 'C' }, packets: [] },
+    ];
+    const transport = new MockTransport(fixtures);
+    const ac = new AbortController();
+    const seen: string[] = [];
+    for await (const dev of transport.scan(undefined, { signal: ac.signal })) {
+      seen.push(dev.id);
+      ac.abort();
+    }
+    expect(seen).toEqual(['d1']);
+  });
+
+  it('returns immediately when signal is already aborted', async () => {
+    const fixtures: MockFixture[] = [{ device: { id: 'd1', name: 'A' }, packets: [] }];
+    const transport = new MockTransport(fixtures);
+    const ac = new AbortController();
+    ac.abort();
+    const seen: string[] = [];
+    for await (const dev of transport.scan(undefined, { signal: ac.signal })) {
+      seen.push(dev.id);
+    }
+    expect(seen).toHaveLength(0);
+  });
+
+  it('connect() rejects when signal already aborted', async () => {
+    const transport = new MockTransport({
+      device: { id: 'd1', name: 'A' },
+      packets: [],
+    });
+    const ac = new AbortController();
+    ac.abort();
+    await expect(transport.connect('d1', GENERIC_HR, { signal: ac.signal })).rejects.toThrow(/aborted/i);
+  });
+
+  it('heartRate() ends cleanly when signal aborts mid-stream', async () => {
+    const transport = new MockTransport({
+      device: { id: 'd1', name: 'A' },
+      packets: Array.from({ length: 10 }, (_, i) => ({
+        timestamp: i * 1000,
+        hr: 80 + i,
+        rrIntervals: [],
+        contactDetected: true,
+      })),
+    });
+    const conn = await transport.connect('d1', GENERIC_HR);
+    const ac = new AbortController();
+    const seen: HRPacket[] = [];
+    for await (const p of conn.heartRate({ signal: ac.signal })) {
+      seen.push(p);
+      if (seen.length === 3) ac.abort();
+    }
+    expect(seen).toHaveLength(3);
+  });
 });

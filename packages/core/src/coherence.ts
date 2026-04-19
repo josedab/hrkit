@@ -13,8 +13,6 @@ export interface CoherenceOptions {
   targetHz?: number;
   /** Half-width of the coherence band, Hz. Default 0.015 (so 0.085–0.115). */
   bandHz?: number;
-  /** Override Lomb-Scargle frequencies (advanced; currently unused). */
-  frequencies?: number[];
 }
 
 export interface CoherenceResult {
@@ -36,6 +34,17 @@ export interface CoherenceResult {
  * Returns score = 0 if the window is too short (< 30 RR samples) or has
  * zero spectral power. Suitable for sliding-window real-time use:
  * call every 5–10 s with the most recent 60–120 s of RR.
+ *
+ * @param rr - Array of RR intervals in milliseconds.
+ * @param opts - Optional target frequency and band width.
+ * @returns Coherence result with score (0–1), band/total power, and peak frequency.
+ *
+ * @example
+ * ```ts
+ * const result = coherenceScore(recentRR, { targetHz: 0.1 });
+ * console.log(`Coherence: ${(result.score * 100).toFixed(0)}%`);
+ * if (result.inBand) console.log('Breathing at resonance frequency!');
+ * ```
  */
 export function coherenceScore(rr: number[], opts: CoherenceOptions = {}): CoherenceResult {
   const target = opts.targetHz ?? 0.1;
@@ -104,6 +113,14 @@ export function coherenceScore(rr: number[], opts: CoherenceOptions = {}): Coher
 /**
  * Suggested breathing cadence (breaths-per-minute) for a given resonance
  * frequency. 0.1 Hz → 6 bpm, 0.083 Hz → 5 bpm, 0.117 Hz → 7 bpm.
+ *
+ * @param hz - Frequency in Hertz.
+ * @returns Breaths per minute.
+ *
+ * @example
+ * ```ts
+ * const bpm = bpmFromHz(0.1); // 6 breaths/min
+ * ```
  */
 export function bpmFromHz(hz: number): number {
   return hz * 60;

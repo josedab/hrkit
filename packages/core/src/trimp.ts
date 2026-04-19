@@ -1,10 +1,5 @@
+import { SEX_FACTORS } from './constants.js';
 import type { Session, TimestampedHR, TRIMPConfig } from './types.js';
-
-const SEX_FACTORS: Record<TRIMPConfig['sex'], number> = {
-  male: 1.92,
-  female: 1.67,
-  neutral: 1.8,
-};
 
 /**
  * Bannister's TRIMP (Training Impulse).
@@ -14,6 +9,12 @@ const SEX_FACTORS: Record<TRIMPConfig['sex'], number> = {
  * @param samples - Timestamped HR samples.
  * @param config - TRIMP configuration with maxHR, restHR, sex.
  * @returns TRIMP value. Returns 0 if fewer than 2 samples.
+ *
+ * @example
+ * ```ts
+ * const load = trimp(session.samples, { maxHR: 185, restHR: 55, sex: 'male' });
+ * console.log(`Training load: ${load.toFixed(1)}`);
+ * ```
  */
 export function trimp(samples: TimestampedHR[], config: TRIMPConfig): number {
   if (samples.length < 2) return 0;

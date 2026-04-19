@@ -1,3 +1,4 @@
+import { DEFAULT_ARTIFACT_DEVIATION } from './constants.js';
 import { HRKitError } from './errors.js';
 import { SimpleStream } from './stream.js';
 import type { HRConnection, HRPacket, ReadableStream } from './types.js';
@@ -63,7 +64,6 @@ const DEFAULT_STALE_THRESHOLD_MS = 3000;
 const MAX_PACKET_BUFFER = 30;
 const MAX_RR_BUFFER = 60;
 const DROP_GAP_MS = 2000;
-const ARTIFACT_DEVIATION = 0.2;
 
 // ── Pure Fusion Functions ───────────────────────────────────────────────
 
@@ -82,7 +82,7 @@ function computeArtifactRate(rrIntervals: number[]): number {
   for (let i = 1; i < rrIntervals.length; i++) {
     const prev = rrIntervals[i - 1]!;
     const curr = rrIntervals[i]!;
-    if (prev > 0 && Math.abs(curr - prev) / prev > ARTIFACT_DEVIATION) {
+    if (prev > 0 && Math.abs(curr - prev) / prev > DEFAULT_ARTIFACT_DEVIATION) {
       artifacts++;
     }
   }
@@ -299,10 +299,15 @@ export class MultiDeviceManager {
 
     this.deviceStates.set(connection.deviceId, state);
 
-    // Auto-remove on disconnect
-    connection.onDisconnect.then(() => {
-      this.removeConnection(connection.deviceId);
-    });
+    // Auto-remove on disconnect. Use .catch() to avoid unhandled rejection if
+    // the underlying transport's onDisconnect promise ever rejects.
+    connection.onDisconnect
+      .then(() => {
+        this.removeConnection(connection.deviceId);
+      })
+      .catch(() => {
+        this.removeConnection(connection.deviceId);
+      });
 
     // Consume heart rate stream (fire-and-forget)
     this.consumeHeartRate(connection.deviceId, state);

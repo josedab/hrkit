@@ -118,6 +118,10 @@ export async function connectWithRetry(
 }
 
 /**
- * @deprecated Use `connectWithRetry` instead. This alias will be removed in a future version.
+ * Connect to a BLE device with automatic retry & exponential backoff.
+ *
+ * @deprecated Since 0.2.0. Use {@link connectWithRetry} instead — identical signature.
+ *   This alias will be removed in 0.4.0.
+ * @see connectWithRetry
  */
 export const connectWithReconnect = connectWithRetry;

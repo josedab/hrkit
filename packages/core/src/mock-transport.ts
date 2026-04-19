@@ -1,4 +1,4 @@
-import { DeviceNotFoundError } from './errors.js';
+import { DeviceNotFoundError, HRKitError } from './errors.js';
 import type { BLETransport, DeviceProfile, HRConnection, HRDevice, HRPacket } from './types.js';
 
 /** Mock fixture for simulating BLE device data. */
@@ -31,8 +31,17 @@ export class MockTransport implements BLETransport {
   }
 
   /** @param profiles - Optional device profiles to filter by. */
-  async *scan(profiles?: DeviceProfile[]): AsyncIterable<HRDevice> {
+  async *scan(profiles?: DeviceProfile[], options?: { signal?: AbortSignal }): AsyncIterable<HRDevice> {
     this.scanning = true;
+    const signal = options?.signal;
+    if (signal?.aborted) {
+      this.scanning = false;
+      return;
+    }
+    const onAbort = () => {
+      this.scanning = false;
+    };
+    signal?.addEventListener('abort', onAbort, { once: true });
     try {
       for (const fixture of this.fixtures) {
         if (!this.scanning) return;
@@ -56,6 +65,7 @@ export class MockTransport implements BLETransport {
       }
     } finally {
       this.scanning = false;
+      signal?.removeEventListener('abort', onAbort);
     }
   }
 
@@ -69,7 +79,10 @@ export class MockTransport implements BLETransport {
    * @returns Mock HR connection.
    * @throws DeviceNotFoundError if no fixture matches.
    */
-  async connect(deviceId: string, profile: DeviceProfile): Promise<HRConnection> {
+  async connect(deviceId: string, profile: DeviceProfile, options?: { signal?: AbortSignal }): Promise<HRConnection> {
+    if (options?.signal?.aborted) {
+      throw new HRKitError('connect aborted', 'ABORTED');
+    }
     const fixture = this.fixtures.find((f) => f.device.id === deviceId);
     if (!fixture) {
       throw new DeviceNotFoundError(`MockTransport: No fixture for device "${deviceId}"`);
@@ -86,11 +99,18 @@ export class MockTransport implements BLETransport {
       deviceName: fixture.device.name,
       profile,
 
-      async *heartRate(): AsyncIterable<HRPacket> {
+      async *heartRate(streamOptions?: { signal?: AbortSignal }): AsyncIterable<HRPacket> {
+        const signal = streamOptions?.signal;
+        if (signal?.aborted) return;
+        let aborted = false;
+        const onAbort = () => {
+          aborted = true;
+        };
+        signal?.addEventListener('abort', onAbort, { once: true });
         let count = 0;
         try {
           for (const packet of fixture.packets) {
-            if (disconnected) return;
+            if (disconnected || aborted) return;
             if (fixture.disconnectAfter !== undefined && count >= fixture.disconnectAfter) {
               resolveDisconnect();
               return;
@@ -102,7 +122,7 @@ export class MockTransport implements BLETransport {
             throw fixture.error;
           }
         } finally {
-          // Stream completed
+          signal?.removeEventListener('abort', onAbort);
         }
       },
 

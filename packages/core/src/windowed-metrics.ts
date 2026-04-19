@@ -1,3 +1,4 @@
+import { SEX_FACTORS } from './constants.js';
 import { rmssd as computeRmssd } from './hrv.js';
 import { SimpleStream } from './stream.js';
 import type { ReadableStream, TRIMPConfig } from './types.js';
@@ -18,6 +19,15 @@ export interface WindowedHRV {
  * Rolling RMSSD calculator that emits windowed HRV measurements.
  * Maintains a sliding buffer of RR intervals and emits RMSSD
  * each time new data arrives (once minimum samples are met).
+ *
+ * @example
+ * ```ts
+ * const rolling = new RollingRMSSD(30, 5);
+ * rolling.rmssd$.subscribe(({ rmssd, timestamp }) => {
+ *   console.log(`rMSSD: ${rmssd.toFixed(1)}ms at ${timestamp}`);
+ * });
+ * rolling.ingest(packet.rrIntervals, packet.timestamp);
+ * ```
  */
 export class RollingRMSSD {
   private buffer: number[] = [];
@@ -76,15 +86,16 @@ export interface CumulativeTRIMP {
   timestamp: number;
 }
 
-const SEX_FACTORS: Record<TRIMPConfig['sex'], number> = {
-  male: 1.92,
-  female: 1.67,
-  neutral: 1.8,
-};
-
 /**
  * Live TRIMP accumulator that emits cumulative TRIMP as HR data arrives.
  * Uses Bannister's formula incrementally per sample.
+ *
+ * @example
+ * ```ts
+ * const acc = new TRIMPAccumulator({ maxHR: 190, restHR: 55, sex: 'male' });
+ * acc.trimp$.subscribe(({ trimp }) => console.log(`TRIMP: ${trimp.toFixed(1)}`));
+ * acc.ingest(packet.hr, packet.timestamp);
+ * ```
  */
 export class TRIMPAccumulator {
   private config: TRIMPConfig;

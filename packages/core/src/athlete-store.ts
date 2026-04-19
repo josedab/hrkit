@@ -63,6 +63,15 @@ export interface AthleteStore {
   /** Get all session summaries, ordered by startTime descending. */
   getSessions(limit?: number): SessionSummary[];
 
+  /**
+   * Get session summaries whose `startTime` falls within `[from, to]` (inclusive).
+   * Both bounds are timestamps in ms since epoch. Use `Number.NEGATIVE_INFINITY`
+   * / `Number.POSITIVE_INFINITY` for half-open ranges.
+   *
+   * @returns Array sorted newest first.
+   */
+  getSessionsBetween(from: number, to: number): SessionSummary[];
+
   /** Get a specific session summary by ID. */
   getSession(id: string): SessionSummary | undefined;
 
@@ -124,14 +133,18 @@ export class InMemoryAthleteStore implements AthleteStore {
    * @returns Generated unique session identifier.
    */
   saveSession(session: Session): string {
-    const id = `session-${session.startTime}-${Math.random().toString(36).slice(2, 8)}`;
+    const id = `session-${session.startTime}-${randomId()}`;
 
     const durationSec = (session.endTime - session.startTime) / 1000;
 
-    const meanHR =
-      session.samples.length > 0 ? session.samples.reduce((sum, s) => sum + s.hr, 0) / session.samples.length : 0;
-
-    const maxHR = session.samples.length > 0 ? Math.max(...session.samples.map((s) => s.hr)) : 0;
+    // Single-pass over samples to avoid spread-arg RangeError on long sessions.
+    let hrSum = 0;
+    let maxHR = 0;
+    for (const s of session.samples) {
+      hrSum += s.hr;
+      if (s.hr > maxHR) maxHR = s.hr;
+    }
+    const meanHR = session.samples.length > 0 ? hrSum / session.samples.length : 0;
 
     const trimpValue = computeTrimp(session.samples, {
       maxHR: session.config.maxHR,
@@ -187,6 +200,26 @@ export class InMemoryAthleteStore implements AthleteStore {
   getSessions(limit?: number): SessionSummary[] {
     const all = [...this.sessions.values()].sort((a, b) => b.startTime - a.startTime);
     return limit != null ? all.slice(0, limit) : all;
+  }
+
+  /**
+   * Get session summaries whose `startTime` falls within `[from, to]` (inclusive).
+   *
+   * @param from - Lower bound (ms since epoch).
+   * @param to - Upper bound (ms since epoch).
+   * @returns Array sorted newest first.
+   * @throws {RangeError} If `from > to` or either bound is `NaN`.
+   */
+  getSessionsBetween(from: number, to: number): SessionSummary[] {
+    if (Number.isNaN(from) || Number.isNaN(to)) {
+      throw new RangeError('getSessionsBetween: from/to must be finite numbers');
+    }
+    if (from > to) {
+      throw new RangeError('getSessionsBetween: from must be <= to');
+    }
+    return [...this.sessions.values()]
+      .filter((s) => s.startTime >= from && s.startTime <= to)
+      .sort((a, b) => b.startTime - a.startTime);
   }
 
   /**
@@ -297,7 +330,8 @@ export class InMemoryAthleteStore implements AthleteStore {
   /**
    * Get the athlete's current ACWR (Acute:Chronic Workload Ratio).
    *
-   * @returns Current ACWR value, or `null` if no training data exists.
+   * @returns Current ACWR value, or `null` if no chronic training data exists
+   *   (i.e. CTL is zero — there's no baseline to compute the ratio against).
    */
   getCurrentACWR(): number | null {
     if (this.dailyTRIMP.size === 0) return null;
@@ -315,7 +349,9 @@ export class InMemoryAthleteStore implements AthleteStore {
     }
     const ctl = ctl28 / 4;
 
-    return ctl > 0 ? atl / ctl : 0;
+    // Without chronic baseline, ACWR is undefined — surface as null so consumers
+    // can distinguish "no data" from "zero ratio".
+    return ctl > 0 ? atl / ctl : null;
   }
 }
 
@@ -324,4 +360,19 @@ function offsetDate(dateStr: string, offsetDays: number): string {
   const d = new Date(`${dateStr}T00:00:00`);
   d.setDate(d.getDate() + offsetDays);
   return toDateString(d.getTime());
+}
+
+/**
+ * Generate a short collision-resistant ID.
+ * Prefers `crypto.randomUUID()` (Node 14.17+, modern browsers) and falls back
+ * to a Math.random() segment in environments that lack Web Crypto.
+ */
+function randomId(): string {
+  const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
+  if (c?.randomUUID) {
+    // Take first segment for readability; UUIDs are unique even with truncation
+    // collisions vanishingly improbable for any single store.
+    return c.randomUUID().slice(0, 8);
+  }
+  return Math.random().toString(36).slice(2, 10);
 }
