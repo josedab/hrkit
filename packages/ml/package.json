@@ -1,0 +1,56 @@
+{
+  "name": "@hrkit/ml",
+  "version": "0.1.0",
+  "description": "Pluggable machine-learning inference for @hrkit \u2014 InferencePort, model registry, deterministic baseline models. Bring-your-own ONNX / TF.js runtime.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit -p tsconfig.lint.json"
+  },
+  "dependencies": {
+    "@hrkit/core": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/josedab/hrkit.git",
+    "directory": "packages/ml"
+  },
+  "keywords": [
+    "ml",
+    "machine-learning",
+    "onnx",
+    "lactate",
+    "fatigue",
+    "heart-rate",
+    "hrv",
+    "hrkit"
+  ],
+  "author": "@hrkit contributors",
+  "bugs": {
+    "url": "https://github.com/josedab/hrkit/issues"
+  },
+  "homepage": "https://github.com/josedab/hrkit/tree/main/packages/ml",
+  "engines": {
+    "node": ">=18"
+  }
+}
