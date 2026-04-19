@@ -1,7 +1,7 @@
 {
   "name": "@hrkit/server",
   "version": "0.1.0",
-  "description": "Streaming HR data server for @hrkit — WebSocket and SSE broadcasting",
+  "description": "Streaming HR data server for @hrkit \u2014 WebSocket and SSE broadcasting",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -57,5 +57,8 @@
   "bugs": {
     "url": "https://github.com/josedab/hrkit/issues"
   },
-  "homepage": "https://github.com/josedab/hrkit/tree/main/packages/server"
+  "homepage": "https://github.com/josedab/hrkit/tree/main/packages/server",
+  "engines": {
+    "node": ">=18"
+  }
 }

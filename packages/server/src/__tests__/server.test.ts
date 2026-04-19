@@ -362,3 +362,20 @@ describe('HRStreamServer', () => {
     });
   });
 });
+
+describe('backpressure', () => {
+  it('counts slow-client drops via getSlowClientDrops()', () => {
+    const server = new HRStreamServer({ maxBufferedBytesPerClient: 100, maxRateHz: 1000 });
+    // Fake-attach two ws clients via private field (white-box test seam).
+    const sent: string[] = [];
+    const fastClient = { readyState: 1, bufferedAmount: 0, send: (s: string) => sent.push(s) };
+    const slowClient = { readyState: 1, bufferedAmount: 9999, send: (s: string) => sent.push(s) };
+    (server as unknown as { wsServer: { clients: Set<unknown> } }).wsServer = {
+      clients: new Set([fastClient, slowClient]),
+    };
+    expect(server.getSlowClientDrops()).toBe(0);
+    server.broadcastRaw(buildPayload(makePacket()));
+    expect(sent.length).toBe(1); // only the fast client got it
+    expect(server.getSlowClientDrops()).toBe(1);
+  });
+});
