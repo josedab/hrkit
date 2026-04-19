@@ -5,7 +5,16 @@
   "type": "module",
   "license": "MIT",
   "sideEffects": false,
-  "keywords": ["heart-rate", "hrv", "ble", "bluetooth", "trimp", "fitness", "sdk", "typescript"],
+  "keywords": [
+    "heart-rate",
+    "hrv",
+    "ble",
+    "bluetooth",
+    "trimp",
+    "fitness",
+    "sdk",
+    "typescript"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -18,7 +27,9 @@
       "import": "./dist/profiles/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "publishConfig": {
     "access": "public"
   },
@@ -30,5 +41,14 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "tsup": "^8.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/josedab/hrkit.git",
+    "directory": "packages/core"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "homepage": "https://hrkit.dev"
 }

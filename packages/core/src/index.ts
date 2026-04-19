@@ -1,5 +1,10 @@
+export { SDK_NAME, SDK_VERSION } from './version.js';
+
 // Types
 
+// AFib screening
+export type { AFibScreeningOptions, AFibScreeningResult, RhythmClassification } from './afib-screening.js';
+export { poincareDescriptors, screenForAFib, shannonEntropyRR, turningPointRatio } from './afib-screening.js';
 export type { SessionAnalysis } from './analyze.js';
 // Session analysis
 export { analyzeSession } from './analyze.js';
@@ -8,6 +13,9 @@ export { filterArtifacts } from './artifact-filter.js';
 export type { AthleteStore, HRVTrendPoint, SessionSummary, TrainingLoadPoint } from './athlete-store.js';
 // Athlete longitudinal store
 export { InMemoryAthleteStore } from './athlete-store.js';
+// Blood pressure estimation
+export type { BPCalibration, BPEstimate, PTTInput } from './bp-estimation.js';
+export { estimateBloodPressure, extractPTT } from './bp-estimation.js';
 // HRV advanced
 export type { CoherenceOptions, CoherenceResult } from './coherence.js';
 export { bpmFromHz, coherenceScore } from './coherence.js';
@@ -27,10 +35,16 @@ export type { ConnectionState, ManagedConnection, ReconnectConfig } from './conn
 export { connectWithReconnect, connectWithRetry } from './connection.js';
 // Errors
 export {
+  AuthError,
   ConnectionError,
   DeviceNotFoundError,
+  formatError,
   HRKitError,
+  isRetryable,
   ParseError,
+  RateLimitError,
+  RequestError,
+  ServerError,
   TimeoutError,
   ValidationError,
 } from './errors.js';
@@ -52,8 +66,10 @@ export type {
   AthleteConfig,
   AthleteState,
   GroupSessionConfig,
+  GroupSnapshot,
   GroupStats,
   LeaderboardEntry,
+  ZoneComplianceAlert,
   ZoneHeatmap,
 } from './group-session.js';
 // Group session
@@ -62,6 +78,15 @@ export { GroupSession } from './group-session.js';
 export { hrBaseline, meanHR, pnn50, readinessVerdict, rmssd, sdnn } from './hrv.js';
 export type { CleanedRR, FrequencyDomainResult, HRVReport, PoincareResult } from './hrv-advanced.js';
 export { cleanRR, dfaAlpha1, frequencyDomain, hrvReport, poincare } from './hrv-advanced.js';
+export type { Logger, LogLevel } from './logger.js';
+export {
+  ConsoleLogger,
+  getLogger,
+  NoopLogger,
+  REDACTED,
+  redact,
+  setLogger,
+} from './logger.js';
 export type { MockFixture } from './mock-transport.js';
 // Mock transport
 export { MockTransport } from './mock-transport.js';
@@ -75,13 +100,22 @@ export { PluginRegistry } from './plugin.js';
 export {
   COOSPO_H6,
   COOSPO_H808S,
+  DEXCOM_SHARE_CGM,
   GARMIN_HRM_DUAL,
   GARMIN_HRM_PRO,
   GARMIN_HRM_RUN,
+  GATT_FTMS_SERVICE_UUID,
+  GATT_GLUCOSE_SERVICE_UUID,
+  GENERIC_FTMS_TRAINER,
+  GENERIC_GLUCOSE_METER,
   GENERIC_HR,
+  LIBRE_LINKUP_CGM,
   MAGENE_H64,
   MAGENE_H303,
+  SARIS_H3,
   SUUNTO_SMART_SENSOR,
+  TACX_NEO,
+  WAHOO_KICKR,
   WAHOO_TICKR,
   WAHOO_TICKR_FIT,
   WAHOO_TICKR_X,
@@ -89,6 +123,14 @@ export {
 export type { ArtifactEvent } from './realtime-artifacts.js';
 // Real-time artifact detection
 export { RealtimeArtifactDetector } from './realtime-artifacts.js';
+export type { RetryOptions } from './retry.js';
+export { retry, sleep, timeout } from './retry.js';
+// Multi-sensor capability v2: normalized sensor event bus
+export type { SensorEvent, SensorEventKind, SensorEventOf } from './sensor-bus.js';
+export { SensorBus } from './sensor-bus.js';
+// Multi-sensor fusion
+export type { FusedOutput, FusionConfig, SensorReading, SensorSource } from './sensor-fusion.js';
+export { SensorFusion } from './sensor-fusion.js';
 // Sensor profiles & parsers (cycling power, CSC, RSC, SpO2)
 export type { CSCPacket, CyclingPowerPacket, RSCPacket, SpO2Packet } from './sensors.js';
 export {
@@ -103,12 +145,28 @@ export {
   RUNNING_RSC_PROFILE,
   sFloat16,
 } from './sensors.js';
+export type { SessionMigrator } from './session-migrations.js';
+export {
+  BUILTIN_MIGRATORS,
+  isCurrentSchema,
+  migrateSession,
+  SESSION_JSON_SCHEMA,
+} from './session-migrations.js';
+// Session recorder
+export type { RecorderState } from './session-recorder.js';
 // Session recorder
 export { SessionRecorder } from './session-recorder.js';
+// Session replay & annotations
+export type { Annotation, ReplayEvent, ReplayState } from './session-replay.js';
+export { SessionPlayer } from './session-replay.js';
 // Session serialization
+export type { SessionFromJSONOptions } from './session-serialization.js';
 export { roundsToCSV, sessionFromJSON, sessionToCSV, sessionToJSON } from './session-serialization.js';
 // Observable stream utility
 export { SimpleStream } from './stream.js';
+// Stress & recovery scoring
+export type { StressInput, StressResult, StressWeights } from './stress.js';
+export { computeStress, estimateBreathingRate } from './stress.js';
 export type {
   InsightInput,
   InsightReason,
@@ -132,6 +190,9 @@ export {
   MONOTONY_HIGH,
   TSB_DELOAD_THRESHOLD,
 } from './training-insights.js';
+// Training plan protocol
+export type { PlanProgress, TrainingBlock, TrainingDay, TrainingPlan, TrainingWeek } from './training-plan.js';
+export { createWeeklyPlan, PlanRunner } from './training-plan.js';
 // TRIMP
 export { trimp, weeklyTRIMP } from './trimp.js';
 export type {
@@ -165,9 +226,24 @@ export {
   POLAR_PMD_SERVICE_UUID,
   SESSION_SCHEMA_VERSION,
 } from './types.js';
+// Validation utilities (Bland-Altman, MAPE)
+export {
+  type BlandAltmanResult,
+  blandAltman,
+  DEFAULT_HR_THRESHOLDS,
+  DEFAULT_RMSSD_THRESHOLDS,
+  type MAPEResult,
+  mape,
+  type ValidationReport,
+  type ValidationThresholds,
+  validateAgainstReference,
+} from './validation.js';
 export type { ValidationConfig, ValidationResult } from './validators.js';
 // Validators
 export { validateHRPacket, validateSession, validateSessionConfig, validateZoneConfig } from './validators.js';
+// VO2max estimation & fitness scoring
+export type { FitnessScore, VO2maxEstimate, VO2maxSessionInput } from './vo2max.js';
+export { estimateVO2maxCooper, estimateVO2maxFromSession, estimateVO2maxUth, fitnessScore } from './vo2max.js';
 export type { CumulativeTRIMP, WindowedHRV } from './windowed-metrics.js';
 // Windowed metrics
 export { RollingRMSSD, TRIMPAccumulator } from './windowed-metrics.js';
