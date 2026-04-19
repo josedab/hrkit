@@ -24,6 +24,16 @@ const DEFAULT_RR_RANGE: [number, number] = [200, 2000];
 /**
  * Validate an HR packet against physiological ranges.
  * Returns warnings for out-of-range values without modifying the data.
+ *
+ * @param packet - HR packet to validate.
+ * @param config - Optional validation ranges.
+ * @returns Validation result with warnings for out-of-range values.
+ *
+ * @example
+ * ```ts
+ * const result = validateHRPacket(packet, { hrRange: [30, 220] });
+ * if (!result.valid) console.warn(result.warnings);
+ * ```
  */
 export function validateHRPacket(packet: HRPacket, config: ValidationConfig = {}): ValidationResult {
   const hrRange = config.hrRange ?? DEFAULT_HR_RANGE;
@@ -48,6 +58,12 @@ export function validateHRPacket(packet: HRPacket, config: ValidationConfig = {}
  *
  * @param config - HR zone configuration to validate.
  * @returns {@link ValidationResult} with errors for invalid thresholds.
+ *
+ * @example
+ * ```ts
+ * const result = validateZoneConfig({ maxHR: 190, zones: [0.6, 0.7, 0.8, 0.9] });
+ * if (!result.valid) console.error(result.errors);
+ * ```
  */
 export function validateZoneConfig(config: HRZoneConfig): ValidationResult {
   const warnings: string[] = [];
@@ -73,6 +89,12 @@ export function validateZoneConfig(config: HRZoneConfig): ValidationResult {
  *
  * @param config - Session configuration to validate.
  * @returns {@link ValidationResult} with errors for invalid values.
+ *
+ * @example
+ * ```ts
+ * const result = validateSessionConfig({ maxHR: 190, restHR: 55, sex: 'male' });
+ * if (!result.valid) throw new Error(result.errors.join(', '));
+ * ```
  */
 export function validateSessionConfig(config: SessionConfig): ValidationResult {
   const warnings: string[] = [];
@@ -95,6 +117,12 @@ export function validateSessionConfig(config: SessionConfig): ValidationResult {
  *
  * @param session - The session to validate.
  * @returns {@link ValidationResult} with errors and warnings for structural issues.
+ *
+ * @example
+ * ```ts
+ * const result = validateSession(session);
+ * if (!result.valid) console.error('Invalid session:', result.errors);
+ * ```
  */
 export function validateSession(session: Session): ValidationResult {
   const warnings: string[] = [];

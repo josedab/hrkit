@@ -26,9 +26,22 @@
  *   cooldown 5m @zone 1
  */
 
+import { ParseError } from './errors.js';
 import type { StepTarget, WorkoutProtocol, WorkoutStep } from './workout-protocol.js';
 
-/** Parse a duration string like "30s", "5m", "1h30m", or "90". */
+/**
+ * Parse a duration string like "30s", "5m", "1h30m", or "90".
+ *
+ * @param input - Duration string.
+ * @returns Duration in seconds.
+ *
+ * @example
+ * ```ts
+ * parseDuration('5m');    // 300
+ * parseDuration('1h30m'); // 5400
+ * parseDuration('90');    // 90
+ * ```
+ */
 export function parseDuration(input: string): number {
   const s = input.trim();
   if (/^\d+$/.test(s)) return Number.parseInt(s, 10);
@@ -45,7 +58,7 @@ export function parseDuration(input: string): number {
     else total += n;
     m = re.exec(s);
   }
-  if (!matched) throw new Error(`invalid duration: ${input}`);
+  if (!matched) throw new ParseError(`invalid duration: ${input}`);
   return total;
 }
 
@@ -64,7 +77,26 @@ function isStepKeyword(s: string): s is StepKeyword {
   return (STEP_KEYWORDS as readonly string[]).includes(s);
 }
 
-/** Parse a workout DSL string into a `WorkoutProtocol`. */
+/**
+ * Parse a workout DSL string into a `WorkoutProtocol`.
+ *
+ * @param text - Workout DSL string.
+ * @returns Parsed workout protocol.
+ * @throws {Error} If the DSL contains unterminated repeat blocks.
+ *
+ * @example
+ * ```ts
+ * const protocol = parseWorkoutDSL(`
+ *   name: Tabata
+ *   warmup 5m @zone 1
+ *   repeat 8
+ *     work 20s @zone 5
+ *     rest 10s @zone 1
+ *   end
+ *   cooldown 5m @zone 1
+ * `);
+ * ```
+ */
 export function parseWorkoutDSL(text: string): WorkoutProtocol {
   let name = 'Untitled workout';
   let description: string | undefined;
@@ -90,7 +122,7 @@ export function parseWorkoutDSL(text: string): WorkoutProtocol {
     }
 
     if (/^repeat\s+\d+$/.test(line)) {
-      if (inRepeat) throw new Error(`nested repeat not supported (line ${lineNo + 1})`);
+      if (inRepeat) throw new ParseError(`nested repeat not supported (line ${lineNo + 1})`);
       const m = /^repeat\s+(\d+)$/.exec(line)!;
       repeatCount = Number.parseInt(m[1]!, 10);
       inRepeat = true;
@@ -99,7 +131,7 @@ export function parseWorkoutDSL(text: string): WorkoutProtocol {
     }
 
     if (line === 'end') {
-      if (!inRepeat) throw new Error(`unexpected 'end' (line ${lineNo + 1})`);
+      if (!inRepeat) throw new ParseError(`unexpected 'end' (line ${lineNo + 1})`);
       for (let r = 0; r < repeatCount; r++) {
         for (const s of repeatBuffer) steps.push({ ...s });
       }
@@ -110,7 +142,7 @@ export function parseWorkoutDSL(text: string): WorkoutProtocol {
     const parts = line.split(/\s+/);
     const kw = parts[0]!;
     if (!isStepKeyword(kw)) {
-      throw new Error(`unknown directive '${kw}' on line ${lineNo + 1}`);
+      throw new ParseError(`unknown directive '${kw}' on line ${lineNo + 1}`);
     }
     const dur = parseDuration(parts[1] ?? '');
     const target = parseTarget(parts.slice(2).join(' '));
@@ -125,12 +157,27 @@ export function parseWorkoutDSL(text: string): WorkoutProtocol {
     else steps.push(step);
   }
 
-  if (inRepeat) throw new Error("unterminated 'repeat' block");
+  if (inRepeat) throw new ParseError("unterminated 'repeat' block");
 
   return description !== undefined ? { name, description, steps } : { name, steps };
 }
 
-/** Serialize a WorkoutProtocol back to DSL text. */
+/**
+ * Serialize a WorkoutProtocol back to DSL text.
+ *
+ * @param p - Workout protocol to serialize.
+ * @returns DSL string.
+ *
+ * @example
+ * ```ts
+ * const dsl = workoutToDSL(protocol);
+ * console.log(dsl);
+ * // name: Tabata
+ * // warmup 300s @zone 1
+ * // work 20s @zone 5
+ * // ...
+ * ```
+ */
 export function workoutToDSL(p: WorkoutProtocol): string {
   const lines: string[] = [`name: ${p.name}`];
   if (p.description) lines.push(`desc: ${p.description}`);
@@ -215,6 +262,12 @@ export interface UtteranceCtor {
  * Adapter that reads workout step transitions aloud via the Web Speech API,
  * a Capacitor TTS plugin, or any custom `SpeakLike`. Pure utility — does
  * not directly require the DOM, so it can be unit tested with a stub.
+ *
+ * @example
+ * ```ts
+ * const cues = new WorkoutCues({ speak: (t) => console.log(t) });
+ * cues.announceStep(protocol.steps[0], 0);
+ * ```
  */
 export class WorkoutCues {
   private readonly speaker: SpeakLike;
@@ -265,12 +318,24 @@ function formatDuration(seconds: number): string {
 /**
  * Browser convenience: build a `WorkoutCues` instance backed by
  * `window.speechSynthesis`. Returns `null` if the API is unavailable.
+ *
+ * @param opts - Optional speech configuration.
+ * @returns WorkoutCues instance, or null if Speech Synthesis is unavailable.
+ *
+ * @example
+ * ```ts
+ * const cues = createBrowserCues({ rate: 1.1, lang: 'en-US' });
+ * if (cues) engine.step$.subscribe(e => cues.announceStep(e.step, e.index));
+ * ```
  */
 export function createBrowserCues(opts: { rate?: number; volume?: number; lang?: string } = {}): WorkoutCues | null {
-  // biome-ignore lint/suspicious/noExplicitAny: cross-runtime; checked at runtime
-  const w = (globalThis as any).window as any;
+  type SpeechGlobal = {
+    speechSynthesis?: { speak: (u: unknown) => void; cancel: () => void };
+    SpeechSynthesisUtterance?: UtteranceCtor;
+  };
+  const w = (globalThis as { window?: SpeechGlobal }).window;
   const synth = w?.speechSynthesis;
-  const Utt = w?.SpeechSynthesisUtterance as UtteranceCtor | undefined;
+  const Utt = w?.SpeechSynthesisUtterance;
   if (!synth || !Utt) return null;
   const speaker: SpeakLike = {
     speak(text: string) {

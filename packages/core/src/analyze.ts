@@ -61,11 +61,21 @@ export function analyzeSession(session: Session): SessionAnalysis {
   // Duration
   const durationSec = samples.length >= 2 ? (samples[samples.length - 1]!.timestamp - samples[0]!.timestamp) / 1000 : 0;
 
-  // HR statistics from samples
-  const hrs = samples.map((s) => s.hr);
-  const hrMin = hrs.length > 0 ? Math.min(...hrs) : 0;
-  const hrMax = hrs.length > 0 ? Math.max(...hrs) : 0;
-  const hrMean = hrs.length > 0 ? hrs.reduce((a, b) => a + b, 0) / hrs.length : 0;
+  // HR statistics from samples — use single-pass reduce to avoid spread-arg
+  // RangeError on long sessions (e.g. 4Hz × multi-hour can exceed V8 spread limit).
+  let hrMin = 0;
+  let hrMax = 0;
+  let hrSum = 0;
+  if (samples.length > 0) {
+    hrMin = Number.POSITIVE_INFINITY;
+    hrMax = Number.NEGATIVE_INFINITY;
+    for (const s of samples) {
+      if (s.hr < hrMin) hrMin = s.hr;
+      if (s.hr > hrMax) hrMax = s.hr;
+      hrSum += s.hr;
+    }
+  }
+  const hrMean = samples.length > 0 ? hrSum / samples.length : 0;
 
   // HRV + artifacts (only if RR data available)
   let hrvResult: SessionAnalysis['hrv'] = null;

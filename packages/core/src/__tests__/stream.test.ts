@@ -101,8 +101,9 @@ describe('SimpleStream', () => {
     });
     stream.subscribe((v) => values.push(v));
 
-    // SimpleStream uses a plain for-of loop — errors propagate uncaught.
-    expect(() => stream.emit(1)).toThrow('boom');
+    // Throwing subscriber is isolated — other subscribers still receive values
+    stream.emit(1);
+    expect(values).toEqual([1]);
   });
 
   it('works with complex object types', () => {

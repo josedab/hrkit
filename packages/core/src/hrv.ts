@@ -6,6 +6,12 @@ import type { DailyHRVReading } from './types.js';
  *
  * @param rr - Array of RR intervals in milliseconds.
  * @returns rMSSD value in milliseconds. Returns 0 if fewer than 2 intervals.
+ *
+ * @example
+ * ```ts
+ * const value = rmssd([800, 810, 795, 820, 805]);
+ * console.log(value); // ~14.6 ms
+ * ```
  */
 export function rmssd(rr: number[]): number {
   if (rr.length < 2) return 0;
@@ -25,6 +31,12 @@ export function rmssd(rr: number[]): number {
  *
  * @param rr - Array of RR intervals in milliseconds.
  * @returns SDNN value in milliseconds. Returns 0 if fewer than 2 intervals.
+ *
+ * @example
+ * ```ts
+ * const value = sdnn([800, 810, 795, 820, 805]);
+ * console.log(value); // ~8.8 ms
+ * ```
  */
 export function sdnn(rr: number[]): number {
   if (rr.length < 2) return 0;
@@ -41,6 +53,12 @@ export function sdnn(rr: number[]): number {
  *
  * @param rr - Array of RR intervals in milliseconds.
  * @returns Percentage (0-100) of successive intervals differing by >50ms.
+ *
+ * @example
+ * ```ts
+ * const value = pnn50([800, 860, 795, 810]); // 1 of 3 diffs > 50ms
+ * console.log(value); // 33.33
+ * ```
  */
 export function pnn50(rr: number[]): number {
   if (rr.length < 2) return 0;
@@ -60,6 +78,12 @@ export function pnn50(rr: number[]): number {
  *
  * @param rr - Array of RR intervals in milliseconds.
  * @returns Mean heart rate in BPM. Returns 0 if array is empty.
+ *
+ * @example
+ * ```ts
+ * const hr = meanHR([800, 810, 790]); // avg RR = 800ms
+ * console.log(hr); // 75 bpm
+ * ```
  */
 export function meanHR(rr: number[]): number {
   if (rr.length === 0) return 0;
@@ -77,6 +101,17 @@ export function meanHR(rr: number[]): number {
  * @param readings - Array of daily HRV readings.
  * @param windowDays - Number of recent days to include.
  * @returns Median rMSSD from the window, or null if no data.
+ *
+ * @example
+ * ```ts
+ * const readings = [
+ *   { date: '2024-01-01', rmssd: 42 },
+ *   { date: '2024-01-02', rmssd: 38 },
+ *   { date: '2024-01-03', rmssd: 45 },
+ * ];
+ * const baseline = hrBaseline(readings, 7); // median of last 7 days
+ * console.log(baseline); // 42
+ * ```
  */
 export function hrBaseline(readings: DailyHRVReading[], windowDays: number): number | null {
   if (readings.length === 0 || windowDays <= 0) return null;
@@ -100,6 +135,12 @@ export function hrBaseline(readings: DailyHRVReading[], windowDays: number): num
  * @param todayRmssd - Today's morning rMSSD.
  * @param baseline - 7-day baseline rMSSD.
  * @returns Training readiness verdict.
+ *
+ * @example
+ * ```ts
+ * const verdict = readinessVerdict(42, 45); // ratio 0.93 → moderate
+ * console.log(verdict); // 'moderate'
+ * ```
  */
 export function readinessVerdict(todayRmssd: number, baseline: number): 'go_hard' | 'moderate' | 'rest' {
   if (baseline <= 0) return 'rest';

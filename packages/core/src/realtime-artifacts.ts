@@ -1,25 +1,6 @@
-import type { ReadableStream, Unsubscribe } from './types.js';
-
-// Minimal inline stream
-class ArtifactStream<T> implements ReadableStream<T> {
-  private listeners = new Set<(value: T) => void>();
-  private current: T | undefined;
-
-  subscribe(listener: (value: T) => void): Unsubscribe {
-    this.listeners.add(listener);
-    if (this.current !== undefined) listener(this.current);
-    return () => this.listeners.delete(listener);
-  }
-
-  get(): T | undefined {
-    return this.current;
-  }
-
-  emit(value: T): void {
-    this.current = value;
-    for (const listener of this.listeners) listener(value);
-  }
-}
+import { DEFAULT_ARTIFACT_DEVIATION, DEFAULT_ARTIFACT_WINDOW } from './constants.js';
+import { SimpleStream } from './stream.js';
+import type { ReadableStream } from './types.js';
 
 /** A real-time artifact event emitted for each RR interval. */
 export interface ArtifactEvent {
@@ -42,7 +23,7 @@ export class RealtimeArtifactDetector {
   private buffer: number[] = [];
   private windowSize: number;
   private threshold: number;
-  private stream = new ArtifactStream<ArtifactEvent>();
+  private stream = new SimpleStream<ArtifactEvent>();
 
   /** Observable stream of artifact events. */
   readonly artifacts$: ReadableStream<ArtifactEvent> = this.stream;
@@ -51,7 +32,7 @@ export class RealtimeArtifactDetector {
    * @param windowSize - Number of RR intervals in the sliding window. Default: 5.
    * @param threshold - Deviation threshold (fraction). Default: 0.2 (20%).
    */
-  constructor(windowSize: number = 5, threshold: number = 0.2) {
+  constructor(windowSize: number = DEFAULT_ARTIFACT_WINDOW, threshold: number = DEFAULT_ARTIFACT_DEVIATION) {
     this.windowSize = windowSize;
     this.threshold = threshold;
   }

@@ -1,7 +1,11 @@
 import { ParseError } from './errors.js';
 import type { HRPacket } from './types.js';
 
-const RR_RESOLUTION = 1000 / 1024;
+/**
+ * BLE Heart Rate Profile encodes RR intervals in 1/1024-second ticks.
+ * Multiply raw uint16 RR values by this constant to convert to milliseconds.
+ */
+const RR_MS_PER_BLE_TICK = 1000 / 1024;
 
 /**
  * Parse a BLE Heart Rate Measurement characteristic (0x2A37).
@@ -67,7 +71,7 @@ export function parseHeartRate(data: DataView, timestamp?: number): HRPacket {
   if (hasRR) {
     while (offset + 1 < data.byteLength) {
       const rawRR = data.getUint16(offset, true);
-      rrIntervals.push(rawRR * RR_RESOLUTION);
+      rrIntervals.push(rawRR * RR_MS_PER_BLE_TICK);
       offset += 2;
     }
   }

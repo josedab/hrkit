@@ -47,8 +47,13 @@ export async function connectToDevice(transport: BLETransport, options: ConnectO
 
   const discovered = new Map<string, { device: HRDevice; profile: DeviceProfile; rank: number }>();
 
+  // Use AbortController so the timeout handle is cleared whenever the scan
+  // resolves first — avoids a leaked setTimeout that would otherwise hold the
+  // event loop open until `timeoutMs`.
+  const ac = new AbortController();
   const scanTimeout = new Promise<never>((_, reject) => {
-    setTimeout(() => reject(new TimeoutError('Scan timeout')), timeoutMs);
+    const t = setTimeout(() => reject(new TimeoutError('Scan timeout')), timeoutMs);
+    ac.signal.addEventListener('abort', () => clearTimeout(t), { once: true });
   });
 
   const scanLoop = async (): Promise<HRConnection> => {
@@ -94,6 +99,7 @@ export async function connectToDevice(transport: BLETransport, options: ConnectO
   try {
     return await Promise.race([scanLoop(), scanTimeout]);
   } finally {
+    ac.abort();
     await transport.stopScan().catch(() => {
       /* Ignore — scan may already be stopped. */
     });
