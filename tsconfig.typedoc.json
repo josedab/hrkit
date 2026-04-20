@@ -11,7 +11,20 @@
     "packages/web/src/**/*.ts",
     "packages/react-native/src/**/*.ts",
     "packages/server/src/**/*.ts",
-    "packages/widgets/src/**/*.ts"
+    "packages/widgets/src/**/*.ts",
+    "packages/ai/src/**/*.ts",
+    "packages/ant/src/**/*.ts",
+    "packages/bundle/src/**/*.ts",
+    "packages/capacitor/src/**/*.ts",
+    "packages/capacitor-native/src/**/*.ts",
+    "packages/cli/src/**/*.ts",
+    "packages/coach/src/**/*.ts",
+    "packages/edge/src/**/*.ts",
+    "packages/integrations/src/**/*.ts",
+    "packages/ml/src/**/*.ts",
+    "packages/otel/src/**/*.ts",
+    "packages/readiness/src/**/*.ts",
+    "packages/sync/src/**/*.ts"
   ],
   "exclude": ["**/__tests__/**", "**/*.test.ts", "**/dist/**", "node_modules"]
 }
