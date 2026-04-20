@@ -7,6 +7,8 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  # Required for npm provenance (sigstore OIDC token).
+  id-token: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -44,3 +46,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Emit npm provenance attestations (https://docs.npmjs.com/generating-provenance-statements).
+          NPM_CONFIG_PROVENANCE: 'true'

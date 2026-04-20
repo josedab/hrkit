@@ -111,6 +111,10 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Run examples
+        if: matrix.node-version == 22
+        run: pnpm --filter @hrkit/examples quickstart
+
       - name: Check bundle size
         if: matrix.node-version == 22
         run: pnpm size
@@ -137,7 +141,9 @@ jobs:
 
       - name: Build Docusaurus site
         run: |
+          pnpm sync:versions:check
           pnpm docs:api
+          pnpm docs:packages:check
           pnpm --filter website build
 
   ci-success:
