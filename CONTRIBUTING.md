@@ -96,6 +96,37 @@ Run a single test file:
 npx vitest run packages/core/src/__tests__/hrv.test.ts
 ```
 
+## Debugging
+
+The SDK ships with a pluggable logger (`@hrkit/core`) that defaults to no-op (silent). To enable debug output:
+
+```typescript
+import { setLogger, ConsoleLogger } from '@hrkit/core';
+
+// Enable all SDK log output to the console (with PII redaction)
+setLogger(ConsoleLogger);
+```
+
+For a custom logger (pino, winston, etc.), implement the `Logger` interface:
+
+```typescript
+import { setLogger, type Logger } from '@hrkit/core';
+
+const myLogger: Logger = {
+  debug: (msg, meta) => pino.debug(meta, msg),
+  info:  (msg, meta) => pino.info(meta, msg),
+  warn:  (msg, meta) => pino.warn(meta, msg),
+  error: (msg, meta) => pino.error(meta, msg),
+};
+setLogger(myLogger);
+```
+
+Key points:
+- All log output is routed through `redact()` before emission — API keys, tokens, and signed URLs are masked automatically.
+- Call `setLogger(NoopLogger)` to silence the SDK again.
+- The logger is global — set it once at app startup.
+- See `packages/core/src/logger.ts` for the full interface and `packages/core/src/__tests__/logger.test.ts` for usage examples.
+
 ## Adding a Device Profile
 
 To add support for a new BLE HR device, create a `DeviceProfile` object:
