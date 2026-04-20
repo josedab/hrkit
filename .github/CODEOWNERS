@@ -1,0 +1,38 @@
+# Default owner for everything in the repo
+*                          @josedab
+
+# Core SDK
+packages/core/             @josedab
+packages/polar/            @josedab
+
+# Platform adapters
+packages/web/              @josedab
+packages/react-native/     @josedab
+packages/capacitor/        @josedab
+packages/capacitor-native/ @josedab
+packages/ant/              @josedab
+
+# Server & edge
+packages/server/           @josedab
+packages/edge/             @josedab
+packages/sync/             @josedab
+
+# AI, ML & coaching
+packages/ai/               @josedab
+packages/coach/            @josedab
+packages/ml/               @josedab
+packages/readiness/        @josedab
+
+# Integrations & tooling
+packages/integrations/     @josedab
+packages/cli/              @josedab
+packages/bundle/           @josedab
+packages/otel/             @josedab
+packages/widgets/          @josedab
+
+# Documentation
+website/                   @josedab
+docs/                      @josedab
+
+# CI & release
+.github/                   @josedab
