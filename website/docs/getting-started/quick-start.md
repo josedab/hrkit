@@ -21,8 +21,7 @@ npm install @hrkit/core
 Create a file called `demo.ts` and paste this:
 
 ```typescript
-import { SessionRecorder, connectToDevice, MockTransport } from '@hrkit/core';
-import { GENERIC_HR } from '@hrkit/core/profiles';
+import { SessionRecorder, connectToDevice, MockTransport, GENERIC_HR } from '@hrkit/core';
 
 // MockTransport replays in-memory data — no real BLE device needed
 const transport = new MockTransport({
