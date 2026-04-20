@@ -164,3 +164,106 @@ ZONE_COLORS[3];            // '#eab308'
 hrToColor(165, 185);       // zone-based hex color
 hrToZone(165, 185);        // 5
 ```
+
+## `<hrkit-workout-builder>`
+
+Interactive workout protocol editor that produces [Workout DSL](/docs/guides/workout-protocols) strings.
+
+| Attribute | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `name` | string | "Untitled Workout" | Workout name |
+| `theme` | "light" \| "dark" | "light" | Color theme |
+
+**Properties:**
+- `value` — get/set the current DSL string
+- `steps` — read-only array of current steps
+- `totalDurationSec` — total duration including repeats
+
+**Methods:**
+- `addStep(type, durationSec, zone?)` — add a warmup/work/rest/cooldown step
+- `removeStep(index)` — remove by index
+- `moveStep(from, to)` — reorder steps
+- `updateStep(index, updates)` — modify step properties
+- `clear()` — remove all steps
+- `setName(name)` — update workout name
+
+**Events:**
+- `change` — fires when the DSL changes. `event.detail.dsl` contains the DSL string.
+
+```typescript
+const builder = document.querySelector('hrkit-workout-builder');
+builder.addStep('warmup', 300, 1);
+builder.addStep('work', 20, 5);
+builder.updateStep(1, { repeat: 8 });
+builder.addStep('cooldown', 300, 1);
+
+console.log(builder.value);
+// name: Untitled Workout
+// warmup 5m @zone 1
+// repeat 8
+//   work 20s @zone 5
+// end
+// cooldown 5m @zone 1
+
+builder.addEventListener('change', e => {
+  console.log('DSL updated:', e.detail.dsl);
+});
+```
+
+## `<hrkit-dashboard>`
+
+Zero-config analytics dashboard that renders a grid of widgets with a single `session` property.
+
+| Attribute | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `layout` | "live" \| "review" \| "minimal" | "live" | Preset layout |
+| `theme` | "light" \| "dark" | "light" | Color theme |
+| `max-hr` | number | 200 | Max HR for child widgets |
+| `columns` | number | auto | Grid column count |
+
+**Properties:**
+- `hr` — set current heart rate (updates HR gauge + chart)
+- `zone` — set current zone (updates zone bar)
+
+**Preset Layouts:**
+
+| Layout | Widgets |
+|--------|---------|
+| `live` | Heart rate + Zone bar + HR chart |
+| `review` | Heart rate + Zone bar + HR chart |
+| `minimal` | Heart rate + Zone bar |
+
+```html
+<!-- Drop-in live dashboard — no wiring needed -->
+<hrkit-dashboard layout="live" theme="dark" max-hr="190"></hrkit-dashboard>
+
+<script type="module">
+  const dashboard = document.querySelector('hrkit-dashboard');
+
+  // Update from your HR source
+  for await (const packet of conn.heartRate()) {
+    dashboard.hr = packet.hr;
+    dashboard.zone = hrToZone(packet.hr, zoneConfig);
+  }
+</script>
+```
+
+## Theming
+
+All components support CSS custom properties for brand customization:
+
+```css
+hrkit-dashboard {
+  --hrkit-dashboard-bg: #1a1a2e;
+  --hrkit-cell-bg: #16213e;
+}
+
+hrkit-heart-rate {
+  --hrkit-text: #f0f0f0;
+}
+
+hrkit-breath-pacer {
+  --hrkit-pacer-color: #4f8cff;
+  --hrkit-pacer-bg: transparent;
+}
+```

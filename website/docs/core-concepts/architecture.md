@@ -18,11 +18,16 @@ graph TD
     WEB["@hrkit/web<br/><i>Web Bluetooth API</i>"]
     SERVER["@hrkit/server<br/><i>WebSocket + SSE</i>"]
     WIDGETS["@hrkit/widgets<br/><i>Web Components</i>"]
+    COACH["@hrkit/coach<br/><i>rule engine + LLM</i>"]
+    AI["@hrkit/ai<br/><i>training planner</i>"]
 
     POLAR -->|depends on| CORE
     RN -->|depends on| CORE
     WEB -->|depends on| CORE
     SERVER -->|depends on| CORE
+    COACH -->|depends on| CORE
+    AI -->|depends on| CORE
+    AI -->|depends on| COACH
 ```
 
 - **`@hrkit/core`** has zero runtime dependencies. Every metric function is pure TypeScript.
@@ -74,15 +79,22 @@ This means:
 | Artifact filter | `@hrkit/core` | RR interval outlier detection |
 | Training insights | `@hrkit/core` | ACWR risk, HRV trend analysis, recommendations |
 | Workout protocols | `@hrkit/core` | Tabata, EMOM, intervals, BJJ rounds engine |
+| Training plans | `@hrkit/core` | Multi-week periodization with compliance tracking |
 | Multi-device fusion | `@hrkit/core` | Fuse HR from multiple BLE devices |
-| Group sessions | `@hrkit/core` | Multi-athlete dashboards with leaderboards |
+| Sensor fusion | `@hrkit/core` | Kalman-filter multi-sensor consensus with quality scoring |
+| Group sessions | `@hrkit/core` | Multi-athlete dashboards with leaderboards and zone alerts |
+| VO2max estimation | `@hrkit/core` | Uth, session-based, and Cooper test methods |
+| Stress scoring | `@hrkit/core` | Composite index from HRV + HR + breathing rate |
+| AFib screening | `@hrkit/core` | Shannon entropy + Poincaré + turning point analysis |
+| Blood pressure | `@hrkit/core` | PTT-based estimation with per-user calibration |
+| Session replay | `@hrkit/core` | Playback at 1–8x speed with coach annotations |
 | Plugin architecture | `@hrkit/core` | Lifecycle hooks for extensibility |
 | Polar profiles | `@hrkit/polar` | H10, H9, OH1, Verity Sense |
 | PMD protocol | `@hrkit/polar` | ECG/ACC command builders and parsers |
 | React Native BLE | `@hrkit/react-native` | Wraps `react-native-ble-plx` |
 | Web Bluetooth BLE | `@hrkit/web` | Wraps `navigator.bluetooth` |
 | HR data server | `@hrkit/server` | WebSocket + SSE broadcasting |
-| Dashboard widgets | `@hrkit/widgets` | HR gauge, zone bar, HR chart Web Components |
+| Dashboard widgets | `@hrkit/widgets` | HR gauge, zone bar, HR chart, ECG strip, breath pacer, workout builder, dashboard |
 
 ## Pure functions
 
