@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "npx tsx src/index.ts",
+    "typecheck": "tsc -p tsconfig.json",
     "build": "echo 'Reference app — no build needed'"
   },
   "dependencies": {

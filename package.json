@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm -r run build",
+    "dev": "pnpm --filter @hrkit/dashboard dev",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -15,8 +16,12 @@
     "clean": "pnpm -r run clean",
     "size": "size-limit",
     "docs:api": "typedoc",
-    "docs:dev": "pnpm docs:api && pnpm --filter website start",
-    "docs:build": "pnpm docs:api && pnpm --filter website build",
+    "docs:packages": "node scripts/gen-package-pages.mjs",
+    "docs:packages:check": "node scripts/check-package-pages.mjs",
+    "sync:versions": "node scripts/sync-package-versions.mjs",
+    "sync:versions:check": "node scripts/check-package-versions.mjs",
+    "docs:dev": "pnpm docs:api && pnpm docs:packages && pnpm --filter website start",
+    "docs:build": "pnpm docs:api && pnpm docs:packages && pnpm --filter website build",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm build && changeset publish",
@@ -31,32 +36,97 @@
     {
       "name": "@hrkit/core",
       "path": "packages/core/dist/index.js",
-      "limit": "25 kB"
+      "limit": "35 kB"
     },
     {
       "name": "@hrkit/polar",
       "path": "packages/polar/dist/index.js",
-      "limit": "10 kB"
+      "limit": "3 kB"
     },
     {
       "name": "@hrkit/web",
       "path": "packages/web/dist/index.js",
-      "limit": "5 kB"
+      "limit": "3 kB"
     },
     {
       "name": "@hrkit/react-native",
       "path": "packages/react-native/dist/index.js",
-      "limit": "5 kB"
+      "limit": "3 kB"
     },
     {
       "name": "@hrkit/server",
       "path": "packages/server/dist/index.js",
-      "limit": "10 kB"
+      "limit": "5 kB"
     },
     {
       "name": "@hrkit/widgets",
       "path": "packages/widgets/dist/index.js",
-      "limit": "20 kB"
+      "limit": "8 kB"
+    },
+    {
+      "name": "@hrkit/ai",
+      "path": "packages/ai/dist/index.js",
+      "limit": "4 kB"
+    },
+    {
+      "name": "@hrkit/ant",
+      "path": "packages/ant/dist/index.js",
+      "limit": "3 kB"
+    },
+    {
+      "name": "@hrkit/bundle",
+      "path": "packages/bundle/dist/index.js",
+      "limit": "3 kB"
+    },
+    {
+      "name": "@hrkit/capacitor",
+      "path": "packages/capacitor/dist/index.js",
+      "limit": "3 kB"
+    },
+    {
+      "name": "@hrkit/capacitor-native",
+      "path": "packages/capacitor-native/dist/index.js",
+      "limit": "3 kB"
+    },
+    {
+      "name": "@hrkit/cli",
+      "path": "packages/cli/dist/index.js",
+      "limit": "2 kB"
+    },
+    {
+      "name": "@hrkit/coach",
+      "path": "packages/coach/dist/index.js",
+      "limit": "6 kB"
+    },
+    {
+      "name": "@hrkit/edge",
+      "path": "packages/edge/dist/index.js",
+      "limit": "3 kB"
+    },
+    {
+      "name": "@hrkit/integrations",
+      "path": "packages/integrations/dist/index.js",
+      "limit": "4 kB"
+    },
+    {
+      "name": "@hrkit/ml",
+      "path": "packages/ml/dist/index.js",
+      "limit": "3 kB"
+    },
+    {
+      "name": "@hrkit/otel",
+      "path": "packages/otel/dist/index.js",
+      "limit": "2 kB"
+    },
+    {
+      "name": "@hrkit/readiness",
+      "path": "packages/readiness/dist/index.js",
+      "limit": "3 kB"
+    },
+    {
+      "name": "@hrkit/sync",
+      "path": "packages/sync/dist/index.js",
+      "limit": "4.5 kB"
     }
   ],
   "devDependencies": {
@@ -80,5 +150,23 @@
   "engines": {
     "node": ">=18",
     "pnpm": ">=9"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/josedab/hrkit.git"
+  },
+  "homepage": "https://hrkit.dev",
+  "bugs": "https://github.com/josedab/hrkit/issues",
+  "keywords": [
+    "heart-rate",
+    "hrv",
+    "ble",
+    "bluetooth",
+    "fitness",
+    "sdk",
+    "typescript",
+    "trimp",
+    "polar",
+    "garmin"
+  ]
 }

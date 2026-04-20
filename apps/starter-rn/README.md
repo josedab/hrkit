@@ -179,13 +179,28 @@ const analysis = analyzeSession(session);
 import { useHRKit } from './hooks/useHRKit';
 
 function MyComponent() {
-  const { hr, zone, isRecording, startSession, stopSession, ingestPacket } = useHRKit({
+  const {
+    hr,                  // current BPM (0 when not recording)
+    zone,                // current zone 1–5 (0 when not recording)
+    elapsed,             // seconds since startSession()
+    isRecording,
+    isPaused,
+    startSession,
+    pauseSession,
+    resumeSession,
+    stopSession,         // returns SessionAnalysis | null
+    ingestPacket,        // feed an HRPacket from your BLE stream
+    startRound,          // optional label string
+    endRound,
+  } = useHRKit({
     config: { maxHR: 185, restHR: 50, sex: 'male' },
   });
 
   return <Text>{hr} BPM — Zone {zone}</Text>;
 }
 ```
+
+The hook owns a `SessionRecorder` instance and re-renders on `hr$` / `zone$` updates. `stopSession()` calls `analyzeSession()` internally so callers receive the structured `SessionAnalysis` directly.
 
 ## Customization
 
@@ -232,13 +247,13 @@ npx expo install @react-native-async-storage/async-storage
 | Import | Purpose |
 |--------|---------|
 | `SessionRecorder` | Record HR sessions with round tracking |
-| `analyzeSession(session)` | Get TRIMP, HRV, zone distribution |
-| `connectToDevice(transport)` | Smart device connection with timeout |
-| `ReactNativeTransport` | BLE adapter for react-native-ble-plx |
-| `hrToZone(hr, config)` | Convert HR to zone number (1–5) |
-| `rmssd(rr)` / `sdnn(rr)` | HRV metrics from RR intervals |
-| `filterArtifacts(rr)` | Remove noisy RR intervals |
-| `GENERIC_HR` | Generic HR device profile for scanning |
+| `analyzeSession(session)` | Get TRIMP, HRV, zone distribution as a `SessionAnalysis` |
+| `connectToDevice(transport, opts?)` | Smart device connection with timeout / preferred profiles |
+| `ReactNativeTransport` | BLE adapter for `react-native-ble-plx` |
+| `hrToZone(hr, { maxHR, zones })` | Convert HR to zone number (1–5) |
+| `rmssd(rr)` / `sdnn(rr)` / `pnn50(rr)` | HRV metrics from RR intervals |
+| `filterArtifacts(rr)` | Returns `{ filtered, artifactRate }` — drops noisy RR intervals |
+| `GENERIC_HR` | Generic HR device profile for BLE scanning |
 
 ## License
 
