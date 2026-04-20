@@ -1,3 +1,5 @@
+export { SDK_NAME, SDK_VERSION } from './version.js';
+
 /**
  * OpenTelemetry-shaped instrumentation hooks for @hrkit.
  *
@@ -60,7 +62,7 @@ function wrapConnection(conn: HRConnection, hooks: InstrumentationHooks): HRConn
     deviceId: conn.deviceId,
     deviceName: conn.deviceName,
     profile: conn.profile,
-    async *heartRate(): AsyncIterable<HRPacket> {
+    async *heartRate(_options?: { signal?: AbortSignal }): AsyncIterable<HRPacket> {
       for await (const pkt of conn.heartRate()) {
         hooks.onMetric('hrkit.hr.bpm', 'gauge', pkt.hr, attrs);
         if (pkt.rrIntervals) {

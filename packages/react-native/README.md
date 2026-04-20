@@ -91,6 +91,27 @@ conn.onDisconnect.then(() => {
 
 ## API
 
+### `isBleManagerReady(manager)`
+
+```typescript
+function isBleManagerReady(manager: unknown): manager is BleManager;
+```
+
+Type-narrowing preflight check that returns `true` when the supplied value
+quacks like a `react-native-ble-plx` `BleManager`. Useful when receiving a
+manager from another module or DI container:
+
+```typescript
+import { BleManager } from 'react-native-ble-plx';
+import { isBleManagerReady, ReactNativeTransport } from '@hrkit/react-native';
+
+const manager = new BleManager();
+if (!isBleManagerReady(manager)) {
+  throw new Error('react-native-ble-plx not properly linked');
+}
+const transport = new ReactNativeTransport(manager);
+```
+
 ### `ReactNativeTransport`
 
 ```typescript

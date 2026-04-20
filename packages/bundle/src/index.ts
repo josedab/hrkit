@@ -1,3 +1,5 @@
+export { SDK_NAME, SDK_VERSION } from './version.js';
+
 /**
  * Sign and verify `@hrkit` conformance bundles.
  *
@@ -58,14 +60,16 @@ function getSubtle(): SubtleCrypto {
 }
 
 function bytesToBase64(bytes: Uint8Array): string {
-  if (typeof Buffer !== 'undefined') return Buffer.from(bytes).toString('base64');
+  const g = globalThis as { Buffer?: { from: (b: Uint8Array) => { toString: (enc: string) => string } } };
+  if (typeof g.Buffer !== 'undefined') return g.Buffer.from(bytes).toString('base64');
   let bin = '';
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]!);
   return btoa(bin);
 }
 
 function base64ToBytes(b64: string): Uint8Array {
-  if (typeof Buffer !== 'undefined') return new Uint8Array(Buffer.from(b64, 'base64'));
+  const g = globalThis as { Buffer?: { from: (s: string, enc: string) => Uint8Array } };
+  if (typeof g.Buffer !== 'undefined') return new Uint8Array(g.Buffer.from(b64, 'base64'));
   const bin = atob(b64);
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);

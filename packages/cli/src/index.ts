@@ -1,3 +1,5 @@
+export { SDK_NAME, SDK_VERSION } from './version.js';
+
 /**
  * Pure helpers for @hrkit/cli — kept separate from process.argv handling so
  * each piece can be unit-tested.

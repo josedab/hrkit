@@ -6,10 +6,17 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "files": ["dist"],
-  "publishConfig": { "access": "public" },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist",
@@ -28,6 +35,16 @@
     "url": "https://github.com/josedab/hrkit.git",
     "directory": "packages/bundle"
   },
-  "keywords": ["hrkit", "conformance", "signing", "ed25519", "ecdsa"],
-  "author": "@hrkit contributors"
+  "keywords": [
+    "hrkit",
+    "conformance",
+    "signing",
+    "ed25519",
+    "ecdsa"
+  ],
+  "author": "@hrkit contributors",
+  "engines": {
+    "node": ">=18"
+  },
+  "homepage": "https://hrkit.dev"
 }

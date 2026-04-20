@@ -1,26 +1,37 @@
 {
   "name": "@hrkit/ant",
   "version": "0.1.0",
-  "description": "ANT+ bridge for @hrkit — wraps ant-plus-next so power, cadence and HR sensors expose the same BLETransport interface.",
+  "description": "ANT+ bridge for @hrkit \u2014 wraps ant-plus-next so power, cadence and HR sensors expose the same BLETransport interface.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "files": ["dist"],
-  "publishConfig": { "access": "public" },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit -p tsconfig.lint.json"
   },
-  "dependencies": { "@hrkit/core": "workspace:*" },
+  "dependencies": {
+    "@hrkit/core": "workspace:*"
+  },
   "peerDependencies": {
     "ant-plus-next": ">=0.1.0"
   },
   "peerDependenciesMeta": {
-    "ant-plus-next": { "optional": true }
+    "ant-plus-next": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "tsup": "^8.0.0",
@@ -32,6 +43,18 @@
     "url": "https://github.com/josedab/hrkit.git",
     "directory": "packages/ant"
   },
-  "keywords": ["ant+", "ant-plus", "cycling", "power", "cadence", "heart-rate", "hrkit"],
-  "author": "@hrkit contributors"
+  "keywords": [
+    "ant+",
+    "ant-plus",
+    "cycling",
+    "power",
+    "cadence",
+    "heart-rate",
+    "hrkit"
+  ],
+  "author": "@hrkit contributors",
+  "engines": {
+    "node": ">=18"
+  },
+  "homepage": "https://hrkit.dev"
 }

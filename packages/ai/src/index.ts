@@ -1,3 +1,5 @@
+export { SDK_NAME, SDK_VERSION } from './version.js';
+
 import type { LLMProvider } from '@hrkit/coach';
 import type { AthleteStore, HRVTrendPoint, SessionSummary, TrainingLoadPoint, WorkoutProtocol } from '@hrkit/core';
 import { parseWorkoutDSL } from '@hrkit/core';
