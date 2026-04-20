@@ -1,4 +1,5 @@
-import { HRKitError } from './errors.js';
+import { HRKitError, ValidationError } from './errors.js';
+import { getLogger } from './logger.js';
 import { SimpleStream } from './stream.js';
 import type {
   DeviceProfile,
@@ -69,6 +70,21 @@ export class SessionRecorder {
   readonly zone$: ReadableStream<Zone> = this.zoneStream;
 
   constructor(config: SessionConfig) {
+    if (!Number.isFinite(config.maxHR) || config.maxHR <= 0) {
+      throw new ValidationError('SessionRecorder: maxHR must be a positive finite number', [
+        `maxHR was ${config.maxHR}`,
+      ]);
+    }
+    if (config.restHR !== undefined && (!Number.isFinite(config.restHR) || config.restHR < 0)) {
+      throw new ValidationError('SessionRecorder: restHR must be a non-negative finite number', [
+        `restHR was ${config.restHR}`,
+      ]);
+    }
+    if (config.restHR !== undefined && config.restHR >= config.maxHR) {
+      throw new ValidationError('SessionRecorder: restHR must be less than maxHR', [
+        `restHR=${config.restHR} >= maxHR=${config.maxHR}`,
+      ]);
+    }
     this.config = config;
     this.zoneConfig = {
       maxHR: config.maxHR,
@@ -106,11 +122,19 @@ export class SessionRecorder {
 
     // Validate timestamp monotonicity (skip backward timestamps)
     if (this.lastPacketTime !== null && packet.timestamp < this.lastPacketTime) {
+      getLogger().debug('SessionRecorder: skipping packet with backward timestamp', {
+        packetTimestamp: packet.timestamp,
+        lastTimestamp: this.lastPacketTime,
+      });
       return;
     }
 
     // Validate HR is in physiological range (skip obviously bad data)
     if (packet.hr < 0 || packet.hr > MAX_PHYSIOLOGICAL_HR) {
+      getLogger().debug('SessionRecorder: skipping packet with out-of-range HR', {
+        hr: packet.hr,
+        max: MAX_PHYSIOLOGICAL_HR,
+      });
       return;
     }
 

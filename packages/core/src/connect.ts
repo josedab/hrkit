@@ -1,4 +1,5 @@
 import { DeviceNotFoundError, TimeoutError } from './errors.js';
+import { getLogger } from './logger.js';
 import type { BLETransport, ConnectOptions, DeviceProfile, HRConnection, HRDevice } from './types.js';
 
 /**
@@ -57,8 +58,21 @@ export async function connectToDevice(transport: BLETransport, options: ConnectO
   });
 
   const scanLoop = async (): Promise<HRConnection> => {
+    const log = getLogger();
+    log.debug('connectToDevice: scanning', {
+      preferCount: prefer.length,
+      hasFallback: !!fallback,
+      timeoutMs,
+    });
+
     try {
       for await (const device of transport.scan(allProfiles)) {
+        log.debug('connectToDevice: device discovered', {
+          id: device.id,
+          name: device.name,
+          rssi: device.rssi,
+        });
+
         // Try preferred profiles first (higher priority = lower index)
         for (let i = 0; i < prefer.length; i++) {
           const profile = prefer[i]!;
@@ -66,6 +80,10 @@ export async function connectToDevice(transport: BLETransport, options: ConnectO
             profile.namePrefix === '' ||
             (device.name?.toLowerCase().startsWith(profile.namePrefix.toLowerCase()) ?? false);
           if (nameMatches) {
+            log.info('connectToDevice: matched preferred profile', {
+              profile: `${profile.brand} ${profile.model}`,
+              deviceName: device.name,
+            });
             await transport.stopScan();
             return transport.connect(device.id, profile);
           }
@@ -90,6 +108,10 @@ export async function connectToDevice(transport: BLETransport, options: ConnectO
         if (a.rank !== b.rank) return a.rank - b.rank;
         return b.device.rssi - a.device.rssi; // prefer stronger signal
       })[0]!;
+      log.info('connectToDevice: using fallback device', {
+        deviceName: best.device.name,
+        profile: `${best.profile.brand} ${best.profile.model}`,
+      });
       return transport.connect(best.device.id, best.profile);
     }
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ValidationError } from '../errors.js';
 import { SessionRecorder } from '../session-recorder.js';
 import type { HRPacket } from '../types.js';
 
@@ -8,6 +9,23 @@ describe('SessionRecorder', () => {
   function makePacket(timestamp: number, hr: number, rrIntervals: number[] = []): HRPacket {
     return { timestamp, hr, rrIntervals, contactDetected: true };
   }
+
+  it('rejects invalid maxHR', () => {
+    expect(() => new SessionRecorder({ maxHR: 0 })).toThrow(ValidationError);
+    expect(() => new SessionRecorder({ maxHR: -10 })).toThrow(ValidationError);
+    expect(() => new SessionRecorder({ maxHR: NaN })).toThrow(ValidationError);
+  });
+
+  it('rejects restHR >= maxHR', () => {
+    expect(() => new SessionRecorder({ maxHR: 185, restHR: 200 })).toThrow(ValidationError);
+    expect(() => new SessionRecorder({ maxHR: 185, restHR: 185 })).toThrow(ValidationError);
+  });
+
+  it('accepts valid config', () => {
+    expect(() => new SessionRecorder({ maxHR: 185 })).not.toThrow();
+    expect(() => new SessionRecorder({ maxHR: 185, restHR: 0 })).not.toThrow();
+    expect(() => new SessionRecorder({ maxHR: 185, restHR: 48 })).not.toThrow();
+  });
 
   it('records HR samples from ingested packets', () => {
     const recorder = new SessionRecorder(config);
