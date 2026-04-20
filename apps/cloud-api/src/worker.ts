@@ -15,6 +15,7 @@
  */
 
 import { createIngestHandler, type EdgeStore, type IngestedSample, MemoryStore } from '@hrkit/edge';
+import { handlePreflight, jsonError, NULL_USAGE_SINK, newRequestId, type UsageSink } from './hardening.js';
 
 export interface ApiKeyRecord {
   tier: 'free' | 'pro';
@@ -73,9 +74,15 @@ function pickAthleteId(url: URL, body: unknown): string | null {
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
+    const requestId = newRequestId();
+
+    const preflight = handlePreflight(req);
+    if (preflight) return preflight;
 
     if (url.pathname === '/health')
-      return new Response(JSON.stringify({ status: 'ok' }), { headers: { 'content-type': 'application/json' } });
+      return new Response(JSON.stringify({ status: 'ok', requestId }), {
+        headers: { 'content-type': 'application/json', 'x-request-id': requestId },
+      });
 
     const auth = await authenticate(req, env);
     if (auth instanceof Response) return auth;
@@ -85,23 +92,35 @@ export default {
       try {
         parsed = await req.clone().json();
       } catch {
-        return new Response('invalid json', { status: 400 });
+        return jsonError(400, 'invalid_json', 'request body is not valid JSON', requestId);
       }
     }
 
     const athlete = pickAthleteId(url, parsed);
-    if (!athlete) return new Response('not found', { status: 404 });
+    if (!athlete) return jsonError(404, 'not_found', 'no athlete in path or payload', requestId);
 
     if (auth.pinnedAthleteId && auth.pinnedAthleteId !== athlete) {
-      return new Response('athlete scope mismatch', { status: 403 });
+      return jsonError(403, 'scope_mismatch', 'api key is pinned to a different athlete', requestId);
     }
 
     const id = env.ATHLETE.idFromName(athlete);
     const stub = env.ATHLETE.get(id);
-    // Forward tier so the DO can apply the right rate limit.
     const fwd = new Request(req.url, req);
     fwd.headers.set('x-hrkit-tier', auth.tier);
-    return stub.fetch(fwd);
+    fwd.headers.set('x-request-id', requestId);
+    const sink: UsageSink = NULL_USAGE_SINK;
+    const res = await stub.fetch(fwd);
+    sink.record({
+      apiKey: req.headers.get('x-api-key') ?? undefined,
+      tier: auth.tier,
+      athleteId: athlete,
+      route: url.pathname,
+      status: res.status,
+      bytesIn: Number(req.headers.get('content-length') ?? 0),
+      bytesOut: Number(res.headers.get('content-length') ?? 0),
+      ts: Date.now(),
+    });
+    return res;
   },
 
   async scheduled(_event: ScheduledEvent, _env: Env, _ctx: ExecutionContext): Promise<void> {
@@ -144,6 +163,7 @@ export class AthleteSession {
       },
       get: (key) => inner.get(key),
       list: (prefix) => inner.list(prefix),
+      delete: (key) => inner.delete(key),
     };
     this.handler = createIngestHandler({
       store: this.store,
@@ -229,6 +249,9 @@ class DurableObjectEdgeStore implements EdgeStore {
   async list(prefix: string): Promise<string[]> {
     const map = await this.storage.list<string>({ prefix });
     return Array.from(map.keys()).sort();
+  }
+  async delete(key: string): Promise<void> {
+    await this.storage.delete(key);
   }
 }
 
