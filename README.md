@@ -8,14 +8,56 @@ A platform-agnostic TypeScript SDK for BLE heart rate sensors. Works with **any*
 
 ## Packages
 
-| Package | Description | Docs |
-|---------|-------------|------|
-| [`@hrkit/core`](packages/core/) | Zero-dependency core: GATT parser, HRV, zones, TRIMP, session recording, analysis, serialization, streaming metrics | [README](packages/core/README.md) |
-| [`@hrkit/polar`](packages/polar/) | Polar PMD protocol utilities: ECG + accelerometer command builders and parsers | [README](packages/polar/README.md) |
-| [`@hrkit/react-native`](packages/react-native/) | BLE adapter for `react-native-ble-plx` | [README](packages/react-native/README.md) |
-| [`@hrkit/web`](packages/web/) | BLE adapter for Web Bluetooth API | [README](packages/web/README.md) |
-| [`@hrkit/server`](packages/server/) | Streaming HR data server: WebSocket and SSE broadcasting | [README](packages/server/README.md) |
-| [`@hrkit/widgets`](packages/widgets/) | Live dashboard Web Components: heart rate gauge, zone bar, HR chart | [README](packages/widgets/README.md) |
+The SDK is split into 20 focused packages — install only what you need. `@hrkit/core` has zero runtime dependencies; everything else is opt-in.
+
+**Core & protocols**
+
+| Package | Description |
+|---------|-------------|
+| [`@hrkit/core`](packages/core/) | Zero-dep core: GATT parser, HRV, zones, TRIMP, session recording, analysis, serialization, streaming metrics |
+| [`@hrkit/polar`](packages/polar/) | Polar PMD protocol utilities: ECG + accelerometer command builders and parsers |
+
+**BLE transport adapters** (implement `BLETransport`)
+
+| Package | Description |
+|---------|-------------|
+| [`@hrkit/web`](packages/web/) | Web Bluetooth API adapter (Chromium-based browsers) |
+| [`@hrkit/react-native`](packages/react-native/) | React Native adapter using `react-native-ble-plx` |
+| [`@hrkit/capacitor`](packages/capacitor/) | Capacitor adapter via `@capacitor-community/bluetooth-le` (iOS + Android) |
+| [`@hrkit/capacitor-native`](packages/capacitor-native/) | Native Capacitor plugin — direct CoreBluetooth / android.bluetooth, no community deps |
+| [`@hrkit/ant`](packages/ant/) | ANT+ bridge — exposes power / cadence / HR sensors as a `BLETransport` |
+
+**Streaming & sync**
+
+| Package | Description |
+|---------|-------------|
+| [`@hrkit/server`](packages/server/) | WebSocket + SSE broadcasting, room store, WebRTC signaling |
+| [`@hrkit/sync`](packages/sync/) | Local-first append-only CRDT sync, zero-dep, IndexedDB store, reconnecting transport |
+| [`@hrkit/edge`](packages/edge/) | Runtime-portable HR ingestion for Cloudflare Workers / Deno / Bun |
+
+**Export, integrations & signing**
+
+| Package | Description |
+|---------|-------------|
+| [`@hrkit/integrations`](packages/integrations/) | FIT / TCX / HealthKit-style exports + Strava / Garmin / Intervals.icu / TrainingPeaks uploaders |
+| [`@hrkit/bundle`](packages/bundle/) | Sign & verify conformance bundles via Web Crypto ECDSA P-256 |
+
+**Analysis & AI**
+
+| Package | Description |
+|---------|-------------|
+| [`@hrkit/coach`](packages/coach/) | Rule-engine summaries + LLM adapters (OpenAI / Anthropic / Ollama) |
+| [`@hrkit/ai`](packages/ai/) | Agentic training planner — emits Workout DSL with guardrails |
+| [`@hrkit/ml`](packages/ml/) | Pluggable ML inference port + model registry, BYO ONNX / TF.js runtime |
+| [`@hrkit/readiness`](packages/readiness/) | Adaptive HRV baseline + multi-factor recovery scoring |
+
+**UI & tooling**
+
+| Package | Description |
+|---------|-------------|
+| [`@hrkit/widgets`](packages/widgets/) | Live dashboard Web Components: HR gauge, zone bar, HR chart, ECG strip, breath pacer, workout builder, dashboard |
+| [`@hrkit/cli`](packages/cli/) | Command-line tools: `simulate` / `submit-fixture` / `keygen` / `sign` / `verify` |
+| [`@hrkit/otel`](packages/otel/) | OpenTelemetry-compatible instrumentation hooks (zero-dep) |
 
 ## Architecture
 
@@ -49,11 +91,25 @@ BLE adapter → HRConnection → HRPacket → SessionRecorder → Session → me
 |------------------------------------------|------------------------------------------|
 | Use HR metrics in a React Native app     | `@hrkit/core` + `@hrkit/react-native`    |
 | Use HR metrics in a browser app          | `@hrkit/core` + `@hrkit/web`             |
+| Use HR metrics in a Capacitor app        | `@hrkit/core` + `@hrkit/capacitor` (or `@hrkit/capacitor-native`) |
+| Bridge ANT+ sensors                      | `@hrkit/core` + `@hrkit/ant`             |
 | Parse Polar PMD protocol frames          | `@hrkit/core` + `@hrkit/polar`           |
 | Stream HR data to WebSocket/SSE clients  | `@hrkit/core` + `@hrkit/server`          |
+| Sync sessions across devices             | `@hrkit/core` + `@hrkit/sync`            |
+| Export to FIT/TCX or upload to Strava/Garmin/Intervals/TrainingPeaks | `@hrkit/core` + `@hrkit/integrations` |
 | Add live HR dashboard widgets            | `@hrkit/widgets`                         |
+| Score readiness from session history     | `@hrkit/core` + `@hrkit/readiness`       |
+| Run on Cloudflare Workers / Deno / Bun   | `@hrkit/core` + `@hrkit/edge`            |
 | Prototype/test without BLE hardware      | `@hrkit/core` (includes `MockTransport`) |
 | Build a custom platform adapter          | `@hrkit/core` (implement `BLETransport`) |
+| Estimate VO2max or fitness score         | `@hrkit/core` (includes `estimateVO2maxUth`, `fitnessScore`) |
+| Compute stress & recovery scores         | `@hrkit/core` (includes `computeStress`) |
+| Screen for rhythm irregularities (AFib)  | `@hrkit/core` (includes `screenForAFib`) ⚠️ screening only |
+| Estimate blood pressure from PTT         | `@hrkit/core` (includes `estimateBloodPressure`) ⚠️ not medical |
+| Replay & annotate recorded sessions      | `@hrkit/core` (includes `SessionPlayer`) |
+| Build multi-week training plans          | `@hrkit/core` (includes `PlanRunner`, `createWeeklyPlan`) |
+| Fuse HR from multiple sensors            | `@hrkit/core` (includes `SensorFusion`) |
+| Run a multi-athlete group session        | `@hrkit/core` (includes `GroupSession`) |
 
 ## Quick Start
 
@@ -120,8 +176,8 @@ const tcx = sessionToTCX(session, { sport: 'Running' });
 
 ```typescript
 import { connectToDevice } from '@hrkit/core';
-import { GENERIC_HR } from '@hrkit/core/profiles';
 import { POLAR_H10, isPolarConnection } from '@hrkit/polar';
+import { GENERIC_HR } from '@hrkit/core';
 
 const conn = await connectToDevice(transport, {
   prefer: [POLAR_H10],
@@ -142,8 +198,7 @@ if (isPolarConnection(conn) && conn.profile.capabilities.includes('ecg')) {
 ### Try Without Hardware
 
 ```typescript
-import { SessionRecorder, connectToDevice, MockTransport } from '@hrkit/core';
-import { GENERIC_HR } from '@hrkit/core/profiles';
+import { SessionRecorder, connectToDevice, MockTransport, GENERIC_HR } from '@hrkit/core';
 
 const transport = new MockTransport({
   device: { id: 'test', name: 'Mock HR Strap' },
@@ -212,7 +267,7 @@ pnpm install          # install all dependencies
 pnpm test             # run tests (vitest)
 pnpm test:watch       # run tests in watch mode
 pnpm test:coverage    # run tests with coverage report
-pnpm lint             # type-check all packages (tsc --noEmit)
+pnpm lint             # type-check all packages (per-package `typecheck` script)
 pnpm format           # auto-format all files (biome)
 pnpm check            # lint + format check (biome)
 pnpm build            # build all packages (tsup, ESM output)
