@@ -11,7 +11,7 @@ import {
   parseECGData,
   parsePMDControlResponse,
 } from '../pmd.js';
-import { POLAR_H9, POLAR_H10, POLAR_OH1 } from '../profiles.js';
+import { POLAR_H9, POLAR_H10, POLAR_OH1, POLAR_VERITY_SENSE } from '../profiles.js';
 
 describe('PMD commands', () => {
   it('builds ECG start command', () => {
@@ -241,6 +241,89 @@ describe('isPolarConnection', () => {
 
   it('returns false for empty serviceUUIDs', () => {
     const conn = makeConn([]);
+    expect(isPolarConnection(conn)).toBe(false);
+  });
+});
+
+describe('Polar profile metadata (#13 coverage)', () => {
+  // Every Polar profile should agree on brand + PMD service.
+  const profiles = [
+    { name: 'H10', profile: POLAR_H10, expectECG: true, expectACC: true },
+    { name: 'H9', profile: POLAR_H9, expectECG: true, expectACC: false },
+    { name: 'OH1', profile: POLAR_OH1, expectECG: false, expectACC: true },
+    { name: 'Verity Sense', profile: POLAR_VERITY_SENSE, expectECG: false, expectACC: true },
+  ];
+
+  it.each(profiles)('$name has brand, model, and namePrefix set', ({ profile }) => {
+    expect(profile.brand).toBe('Polar');
+    expect(profile.model).toBeTypeOf('string');
+    expect(profile.model.length).toBeGreaterThan(0);
+    expect(profile.namePrefix).toBeTypeOf('string');
+    expect(profile.namePrefix.length).toBeGreaterThan(0);
+  });
+
+  it.each(profiles)('$name advertises HR + PMD service UUIDs', ({ profile }) => {
+    expect(profile.serviceUUIDs).toContain(GATT_HR_SERVICE_UUID);
+    expect(profile.serviceUUIDs).toContain(POLAR_PMD_SERVICE_UUID);
+  });
+
+  it.each(profiles)('$name always includes heartRate + rrIntervals', ({ profile }) => {
+    expect(profile.capabilities).toContain('heartRate');
+    expect(profile.capabilities).toContain('rrIntervals');
+  });
+
+  it.each(profiles)('$name capability list matches the device\u2019s advertised sensors', ({
+    profile,
+    expectECG,
+    expectACC,
+  }) => {
+    expect(profile.capabilities.includes('ecg')).toBe(expectECG);
+    expect(profile.capabilities.includes('accelerometer')).toBe(expectACC);
+  });
+
+  it('Verity Sense is distinguishable from OH1 by namePrefix', () => {
+    // Both profiles are optical sensors with the same capability set; the
+    // deviceName prefix is the only discriminator used for matching.
+    expect(POLAR_VERITY_SENSE.namePrefix).not.toBe(POLAR_OH1.namePrefix);
+    expect(POLAR_VERITY_SENSE.model).not.toBe(POLAR_OH1.model);
+  });
+});
+
+describe('isPolarConnection edge cases (#13 coverage)', () => {
+  const makeConn = (serviceUUIDs: string[]): HRConnection =>
+    ({
+      profile: { serviceUUIDs },
+    }) as HRConnection;
+
+  it('returns true for a connection carrying the Verity Sense profile', () => {
+    const conn = {
+      deviceId: 'test',
+      deviceName: 'Polar Sense',
+      profile: POLAR_VERITY_SENSE,
+    } as HRConnection;
+    expect(isPolarConnection(conn)).toBe(true);
+  });
+
+  it('returns true even when PMD is not the first listed service', () => {
+    // Some BLE advertisements reorder services; the guard must not assume position.
+    const conn = makeConn([GATT_HR_SERVICE_UUID, 'ffffffff-0000-0000-0000-000000000000', POLAR_PMD_SERVICE_UUID]);
+    expect(isPolarConnection(conn)).toBe(true);
+  });
+
+  it('returns false for a connection with HR only (no PMD)', () => {
+    const conn = makeConn([GATT_HR_SERVICE_UUID]);
+    expect(isPolarConnection(conn)).toBe(false);
+  });
+
+  it('returns false for a connection advertising an unrelated service', () => {
+    const conn = makeConn(['0000180f-0000-1000-8000-00805f9b34fb']); // Battery service
+    expect(isPolarConnection(conn)).toBe(false);
+  });
+
+  it('is case-sensitive on the PMD UUID (no normalization)', () => {
+    // Document current behavior: the guard compares strings, so an uppercase UUID does
+    // not match. Callers are expected to normalize before passing in.
+    const conn = makeConn([POLAR_PMD_SERVICE_UUID.toUpperCase()]);
     expect(isPolarConnection(conn)).toBe(false);
   });
 });
