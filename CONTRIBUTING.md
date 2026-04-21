@@ -18,26 +18,43 @@ pnpm build      # build all packages
 
 ```
 packages/
-  core/           @hrkit/core — zero-dependency core library
-  polar/          @hrkit/polar — Polar PMD protocol utilities
-  react-native/   @hrkit/react-native — BLE adapter
-  web/            @hrkit/web — BLE adapter
-  server/         @hrkit/server — WebSocket + SSE streaming server
-  widgets/        @hrkit/widgets — live dashboard Web Components
+  core/             @hrkit/core             — Zero-dep core (GATT parser, HRV, zones, TRIMP, session, analysis, plugins)
+  polar/            @hrkit/polar            — Polar PMD protocol (ECG + ACC), depends on core
+  ant/              @hrkit/ant              — ANT+ heart-rate adapter
+  react-native/     @hrkit/react-native     — BLE adapter for react-native-ble-plx
+  web/              @hrkit/web              — BLE adapter for Web Bluetooth API
+  capacitor/        @hrkit/capacitor        — Capacitor Web Bluetooth adapter
+  capacitor-native/ @hrkit/capacitor-native — Capacitor native BLE adapter
+  server/           @hrkit/server           — WebSocket + SSE streaming server
+  widgets/          @hrkit/widgets          — Live dashboard Web Components
+  bundle/           @hrkit/bundle           — Conformance bundle signing (Web Crypto ECDSA)
+  cli/              @hrkit/cli              — Command-line tools (simulate, sign, verify)
+  ai/               @hrkit/ai              — Agentic training planner + prompt helpers
+  coach/            @hrkit/coach           — Coaching cues + LLM adapters
+  edge/             @hrkit/edge            — Edge-runtime / Workers compatibility
+  integrations/     @hrkit/integrations    — FIT/TCX export + Strava/Garmin uploaders
+  ml/               @hrkit/ml              — Pluggable ML inference port + model registry
+  otel/             @hrkit/otel            — OpenTelemetry instrumentation hooks
+  readiness/        @hrkit/readiness       — Adaptive HRV baseline + recovery scoring
+  sync/             @hrkit/sync            — Local-first CRDT sync + IndexedDB store
 apps/
-  bjj/            Reference app (uses MockTransport)
-  starter-rn/     React Native starter template
+  bjj/              Reference BJJ rolling intensity app (uses MockTransport)
+  cloud-api/        Cloud-side API service that ingests sync uploads
+  dashboard/        Live dashboard Vite app built on widgets
+  demo/             General SDK demo / sandbox
+  starter-rn/       React Native starter source template
+  starter-web/      Web starter template
 ```
 
-**Dependency graph:** `core` has zero runtime deps. `polar`, `react-native`, `web`, and `server` depend on `core` via `workspace:*`. `widgets` is standalone.
+**Dependency graph:** `core` has zero runtime deps. Adapters (`polar`, `ant`, `react-native`, `web`, `capacitor`, `capacitor-native`), platform packages (`server`, `cli`, `bundle`, `edge`, `otel`), and feature packages (`coach`, `ai`, `readiness`, `sync`, `integrations`, `ml`) depend on `core` via `workspace:*`. `widgets` is standalone.
 
 ## Architecture Notes
 
-- **All core functions are pure.** No classes (except `SessionRecorder`), no state, no platform imports. This makes them trivially testable.
+- **All core functions are pure.** Pure analysis helpers (HRV, zones, TRIMP, artifact filter, GATT parser, VO2max, stress, AFib screening) have no state and no platform imports. Stateful behavior is encapsulated in classes — `SessionRecorder`, `MultiDeviceManager`, `GroupSession`, `WorkoutEngine`, `WorkoutCues`, `RealtimeArtifactDetector`, `RollingRMSSD`, `TRIMPAccumulator`, `PluginRegistry`, `InMemoryAthleteStore`, `SensorFusion`, `SensorBus`, `SessionPlayer`, `PlanRunner`, `MemoryGlucoseSource`, and `MockTransport`.
 - **BLE transport is injected.** `BLETransport` is an interface; platform adapters implement it. `MockTransport` is the test implementation.
 - **Device capability model.** Devices are described by `DeviceProfile` objects declaring capabilities. Consumer code requests capabilities, not specific devices.
-- **Workspace resolution for tests.** Vitest uses path aliases in `vitest.config.ts` to resolve `@hrkit/core` and `@hrkit/polar` to source (not dist). Tests always run against source code.
-- **Web package needs separate type-check.** The `@hrkit/web` package requires DOM types, so it has its own `tsconfig.lint.json` and is checked separately in the `lint` script.
+- **Workspace resolution for tests.** Vitest uses path aliases in `vitest.config.ts` to resolve every `@hrkit/*` package to its source (not dist). Tests always run against source code.
+- **Per-package type-check.** `pnpm lint` runs `pnpm -r --parallel run typecheck` so every package's `typecheck` script is invoked. Packages that need DOM (`web`, `widgets`) or Node (`server`) types declare their own `tsconfig.lint.json`. To add a new package, give it a `typecheck` script in `package.json`.
 
 ## Key Design Decisions
 
