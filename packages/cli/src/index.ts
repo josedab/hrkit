@@ -85,6 +85,7 @@ export interface SubmitFixtureOptions {
   notifications: Array<{ at_ms: number; bytes_hex: string }>;
 }
 
+/** Build a schema-v1 conformance test fixture object from the given options. */
 export function buildConformanceFixture(opts: SubmitFixtureOptions): object {
   return {
     schema_version: 1,
@@ -104,6 +105,11 @@ export interface ParsedArgs {
   positional: string[];
 }
 
+/**
+ * Parse a raw argv array into a command, `--flag` map, and positional args.
+ *
+ * @param argv - Argument tokens (typically `process.argv.slice(2)`).
+ */
 export function parseArgv(argv: string[]): ParsedArgs {
   if (argv.length === 0) return { command: '', flags: {}, positional: [] };
   const [command, ...rest] = argv;
