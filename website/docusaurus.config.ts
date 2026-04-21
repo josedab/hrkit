@@ -24,10 +24,20 @@ const config: Config = {
     mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: 'warn',
+      onBrokenMarkdownImages: 'warn',
     },
   },
 
-  themes: ['@docusaurus/theme-mermaid'],
+  themes: [
+    '@docusaurus/theme-mermaid',
+    ['@easyops-cn/docusaurus-search-local', {
+      hashed: true,
+      language: ['en'],
+      indexBlog: false,
+      docsRouteBasePath: '/docs',
+      highlightSearchTermsOnTargetPage: true,
+    }],
+  ],
 
   i18n: {
     defaultLocale: 'en',
@@ -51,7 +61,7 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: 'img/social-card.png',
+    image: 'img/social-card.svg',
     colorMode: {
       defaultMode: 'dark',
       respectPrefersColorScheme: true,
