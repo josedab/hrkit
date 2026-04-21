@@ -13,9 +13,26 @@ ANT+ bridge for @hrkit — wraps ant-plus-next so power, cadence and HR sensors 
 pnpm add @hrkit/ant
 ```
 
+## Key features
+
+- **ANT+ bridge** — exposes ANT+ power, cadence, and HR sensors as a `BLETransport`
+- **Unified interface** — same `connectToDevice()` flow as BLE adapters
+- **USB stick support** — works with standard ANT+ USB dongles via `ant-plus-next`
+
 ## Quick example
 
-See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/ant#readme) for runnable code.
+```typescript
+import { AntTransport } from '@hrkit/ant';
+import { connectToDevice, GENERIC_HR } from '@hrkit/core';
+
+const transport = new AntTransport();
+const connection = await connectToDevice(transport, GENERIC_HR);
+for await (const packet of connection.packets) {
+  console.log('HR:', packet.heartRate);
+}
+```
+
+See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/ant#readme) for more runnable code.
 
 ## API reference
 

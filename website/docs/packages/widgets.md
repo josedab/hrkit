@@ -13,9 +13,35 @@ Live dashboard Web Components for @hrkit — heart rate gauge, zone bar, HR char
 pnpm add @hrkit/widgets
 ```
 
+## Key features
+
+- **HR gauge** — real-time heart rate dial with zone coloring
+- **Zone bar** — horizontal zone distribution visualization
+- **HR chart** — scrolling time-series heart rate graph
+- **ECG strip** — live ECG waveform display (with `@hrkit/polar`)
+- **Breath pacer** — guided breathing animation
+- **Workout builder** — visual interval/round editor
+- **Full dashboard** — composite `<hrkit-dashboard>` combining all widgets
+- **Standalone** — no framework dependency, works with any HTML page
+
 ## Quick example
 
-See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/widgets#readme) for runnable code.
+```html
+<script type="module">
+  import { registerAll } from '@hrkit/widgets';
+  registerAll();
+</script>
+
+<hrkit-dashboard></hrkit-dashboard>
+
+<script>
+  const dashboard = document.querySelector('hrkit-dashboard');
+  // Push live HR data
+  dashboard.update({ heartRate: 145, zone: 3 });
+</script>
+```
+
+See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/widgets#readme) for more runnable code.
 
 ## API reference
 

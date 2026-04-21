@@ -13,9 +13,26 @@ Capacitor BLE adapter for @hrkit (iOS + Android via @capacitor-community/bluetoo
 pnpm add @hrkit/capacitor
 ```
 
+## Key features
+
+- **CapacitorBLETransport** — implements `BLETransport` via `@capacitor-community/bluetooth-le`
+- **Cross-platform** — iOS + Android support through Capacitor's native bridge
+- **Web fallback** — uses Web Bluetooth when running in the browser shell
+
 ## Quick example
 
-See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/capacitor#readme) for runnable code.
+```typescript
+import { CapacitorBLETransport } from '@hrkit/capacitor';
+import { connectToDevice, GENERIC_HR } from '@hrkit/core';
+
+const transport = new CapacitorBLETransport();
+const connection = await connectToDevice(transport, GENERIC_HR);
+for await (const packet of connection.packets) {
+  console.log('HR:', packet.heartRate);
+}
+```
+
+See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/capacitor#readme) for more runnable code.
 
 ## API reference
 

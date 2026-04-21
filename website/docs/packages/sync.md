@@ -13,9 +13,23 @@ Local-first append-only CRDT sync for @hrkit sessions. Zero deps.
 pnpm add @hrkit/sync
 ```
 
+## Key features
+
+- **Local-first CRDT** — append-only conflict-free replication for sessions
+- **IndexedDB store** — offline-capable persistence in the browser
+- **Reconnecting transport** — automatic retry with exponential backoff
+
 ## Quick example
 
-See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/sync#readme) for runnable code.
+```typescript
+import { SyncStore } from '@hrkit/sync';
+
+const store = new SyncStore({ url: 'wss://sync.example.com' });
+await store.push(session);      // upload when online
+const all = await store.list(); // read from local cache when offline
+```
+
+See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/sync#readme) for more runnable code.
 
 ## API reference
 

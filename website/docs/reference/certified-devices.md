@@ -14,9 +14,9 @@ fails the build on any drift, so this list reflects the **current verified state
 
 | Brand | Model | Firmware | Service / Characteristic | Conformance |
 |-------|-------|----------|--------------------------|-------------|
-| Garmin | HRM-Pro | 5.50 | `180d` / `2a37` | ![garmin-hrm-pro-baseline](/badges/garmin-hrm-pro-baseline.svg) |
-| Polar | H10 | 3.1.1 | `180d` / `2a37` | ![polar-h10-baseline](/badges/polar-h10-baseline.svg) |
-| Wahoo | TICKR | 2.4 | `180d` / `2a37` | ![wahoo-tickr-baseline](/badges/wahoo-tickr-baseline.svg) |
+| Garmin | HRM-Pro | 5.50 | `180d` / `2a37` | ✅ Verified |
+| Polar | H10 | 3.1.1 | `180d` / `2a37` | ✅ Verified |
+| Wahoo | TICKR | 2.4 | `180d` / `2a37` | ✅ Verified |
 
 ## How a device gets on this list
 
@@ -28,6 +28,6 @@ fails the build on any drift, so this list reflects the **current verified state
 
 ## Adding your own device
 
-See [Contributing → Conformance Corpus](../guides/contributing.md) for the full
+See [Contributing](https://github.com/josedab/hrkit/blob/main/CONTRIBUTING.md) for the full
 procedure including how to capture notifications safely (no PII), declare a
 fixture schema version, and request a badge.

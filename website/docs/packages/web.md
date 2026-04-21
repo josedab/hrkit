@@ -13,9 +13,30 @@ Web Bluetooth API adapter for @hrkit heart rate monitoring
 pnpm add @hrkit/web
 ```
 
+## Key features
+
+- **WebBluetoothTransport** — implements the `BLETransport` interface for browsers
+- **`isWebBluetoothSupported()`** — runtime feature check before scanning
+- **Chromium-based browsers** — Chrome, Edge, Opera, and other Blink-based browsers
+
 ## Quick example
 
-See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/web#readme) for runnable code.
+```typescript
+import { WebBluetoothTransport, isWebBluetoothSupported } from '@hrkit/web';
+import { connectToDevice, GENERIC_HR } from '@hrkit/core';
+
+if (!isWebBluetoothSupported()) {
+  console.error('Web Bluetooth not available in this browser');
+} else {
+  const transport = new WebBluetoothTransport();
+  const connection = await connectToDevice(transport, GENERIC_HR);
+  for await (const packet of connection.packets) {
+    console.log('HR:', packet.heartRate);
+  }
+}
+```
+
+See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/web#readme) for more runnable code.
 
 ## API reference
 

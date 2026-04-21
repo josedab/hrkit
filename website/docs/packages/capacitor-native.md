@@ -13,9 +13,26 @@ Native Capacitor plugin for @hrkit — direct CoreBluetooth (iOS) and android.bl
 pnpm add @hrkit/capacitor-native
 ```
 
+## Key features
+
+- **Direct native BLE** — CoreBluetooth on iOS, `android.bluetooth` on Android
+- **No community deps** — ships its own native plugin, no `@capacitor-community/bluetooth-le` required
+- **BLETransport interface** — drop-in replacement for other adapters
+
 ## Quick example
 
-See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/capacitor-native#readme) for runnable code.
+```typescript
+import { CapacitorNativeBLETransport } from '@hrkit/capacitor-native';
+import { connectToDevice, GENERIC_HR } from '@hrkit/core';
+
+const transport = new CapacitorNativeBLETransport();
+const connection = await connectToDevice(transport, GENERIC_HR);
+for await (const packet of connection.packets) {
+  console.log('HR:', packet.heartRate);
+}
+```
+
+See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/capacitor-native#readme) for more runnable code.
 
 ## API reference
 
