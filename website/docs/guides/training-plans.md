@@ -139,3 +139,8 @@ const output = await planNextWeek(athleteStore, provider, {
 // output.sessions contains WorkoutProtocol objects
 // which can be converted to a TrainingPlan
 ```
+
+## Next steps
+
+- **[Workout Protocols](./workout-protocols)** — Define and execute individual structured workouts
+- **[Training Load & Insights](./training-load)** — Track ACWR, monotony, and fatigue across plan cycles

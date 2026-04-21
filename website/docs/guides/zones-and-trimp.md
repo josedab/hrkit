@@ -113,3 +113,9 @@ Track weekly TRIMP trends to manage training load and avoid overtraining.
 :::info Gap handling
 Like `zoneDistribution`, the `trimp` function skips intervals > 30 seconds to avoid distorting load calculations during data gaps.
 :::
+
+## Next steps
+
+- **[Workout Protocols](./workout-protocols)** — Define structured workouts with zone-based targets
+- **[Training Load & Insights](./training-load)** — Track ACWR, monotony, and long-term training balance
+- **[HRV Metrics](./hrv-metrics)** — Complement zone data with RMSSD, SDNN, and readiness tracking

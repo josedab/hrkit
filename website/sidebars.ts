@@ -45,6 +45,11 @@ const sidebars: SidebarsConfig = {
         'guides/group-sessions',
         'guides/sensor-fusion',
         'guides/troubleshooting',
+        'guides/streaming-metrics',
+        'guides/advanced-hrv',
+        'guides/non-hr-sensors',
+        'guides/training-load',
+        'guides/serialization',
       ],
     },
     {
@@ -90,6 +95,7 @@ const sidebars: SidebarsConfig = {
       ],
     },
     'faq',
+    'comparison',
   ],
 };
 

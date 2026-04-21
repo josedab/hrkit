@@ -119,3 +119,8 @@ player.play(4);
 // 5. Export annotations with the session
 const annotations = player.allAnnotations;
 ```
+
+## Next steps
+
+- **[Session Serialization](./serialization)** — Save, load, and export session data for replay
+- **[Dashboard Widgets](./widgets)** — Visualize replayed sessions with live Web Components

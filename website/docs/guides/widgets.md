@@ -267,3 +267,9 @@ hrkit-breath-pacer {
   --hrkit-pacer-bg: transparent;
 }
 ```
+
+## Next steps
+
+- **[Streaming Server](./server)** — Feed live data to widgets over WebSocket or SSE
+- **[Streaming Metrics](./streaming-metrics)** — Compute real-time HRV and TRIMP alongside widget display
+- **[API Reference](../reference/core-api)** — Full API documentation for all core functions

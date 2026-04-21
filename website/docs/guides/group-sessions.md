@@ -117,3 +117,9 @@ for (const a of results) {
   console.log(`${a.name}: Peak HR=${a.peakHR}, TRIMP=${a.trimp.toFixed(1)}, packets=${a.packetCount}`);
 }
 ```
+
+## Next steps
+
+- **[Multi-Device Fusion](./multi-device)** — Manage the BLE connections that feed group sessions
+- **[Streaming Server](./server)** — Broadcast group data over WebSocket or SSE
+- **[Dashboard Widgets](./widgets)** — Build a live coach dashboard with Web Components

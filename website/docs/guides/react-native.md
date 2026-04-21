@@ -123,3 +123,9 @@ await conn.disconnect();
 - **Create `BleManager` once** — Inject it into `ReactNativeTransport` so you control its lifecycle and can share it across your app.
 - **Handle permissions early** — Check and request BLE permissions before showing the connect UI.
 - **Use `timeoutMs`** — Set a scan timeout to avoid indefinite scanning if no device is nearby.
+
+## Next steps
+
+- **[Using Polar Devices](./polar-devices)** — Unlock ECG and accelerometer streaming on Polar hardware
+- **[Web Bluetooth Setup](./web-bluetooth)** — Run the same SDK in the browser with Web Bluetooth
+- **[Building a Custom Transport](./custom-transport)** — Implement BLETransport for any other platform

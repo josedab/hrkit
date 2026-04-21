@@ -140,3 +140,9 @@ bytes 10+:  samples (6 bytes each: x, y, z as int16 LE, milliG)
 :::note
 The BLE transport adapters (`@hrkit/react-native`, `@hrkit/web`) currently implement standard HR streaming only. To use PMD protocol features for ECG/ACC, you need to wire up PMD characteristic writes and notifications in your transport layer using the command builders and parsers above.
 :::
+
+## Next steps
+
+- **[Web Bluetooth Setup](./web-bluetooth)** — Connect to Polar sensors from the browser
+- **[React Native Setup](./react-native)** — Use Polar devices in a React Native app
+- **[API Reference — Polar](../reference/polar-api)** — Full API documentation for the Polar PMD protocol

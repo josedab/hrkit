@@ -122,3 +122,10 @@ const verdict = readinessVerdict(58, baseline!);
 3. **Record for at least 1 minute** — More data means more reliable RMSSD. 5 minutes is ideal for SDNN.
 4. **Always filter artifacts** — Even a single artifact can dramatically skew RMSSD.
 5. **Track trends, not absolutes** — Your baseline is personal. A 40ms RMSSD can be excellent for one person and low for another.
+
+## Next steps
+
+- **[Zones & TRIMP](./zones-and-trimp)** — Convert heart rate into training zones and quantify session load
+- **[Advanced HRV Analysis](./advanced-hrv)** — Dive into Poincaré plots, DFA α1, and frequency-domain metrics
+- **[Stress & Recovery Scoring](./stress-scoring)** — Build composite stress indices from HRV and heart rate
+- **[API Reference](../reference/core-api)** — Full API documentation for all core functions

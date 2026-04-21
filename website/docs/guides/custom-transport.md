@@ -156,3 +156,8 @@ const session = recorder.end();
 ```
 
 Once your transport implements `BLETransport`, every feature in @hrkit works automatically — metrics, session recording, device profiles, everything.
+
+## Next steps
+
+- **[Device Profiles](../core-concepts/device-profiles)** — Understand the capability model your transport plugs into
+- **[Plugin Architecture](./plugins)** — Extend recording with lifecycle-hook plugins

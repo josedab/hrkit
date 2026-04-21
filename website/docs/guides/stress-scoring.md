@@ -115,3 +115,9 @@ console.log(result.components.subjective);     // 0–100 or null
 console.log(result.breathingRateBPM);          // breaths/min or null
 console.log(result.rmssd);                     // session rMSSD
 ```
+
+## Next steps
+
+- **[VO2max & Fitness Scoring](./vo2max)** — Estimate aerobic fitness and track percentile rankings
+- **[HRV Metrics](./hrv-metrics)** — Understand the RMSSD and SDNN inputs that feed stress scores
+- **[Advanced HRV Analysis](./advanced-hrv)** — Go deeper with Poincaré, DFA α1, and frequency-domain analysis

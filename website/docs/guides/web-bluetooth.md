@@ -101,3 +101,9 @@ await conn.disconnect();
 - **Always use a button click** — The `connectToDevice` call chain must originate from a user gesture, or the browser will block the picker.
 - **Test on localhost** — During development, `localhost` counts as a secure origin. No HTTPS certificate needed.
 - **Check API availability** — Guard with `if ('bluetooth' in navigator)` before showing the connect button.
+
+## Next steps
+
+- **[Using Polar Devices](./polar-devices)** — Stream ECG and accelerometer data from Polar sensors
+- **[React Native Setup](./react-native)** — Move your app to React Native with the same SDK
+- **[Dashboard Widgets](./widgets)** — Add drop-in Web Components for live heart rate display

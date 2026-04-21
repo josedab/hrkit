@@ -95,3 +95,9 @@ The engine checks compliance on each HR packet and emits `target$` events.
 | `step$` | Observable: emits on step change |
 | `target$` | Observable: emits target compliance per packet |
 | `state$` | Observable: emits workout state changes |
+
+## Next steps
+
+- **[Training Plans](./training-plans)** — Compose multi-week periodized plans from workout protocols
+- **[Zones & TRIMP](./zones-and-trimp)** — Understand the zone model that powers workout targets
+- **[Plugin Architecture](./plugins)** — Extend workout recording with custom lifecycle hooks
