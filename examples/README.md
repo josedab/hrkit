@@ -16,6 +16,8 @@ pnpm --filter @hrkit/examples quickstart
 | File | What it shows |
 |------|---------------|
 | `quickstart.ts` | Scan → connect → stream HR → record session via `MockTransport`. |
+| `analyze.ts` | Post-session analysis: HRV, TRIMP, zones, VO2max, stress scoring, readiness. |
+| `training.ts` | Training load analytics: ACWR, HRV trends, monotony, recommendations, plan creation. |
 
 ## Adding an example
 
