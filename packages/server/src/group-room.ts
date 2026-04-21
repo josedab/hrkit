@@ -3,8 +3,10 @@ import {
   type AthleteState,
   GroupSession,
   type GroupSessionConfig,
+  HRKitError,
   type HRPacket,
   type LeaderboardEntry,
+  ValidationError,
 } from '@hrkit/core';
 
 /**
@@ -42,13 +44,13 @@ export class InMemoryRoomStore implements RoomStore {
 
   create(roomId: string, config?: GroupSessionConfig): GroupRoom {
     if (!roomId || /\s/.test(roomId)) {
-      throw new Error('roomId must be non-empty and contain no whitespace');
+      throw new ValidationError('roomId must be non-empty and contain no whitespace');
     }
     if (this.rooms.has(roomId)) {
-      throw new Error(`room ${roomId} already exists`);
+      throw new ValidationError(`room ${roomId} already exists`);
     }
     if (this.rooms.size >= this.maxRooms) {
-      throw new Error('room capacity exceeded');
+      throw new HRKitError('room capacity exceeded', 'CAPACITY_EXCEEDED');
     }
     const room: GroupRoom = {
       roomId,
