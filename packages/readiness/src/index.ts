@@ -123,6 +123,13 @@ export interface ComputeOptions {
   weights?: Partial<ReadinessWeights>;
 }
 
+/**
+ * Compute a 0–100 readiness score from HRV, training load, sleep, and resting HR.
+ *
+ * @param input - Current physiological state and baseline values.
+ * @param opts - Optional custom weights for each component.
+ * @returns Readiness result with score, recommendation, and per-component breakdown.
+ */
 export function computeReadiness(input: ReadinessInput, opts: ComputeOptions = {}): ReadinessResult {
   const w: ReadinessWeights = { ...DEFAULT_WEIGHTS, ...opts.weights };
   const components = {
@@ -175,6 +182,14 @@ export interface BaselineState {
   window: number[];
 }
 
+/**
+ * Update a rolling RMSSD baseline with today's reading, dropping values outside the window.
+ *
+ * @param state - Current baseline window state.
+ * @param todayRmssd - This morning's RMSSD value (ms).
+ * @param windowSize - Rolling window length in days. Default: 7.
+ * @returns Updated mean, standard deviation, and new window state.
+ */
 export function updateBaseline(
   state: BaselineState,
   todayRmssd: number,
