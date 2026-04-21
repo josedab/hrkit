@@ -25,6 +25,10 @@
     "./profiles": {
       "types": "./dist/profiles/index.d.ts",
       "import": "./dist/profiles/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.js"
     }
   },
   "files": [
