@@ -2,6 +2,7 @@ export { SDK_NAME, SDK_VERSION } from './version.js';
 
 import {
   type BLETransport,
+  ConnectionError,
   type DeviceProfile,
   GATT_HR_MEASUREMENT_UUID,
   GATT_HR_SERVICE_UUID,
@@ -166,7 +167,7 @@ export class CapacitorBLETransport implements BLETransport {
 
   async connect(deviceId: string, profile: DeviceProfile, options?: { signal?: AbortSignal }): Promise<HRConnection> {
     if (options?.signal?.aborted) {
-      throw new Error('connect aborted');
+      throw new ConnectionError('connect aborted');
     }
     const client = await this.ensureInit();
 
@@ -175,12 +176,12 @@ export class CapacitorBLETransport implements BLETransport {
       resolveDisconnect = resolve;
     });
 
-    if (options?.signal?.aborted) throw new Error('connect aborted');
+    if (options?.signal?.aborted) throw new ConnectionError('connect aborted');
     await client.connect(deviceId, () => resolveDisconnect());
     if (options?.signal?.aborted) {
       await client.disconnect(deviceId).catch(() => {});
       resolveDisconnect();
-      throw new Error('connect aborted');
+      throw new ConnectionError('connect aborted');
     }
 
     const connectAbort = (): void => {

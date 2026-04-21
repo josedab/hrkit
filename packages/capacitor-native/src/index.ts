@@ -14,11 +14,13 @@ export { SDK_NAME, SDK_VERSION } from './version.js';
 
 import {
   type BLETransport,
+  ConnectionError,
   type DeviceProfile,
   GATT_HR_MEASUREMENT_UUID,
   GATT_HR_SERVICE_UUID,
   type HRConnection,
   type HRDevice,
+  HRKitError,
   type HRPacket,
   parseHeartRate,
 } from '@hrkit/core';
@@ -48,7 +50,8 @@ let cachedPlugin: HrkitNativePlugin | null = null;
 export async function loadNativePlugin(): Promise<HrkitNativePlugin> {
   if (cachedPlugin) return cachedPlugin;
   const mod = (await import(/* @vite-ignore */ '@capacitor/core')) as CapacitorCoreLike;
-  if (!mod?.registerPlugin) throw new Error('@capacitor/core not available — install Capacitor in your app.');
+  if (!mod?.registerPlugin)
+    throw new HRKitError('@capacitor/core not available — install Capacitor in your app.', 'MISSING_PEER');
   cachedPlugin = mod.registerPlugin<HrkitNativePlugin>('HrkitNative');
   return cachedPlugin;
 }
@@ -178,11 +181,11 @@ export async function createCapacitorNativeTransport(
     },
 
     async connect(deviceId: string, profile: DeviceProfile, options?: { signal?: AbortSignal }): Promise<HRConnection> {
-      if (options?.signal?.aborted) throw new Error('connect aborted');
+      if (options?.signal?.aborted) throw new ConnectionError('connect aborted');
       const info = await p.connect({ deviceId });
       if (options?.signal?.aborted) {
         await p.disconnect({ deviceId }).catch(() => {});
-        throw new Error('connect aborted');
+        throw new ConnectionError('connect aborted');
       }
 
       let resolveDisconnect: (() => void) | null = null;

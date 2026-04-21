@@ -1,7 +1,7 @@
 export { SDK_NAME, SDK_VERSION } from './version.js';
 
 import type { BLETransport, DeviceProfile, HRConnection, HRDevice, HRPacket } from '@hrkit/core';
-import { GATT_HR_MEASUREMENT_UUID, GATT_HR_SERVICE_UUID, parseHeartRate } from '@hrkit/core';
+import { ConnectionError, GATT_HR_MEASUREMENT_UUID, GATT_HR_SERVICE_UUID, parseHeartRate } from '@hrkit/core';
 
 /**
  * Check if the react-native-ble-plx BleManager is likely functional.
@@ -173,12 +173,12 @@ export class ReactNativeTransport implements BLETransport {
 
   async connect(deviceId: string, profile: DeviceProfile, options?: { signal?: AbortSignal }): Promise<HRConnection> {
     if (options?.signal?.aborted) {
-      throw new Error('connect aborted');
+      throw new ConnectionError('connect aborted');
     }
     const device = await this.manager.connectToDevice(deviceId);
     if (options?.signal?.aborted) {
       await device.cancelConnection().catch(() => {});
-      throw new Error('connect aborted');
+      throw new ConnectionError('connect aborted');
     }
     await device.discoverAllServicesAndCharacteristics();
 
