@@ -1,4 +1,5 @@
 import type { Session, TimestampedHR } from '@hrkit/core';
+import { ParseError } from '@hrkit/core';
 
 /**
  * Garmin FIT (Flexible and Interoperable Data Transfer) binary encoder.
@@ -116,7 +117,7 @@ function writeDefinition(w: ByteWriter, localNum: number, globalNum: number, fie
 }
 
 function writeData(w: ByteWriter, localNum: number, fields: FieldDef[], values: number[]): void {
-  if (fields.length !== values.length) throw new Error('FIT: field/value length mismatch');
+  if (fields.length !== values.length) throw new ParseError('FIT: field/value length mismatch');
   w.u8(localNum & 0x0f); // data record header
   for (let i = 0; i < fields.length; i++) {
     fields[i]!.write(w, values[i]!);

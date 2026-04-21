@@ -1,4 +1,5 @@
 import type { Session } from '@hrkit/core';
+import { HRKitError } from '@hrkit/core';
 
 /**
  * Cross-platform health-store bridge.
@@ -87,7 +88,7 @@ export class MemoryHealthStore implements HealthStore {
   }
 
   async save(records: HealthRecord[]): Promise<{ saved: number }> {
-    if (!this.granted) throw new Error('not authorized');
+    if (!this.granted) throw new HRKitError('not authorized', 'NOT_AUTHORIZED');
     this.records.push(...records);
     return { saved: records.length };
   }
