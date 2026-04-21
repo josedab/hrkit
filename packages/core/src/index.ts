@@ -1,3 +1,40 @@
+/**
+ * @hrkit/core — Platform-agnostic TypeScript SDK for BLE heart rate sensors.
+ *
+ * Zero runtime dependencies. Provides GATT parsing, HRV metrics (RMSSD, SDNN,
+ * pNN50, Poincaré, DFA, frequency domain), HR zones, TRIMP, artifact filtering,
+ * session recording & serialization, VO2max estimation, stress scoring, AFib
+ * screening, blood pressure estimation, multi-device fusion, group sessions,
+ * workout protocols, training insights, sensor fusion, and plugin architecture.
+ *
+ * BLE transport is injected via the {@link BLETransport} interface — platform
+ * adapters (`@hrkit/web`, `@hrkit/react-native`, `@hrkit/capacitor`) implement
+ * it. Use {@link MockTransport} for testing without hardware.
+ *
+ * @example
+ * ```typescript
+ * import { SessionRecorder, connectToDevice, MockTransport, GENERIC_HR } from '@hrkit/core';
+ *
+ * const transport = new MockTransport({
+ *   device: { id: 'demo', name: 'Mock HR Strap' },
+ *   packets: [
+ *     { timestamp: 0, hr: 72, rrIntervals: [833], contactDetected: true },
+ *   ],
+ * });
+ *
+ * const conn = await connectToDevice(transport, { prefer: [GENERIC_HR] });
+ * const recorder = new SessionRecorder({ maxHR: 185, restHR: 48 });
+ *
+ * for await (const packet of conn.heartRate()) {
+ *   recorder.ingest(packet);
+ * }
+ *
+ * const session = recorder.end();
+ * ```
+ *
+ * @packageDocumentation
+ */
+
 export { SDK_NAME, SDK_VERSION } from './version.js';
 
 // Types

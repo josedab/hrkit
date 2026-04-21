@@ -32,10 +32,12 @@ export const FTMS_OPCODE = {
   STOP_OR_PAUSE: 0x08,
 } as const;
 
+/** Encode an FTMS "Request Control" command (opcode 0x00). */
 export function encodeRequestControl(): Uint8Array {
   return new Uint8Array([FTMS_OPCODE.REQUEST_CONTROL]);
 }
 
+/** Encode an FTMS "Reset" command (opcode 0x01). */
 export function encodeReset(): Uint8Array {
   return new Uint8Array([FTMS_OPCODE.RESET]);
 }
@@ -138,6 +140,7 @@ export class MemoryGlucoseSource implements GlucoseSource {
 
 // ── Fused sample shape ──────────────────────────────────────────────────
 
+/** A time-aligned record combining HR, power, speed, cadence, and glucose at a common timestamp. */
 export interface FusedSample {
   timestamp: number;
   hr?: number;

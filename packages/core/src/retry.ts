@@ -45,6 +45,17 @@ export interface RetryOptions {
  * value; rejects with the last error after `maxAttempts` attempts or when
  * `shouldRetry` returns false.
  *
+ * **Idempotency warning:** This function retries the operation blindly — it
+ * does not track request IDs or deduplicate. Only use `retry()` for
+ * **idempotent** operations (reads, upserts with deterministic keys).
+ * For non-idempotent writes (e.g., Strava upload), use the
+ * `Idempotency-Key` header at the HTTP layer instead.
+ *
+ * @param op - The async operation to attempt.
+ * @param options - Retry configuration (attempts, delays, jitter, abort).
+ * @returns The resolved value from the first successful attempt.
+ * @throws The last error if all attempts fail or `shouldRetry` returns false.
+ *
  * @example
  * ```ts
  * await retry(() => fetch(url), { maxAttempts: 3, signal: ac.signal });

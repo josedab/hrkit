@@ -239,6 +239,16 @@ export class PlanRunner {
  * @param weeklySchedule - Map of dayOfWeek → DSL string.
  * @param weeks - Number of weeks to repeat.
  * @returns A training plan.
+ *
+ * @example
+ * ```ts
+ * const plan = createWeeklyPlan('Base Phase', {
+ *   1: 'name: Easy\nwork 30m @zone 2',  // Monday
+ *   3: 'name: Tempo\nwork 20m @zone 3', // Wednesday
+ *   5: 'name: Long\nwork 60m @zone 2',  // Friday
+ * }, 4);
+ * const runner = new PlanRunner(plan);
+ * ```
  */
 export function createWeeklyPlan(name: string, weeklySchedule: Record<number, string>, weeks: number): TrainingPlan {
   const trainingWeeks: TrainingWeek[] = [];
