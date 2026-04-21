@@ -116,3 +116,9 @@ for a proper medical evaluation.
 - **False positives**: Ectopic beats (PVCs, PACs) can trigger `irregular` classification.
 - **False negatives**: Paroxysmal AF may not be present during the recording window.
 - **Not FDA-cleared**: This feature has not been submitted for regulatory clearance.
+
+## Next steps
+
+- **[Blood Pressure Estimation](./bp-estimation)** — Explore cuffless BP from pulse transit time
+- **[Advanced HRV Analysis](./advanced-hrv)** — Use Poincaré and DFA α1 to complement rhythm screening
+- **[HRV Metrics](./hrv-metrics)** — Review the RR interval fundamentals behind irregularity detection

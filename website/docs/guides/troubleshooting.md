@@ -98,3 +98,8 @@ The GATT parser validates buffer length before reading any field. If you see per
 ## Don't see your error?
 
 Open an issue at [github.com/josedab/hrkit/issues](https://github.com/josedab/hrkit/issues) with the error name, `code`, stack trace, and (if BLE) the device's brand and model.
+
+## Next steps
+
+- **[FAQ](../faq)** — Answers to common questions about setup and usage
+- **[Building a Custom Transport](./custom-transport)** — Debug connection issues by understanding the transport layer

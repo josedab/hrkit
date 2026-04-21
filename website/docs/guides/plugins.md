@@ -88,3 +88,8 @@ registered.
 See [ADR 0001](https://github.com/josedab/hrkit/blob/main/docs/adr/0001-plugin-architecture.md)
 for the alternatives considered (event emitters, subclassing,
 async hooks, external buses) and why we rejected them.
+
+## Next steps
+
+- **[Building a Custom Transport](./custom-transport)** — Implement BLETransport for any platform
+- **[API Reference](../reference/core-api)** — Full API documentation for all core functions

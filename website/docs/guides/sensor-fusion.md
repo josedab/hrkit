@@ -103,3 +103,8 @@ fusion.removeSource('watch');    // Permanently remove
 fusion.getSourceQualities();     // Check all quality scores
 fusion.sourceIds;                // List registered source IDs
 ```
+
+## Next steps
+
+- **[Multi-Device Fusion](./multi-device)** — Manage the BLE device pool that provides fusion sources
+- **[Non-HR Sensors](./non-hr-sensors)** — Fuse heart rate with power, cadence, and SpO₂ data

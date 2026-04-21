@@ -99,3 +99,8 @@ interface FusedHRPacket extends HRPacket {
 ## Auto-Disconnect Handling
 
 Connections are automatically removed from the pool when they disconnect. The manager continues operating with the remaining devices.
+
+## Next steps
+
+- **[Sensor Fusion](./sensor-fusion)** — Fuse multiple sources with Kalman filtering and quality scoring
+- **[Group Sessions](./group-sessions)** — Monitor multiple athletes simultaneously with a coach dashboard

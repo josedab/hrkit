@@ -112,3 +112,9 @@ console.log(`VO2max: ${est.vo2max} (${est.ciLower}–${est.ciUpper}) ml/kg/min`)
 - The Uth formula is validated for **trained individuals** — less accurate for sedentary populations
 - Session-based estimation requires **steady-state aerobic** exercise (not intervals or HIIT)
 - All methods require accurate **maxHR** and **restHR** — use measured values, not age-based formulas
+
+## Next steps
+
+- **[Stress & Recovery Scoring](./stress-scoring)** — Combine VO2max with HRV for composite readiness scores
+- **[Training Load & Insights](./training-load)** — Use fitness estimates to guide long-term load management
+- **[HRV Metrics](./hrv-metrics)** — Pair VO2max tracking with daily RMSSD and readiness verdicts

@@ -122,3 +122,9 @@ interface BroadcastPayload {
 ## Security
 
 The server binds to `127.0.0.1` by default. **Do not expose to public networks** without TLS and authentication. Use a reverse proxy (nginx, Caddy) for production.
+
+## Next steps
+
+- **[Dashboard Widgets](./widgets)** — Display streamed data with drop-in Web Components
+- **[Group Sessions](./group-sessions)** — Broadcast multi-athlete sessions to a coach dashboard
+- **[Streaming Metrics](./streaming-metrics)** — Compute real-time HRV and TRIMP from the live stream

@@ -118,3 +118,8 @@ interface BPEstimate {
 - **Motion artifact** — only reliable at rest or low activity
 - **Population model** — uncalibrated defaults are trained on average adults; may not suit all demographics
 - Returns `null` if PTT values are empty or outside physiological range (50–500ms)
+
+## Next steps
+
+- **[AFib Screening](./afib-screening)** — Detect rhythm irregularities from RR intervals
+- **[Stress & Recovery Scoring](./stress-scoring)** — Combine cardiovascular signals into a composite stress index
