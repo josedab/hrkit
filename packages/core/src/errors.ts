@@ -148,21 +148,30 @@ export class ServerError extends RequestError {
 // ── Helpers ────────────────────────────────────────────────────────────
 
 /**
- * Heuristic: should this error be retried by {@link retry}? Defaults are
- * conservative — only network-y / transient failures qualify.
+ * Heuristic: should this error be retried by {@link retry}?
+ *
+ * Only known transient failures return `true`. Unknown errors default to
+ * `false` — callers who want aggressive retry for network-layer errors
+ * (e.g., `fetch` `TypeError`) should add their own check.
+ *
+ * @param err - The caught error value.
+ * @returns `true` if the error is likely transient and worth retrying.
  */
 export function isRetryable(err: unknown): boolean {
   if (err instanceof RateLimitError) return true;
   if (err instanceof ServerError) return true;
   if (err instanceof TimeoutError) return true;
+  if (err instanceof ConnectionError) return true;
   if (err instanceof AuthError) return false;
   if (err instanceof ValidationError) return false;
+  if (err instanceof ParseError) return false;
   if (err instanceof RequestError) {
     // 408 Request Timeout, 425 Too Early are transient.
     return err.status === 408 || err.status === 425;
   }
-  // Unknown errors → assume transient (e.g. fetch network errors).
-  return true;
+  // Unknown errors → default to non-retryable. Callers who want to retry
+  // network-level errors (e.g., fetch TypeError) should check explicitly.
+  return false;
 }
 
 /**

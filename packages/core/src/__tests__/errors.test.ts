@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
+  AuthError,
   ConnectionError,
   DeviceNotFoundError,
+  formatError,
   HRKitError,
+  isRetryable,
   ParseError,
+  RateLimitError,
+  RequestError,
+  ServerError,
   TimeoutError,
   ValidationError,
 } from '../errors.js';
@@ -141,8 +147,6 @@ describe('ValidationError', () => {
   });
 });
 
-import { AuthError, formatError, isRetryable, RateLimitError, RequestError, ServerError } from '../errors.js';
-
 describe('HTTP error subclasses', () => {
   it('all are instanceof RequestError / HRKitError', () => {
     expect(new AuthError('x')).toBeInstanceOf(RequestError);
@@ -166,22 +170,24 @@ describe('HTTP error subclasses', () => {
 });
 
 describe('isRetryable', () => {
-  it('retries 429/5xx/timeout', () => {
+  it('retries 429/5xx/timeout/connection', () => {
     expect(isRetryable(new RateLimitError('x'))).toBe(true);
     expect(isRetryable(new ServerError('x'))).toBe(true);
     expect(isRetryable(new TimeoutError('x'))).toBe(true);
+    expect(isRetryable(new ConnectionError('x'))).toBe(true);
   });
-  it('skips auth/validation', () => {
+  it('skips auth/validation/parse', () => {
     expect(isRetryable(new AuthError('x'))).toBe(false);
     expect(isRetryable(new ValidationError('x'))).toBe(false);
+    expect(isRetryable(new ParseError('x'))).toBe(false);
   });
   it('retries 408/425, not other 4xx', () => {
     expect(isRetryable(new RequestError('x', { status: 408 }))).toBe(true);
     expect(isRetryable(new RequestError('x', { status: 425 }))).toBe(true);
     expect(isRetryable(new RequestError('x', { status: 400 }))).toBe(false);
   });
-  it('treats unknown errors as transient', () => {
-    expect(isRetryable(new Error('ECONNRESET'))).toBe(true);
+  it('treats unknown errors as non-retryable', () => {
+    expect(isRetryable(new Error('ECONNRESET'))).toBe(false);
   });
 });
 
