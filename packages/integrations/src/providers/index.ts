@@ -1,4 +1,4 @@
-import { getLogger, type Session } from '@hrkit/core';
+import { getLogger, HRKitError, type Session, ValidationError } from '@hrkit/core';
 import { base64EncodeString } from '../base64.js';
 import { type FitEncodeOptions, sessionToFIT } from '../fit.js';
 import { SDK_VERSION } from '../version.js';
@@ -168,8 +168,9 @@ export function withAuth(inner: FetchLike, tokens: TokenProvider): FetchLike {
 
 function defaultFetch(): FetchLike {
   if (typeof globalThis.fetch !== 'function') {
-    throw new Error(
+    throw new HRKitError(
       '@hrkit/integrations: no global fetch found. Pass `fetch` in the provider config (e.g., undici, node-fetch).',
+      'MISSING_DEPENDENCY',
     );
   }
   return globalThis.fetch as unknown as FetchLike;
@@ -244,7 +245,7 @@ export function withRetry(inner: FetchLike, policy: RetryPolicy = {}): FetchLike
   return async (input, init) => {
     let lastErr: unknown;
     for (let attempt = 0; attempt <= cfg.maxRetries; attempt += 1) {
-      if (init?.signal?.aborted) throw new Error('aborted');
+      if (init?.signal?.aborted) throw new HRKitError('aborted', 'ABORTED');
       try {
         const res = await inner(input, init);
         if (!cfg.retryStatuses.includes(res.status) || attempt === cfg.maxRetries) {
@@ -418,7 +419,7 @@ export class StravaUploader implements SessionUploader {
 
   constructor(private config: BaseConfig) {
     if (!config.tokens && !config.accessToken) {
-      throw new Error('StravaUploader: provide either `accessToken` or `tokens`.');
+      throw new ValidationError('StravaUploader: provide either `accessToken` or `tokens`.');
     }
     this.fetchFn = buildFetchPipeline(config);
   }
@@ -616,7 +617,7 @@ export class TrainingPeaksUploader implements SessionUploader {
 
   constructor(private config: BaseConfig & { baseUrl?: string }) {
     if (!config.tokens && !config.accessToken) {
-      throw new Error('TrainingPeaksUploader: provide either `accessToken` or `tokens`.');
+      throw new ValidationError('TrainingPeaksUploader: provide either `accessToken` or `tokens`.');
     }
     this.fetchFn = buildFetchPipeline(config);
   }
