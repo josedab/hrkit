@@ -18,6 +18,20 @@
   margin-top: 1.5rem;
 }
 
+.badges {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.badges img {
+  height: 20px;
+}
+
 .installSection {
   padding: 3rem 0;
 }
