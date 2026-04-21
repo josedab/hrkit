@@ -62,14 +62,17 @@ export class SyncEngine<T = unknown> {
     transport.onMessage((msg) => this.handle(msg));
   }
 
+  /** Return per-replica contiguous high-water marks. */
   cursors(): Record<string, number> {
     return this.log.cursors();
   }
 
+  /** Return per-replica missing lamport numbers between the high-water mark and sparse max. */
   gaps(): Record<string, number[]> {
     return this.log.gaps();
   }
 
+  /** Load persisted state (if a store is configured) and send a `hello` to the peer. */
   async start(): Promise<void> {
     if (this.store) {
       try {
@@ -89,6 +92,7 @@ export class SyncEngine<T = unknown> {
     });
   }
 
+  /** Append a local entry, broadcast it as a delta, and schedule persistence. */
   append(payload: T): LogEntry<T> {
     const entry = this.log.append(payload);
     this.transport.send({
@@ -101,10 +105,12 @@ export class SyncEngine<T = unknown> {
     return entry;
   }
 
+  /** Wait for any in-flight persistence to complete. */
   flush(): Promise<void> {
     return this.saveInflight;
   }
 
+  /** Close the underlying transport. */
   close(): void {
     this.transport.close();
   }

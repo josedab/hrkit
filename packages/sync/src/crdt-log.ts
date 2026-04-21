@@ -5,6 +5,8 @@
  * Ties break on replicaId so merge is commutative, associative, and idempotent.
  */
 
+import { ValidationError } from '@hrkit/core';
+
 // ── Types ───────────────────────────────────────────────────────────────
 
 /** Minimal sink for transport-level diagnostics. Compatible with `@hrkit/core`'s `Logger`. */
@@ -24,13 +26,17 @@ export interface LogEntry<T = unknown> {
 
 // ── CrdtLog ─────────────────────────────────────────────────────────────
 
+/**
+ * Lamport-clock append-only CRDT log. Entries merge commutatively — safe for
+ * concurrent multi-device sync without coordination.
+ */
 export class CrdtLog<T = unknown> {
   readonly replicaId: string;
   private clock = 0;
   private readonly entries = new Map<string, LogEntry<T>>();
 
   constructor(replicaId: string) {
-    if (!replicaId) throw new Error('replicaId is required');
+    if (!replicaId) throw new ValidationError('replicaId is required');
     this.replicaId = replicaId;
   }
 

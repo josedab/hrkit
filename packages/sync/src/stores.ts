@@ -2,6 +2,7 @@
  * Pluggable storage providers for CRDT log persistence.
  */
 
+import { HRKitError } from '@hrkit/core';
 import type { LogEntry } from './crdt-log.js';
 
 export interface SyncStore<T = unknown> {
@@ -9,6 +10,7 @@ export interface SyncStore<T = unknown> {
   save(snapshot: LogEntry<T>[]): Promise<void>;
 }
 
+/** In-memory {@link SyncStore} — useful for tests and ephemeral sessions. */
 export class MemoryStore<T = unknown> implements SyncStore<T> {
   private snapshot: LogEntry<T>[] = [];
   async load(): Promise<LogEntry<T>[]> {
@@ -32,7 +34,7 @@ export interface DisposableSyncStore<T = unknown> extends SyncStore<T> {
  */
 export function createIndexedDBStore<T = unknown>(dbName: string, storeName = 'hrkit-sync'): DisposableSyncStore<T> {
   const idb = (globalThis as { indexedDB?: IDBFactory }).indexedDB;
-  if (!idb) throw new Error('IndexedDB is not available in this runtime');
+  if (!idb) throw new HRKitError('IndexedDB is not available in this runtime', 'ENV_UNSUPPORTED');
 
   let cached: IDBDatabase | undefined;
   let openP: Promise<IDBDatabase> | undefined;
