@@ -110,3 +110,9 @@ if (isPolarConnection(conn) && conn.profile.capabilities.includes('ecg')) {
 ```
 
 This pattern ensures your app works with any BLE HR device while unlocking advanced features on supported hardware.
+
+## Next steps
+
+- **[Session Recording](./session-recording)** — Record HR data into structured sessions
+- **[Custom Transport](../guides/custom-transport)** — Build a BLETransport for your own platform
+- **[Device Compatibility](../reference/device-compatibility)** — Full list of tested devices

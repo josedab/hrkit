@@ -13,9 +13,29 @@ Command-line tools for @hrkit — simulate sensors, replay fixtures, and submit 
 pnpm add @hrkit/cli
 ```
 
+## Key features
+
+- **`simulate`** — generate synthetic HR data for testing
+- **`submit-fixture`** — submit recordings to the conformance corpus
+- **`keygen`** — generate ECDSA P-256 key pairs for bundle signing
+- **`sign`** — sign a conformance bundle
+- **`verify`** — verify a signed conformance bundle
+
 ## Quick example
 
-See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/cli#readme) for runnable code.
+```bash
+# Simulate a 5-minute HR session
+npx @hrkit/cli simulate --duration 300 --output session.json
+
+# Generate a signing key pair
+npx @hrkit/cli keygen --out keys/
+
+# Sign and verify a conformance bundle
+npx @hrkit/cli sign --key keys/private.pem --bundle session.json
+npx @hrkit/cli verify --key keys/public.pem --bundle session.json.signed
+```
+
+See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/cli#readme) for more runnable code.
 
 ## API reference
 

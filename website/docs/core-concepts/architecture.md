@@ -13,21 +13,43 @@ description: How @hrkit is structured — transport injection, data flow, and th
 ```mermaid
 graph TD
     CORE["@hrkit/core<br/><i>zero deps · pure TS</i>"]
-    POLAR["@hrkit/polar<br/><i>PMD protocol utilities</i>"]
+    POLAR["@hrkit/polar<br/><i>PMD protocol</i>"]
     RN["@hrkit/react-native<br/><i>react-native-ble-plx</i>"]
-    WEB["@hrkit/web<br/><i>Web Bluetooth API</i>"]
+    WEB["@hrkit/web<br/><i>Web Bluetooth</i>"]
+    CAP["@hrkit/capacitor<br/><i>Capacitor BLE</i>"]
+    CAPN["@hrkit/capacitor-native<br/><i>Native BLE</i>"]
+    ANT["@hrkit/ant<br/><i>ANT+ bridge</i>"]
     SERVER["@hrkit/server<br/><i>WebSocket + SSE</i>"]
     WIDGETS["@hrkit/widgets<br/><i>Web Components</i>"]
     COACH["@hrkit/coach<br/><i>rule engine + LLM</i>"]
     AI["@hrkit/ai<br/><i>training planner</i>"]
+    ML["@hrkit/ml<br/><i>ML inference</i>"]
+    SYNC["@hrkit/sync<br/><i>CRDT sync</i>"]
+    EDGE["@hrkit/edge<br/><i>edge runtimes</i>"]
+    OTEL["@hrkit/otel<br/><i>OpenTelemetry</i>"]
+    READINESS["@hrkit/readiness<br/><i>recovery scoring</i>"]
+    INTEGRATIONS["@hrkit/integrations<br/><i>FIT/TCX/Strava</i>"]
+    BUNDLE["@hrkit/bundle<br/><i>ECDSA signing</i>"]
+    CLI["@hrkit/cli<br/><i>CLI tools</i>"]
 
     POLAR -->|depends on| CORE
     RN -->|depends on| CORE
     WEB -->|depends on| CORE
+    CAP -->|depends on| CORE
+    CAPN -->|depends on| CORE
+    ANT -->|depends on| CORE
     SERVER -->|depends on| CORE
     COACH -->|depends on| CORE
     AI -->|depends on| CORE
     AI -->|depends on| COACH
+    ML -->|depends on| CORE
+    SYNC -->|depends on| CORE
+    EDGE -->|depends on| CORE
+    OTEL -->|depends on| CORE
+    READINESS -->|depends on| CORE
+    INTEGRATIONS -->|depends on| CORE
+    BUNDLE -->|depends on| CORE
+    CLI -->|depends on| CORE
 ```
 
 - **`@hrkit/core`** has zero runtime dependencies. Every metric function is pure TypeScript.
@@ -93,8 +115,21 @@ This means:
 | PMD protocol | `@hrkit/polar` | ECG/ACC command builders and parsers |
 | React Native BLE | `@hrkit/react-native` | Wraps `react-native-ble-plx` |
 | Web Bluetooth BLE | `@hrkit/web` | Wraps `navigator.bluetooth` |
+| Capacitor BLE | `@hrkit/capacitor` | Via `@capacitor-community/bluetooth-le` |
+| Native Capacitor BLE | `@hrkit/capacitor-native` | Direct CoreBluetooth / android.bluetooth |
+| ANT+ BLE | `@hrkit/ant` | Wraps `ant-plus-next` as BLETransport |
 | HR data server | `@hrkit/server` | WebSocket + SSE broadcasting |
 | Dashboard widgets | `@hrkit/widgets` | HR gauge, zone bar, HR chart, ECG strip, breath pacer, workout builder, dashboard |
+| Coaching cues | `@hrkit/coach` | Rule-engine summaries + LLM adapters |
+| AI training planner | `@hrkit/ai` | Agentic workout DSL generation |
+| ML inference | `@hrkit/ml` | Pluggable InferencePort, model registry |
+| Integrations | `@hrkit/integrations` | FIT/TCX export, Strava/Garmin uploaders |
+| Session sync | `@hrkit/sync` | Local-first CRDT sync, IndexedDB store |
+| Edge runtime | `@hrkit/edge` | Workers / Deno / Bun HR ingestion |
+| Readiness scoring | `@hrkit/readiness` | Adaptive HRV baseline + recovery model |
+| Observability | `@hrkit/otel` | OpenTelemetry tracing + metrics hooks |
+| CLI tools | `@hrkit/cli` | simulate, submit-fixture, keygen, sign, verify |
+| Conformance bundles | `@hrkit/bundle` | Web Crypto ECDSA P-256 sign & verify |
 
 ## Pure functions
 

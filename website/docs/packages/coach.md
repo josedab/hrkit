@@ -13,9 +13,29 @@ AI coaching layer for @hrkit — deterministic rule-engine summaries + LLM adapt
 pnpm add @hrkit/coach
 ```
 
+## Key features
+
+- **Rule-engine summaries** — deterministic session analysis without an LLM
+- **LLM adapters** — OpenAI, Anthropic, and Ollama connectors for richer feedback
+- **Workout cues** — real-time coaching prompts during active sessions
+
 ## Quick example
 
-See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/coach#readme) for runnable code.
+```typescript
+import { coachSummary } from '@hrkit/coach';
+
+const session = { /* ... recorded session data ... */ };
+const summary = coachSummary(session, {
+  maxHR: 185,
+  restHR: 48,
+});
+
+console.log(summary.text);
+// "Solid aerobic session — 62% of time in Zone 2. Consider adding
+//  short Zone 4 intervals next time for cardiac output gains."
+```
+
+See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/coach#readme) for more runnable code.
 
 ## API reference
 

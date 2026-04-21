@@ -13,9 +13,25 @@ Runtime-portable HR ingestion for Cloudflare Workers / Deno / Bun edge environme
 pnpm add @hrkit/edge
 ```
 
+## Key features
+
+- **Runtime-portable** — works on Cloudflare Workers, Deno, and Bun
+- **HR ingestion** — process incoming HR data at the edge with zero cold-start overhead
+- **Lightweight** — no Node.js-specific APIs, pure Web Standards
+
 ## Quick example
 
-See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/edge#readme) for runnable code.
+```typescript
+import { handleHRRequest } from '@hrkit/edge';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    return handleHRRequest(request);
+  },
+};
+```
+
+See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/edge#readme) for more runnable code.
 
 ## API reference
 

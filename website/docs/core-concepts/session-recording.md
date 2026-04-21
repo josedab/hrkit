@@ -109,3 +109,9 @@ const hrv = rmssd(session.rrIntervals);
 const zones = zoneDistribution(session.samples, session.config);
 const load = trimp(session.samples, session.config);
 ```
+
+## Next steps
+
+- **[HRV Metrics](../guides/hrv-metrics)** — Understand RMSSD, SDNN, and readiness scoring
+- **[Zones & TRIMP](../guides/zones-and-trimp)** — Training load and intensity analysis
+- **[Serialization](../guides/serialization)** — Save and export session data (JSON, CSV, TCX)

@@ -13,9 +13,24 @@ OpenTelemetry-compatible instrumentation hooks for @hrkit transports and session
 pnpm add @hrkit/otel
 ```
 
+## Key features
+
+- **OpenTelemetry-compatible** — spans and metrics following OTel conventions
+- **Transport instrumentation** — automatic tracing of scan/connect/disconnect lifecycle
+- **Session metrics** — export HR, HRV, and zone data as OTel metrics
+- **Zero runtime deps** — uses the OTel API interface only (bring your own SDK)
+
 ## Quick example
 
-See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/otel#readme) for runnable code.
+```typescript
+import { instrumentTransport } from '@hrkit/otel';
+
+const traced = instrumentTransport(transport);
+// All scan/connect calls now emit OTel spans automatically
+const connection = await connectToDevice(traced, GENERIC_HR);
+```
+
+See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/otel#readme) for more runnable code.
 
 ## API reference
 
