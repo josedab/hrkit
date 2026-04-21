@@ -12,6 +12,8 @@ export { SDK_NAME, SDK_VERSION } from './version.js';
 
 import {
   type BLETransport,
+  ConnectionError,
+  DeviceNotFoundError,
   type DeviceProfile,
   type HRConnection,
   type HRDevice,
@@ -161,11 +163,11 @@ export class AntTransport implements BLETransport {
   async connect(deviceId: string, profile: DeviceProfile): Promise<HRConnection> {
     if (!this.opened) {
       const ok = await this.opts.stick.open();
-      if (!ok) throw new Error('ANT+ stick failed to open');
+      if (!ok) throw new ConnectionError('ANT+ stick failed to open');
       this.opened = true;
     }
     const channel = this.opts.channels.find((c) => `ant:${c.sensorType}:${c.deviceId}` === deviceId);
-    if (!channel) throw new Error(`ANT+ device ${deviceId} not registered`);
+    if (!channel) throw new DeviceNotFoundError(`ANT+ device ${deviceId} not registered`);
     this.opts.stick.attach(channel);
     return new AntConnection(channel, profile);
   }
