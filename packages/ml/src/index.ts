@@ -1,4 +1,5 @@
 export { SDK_NAME, SDK_VERSION } from './version.js';
+
 /**
  * Pluggable ML inference for @hrkit.
  *
@@ -7,6 +8,8 @@ export { SDK_NAME, SDK_VERSION } from './version.js';
  * without changing call sites. Built-in models are deterministic analytical
  * baselines that match the I/O shape of future ML models.
  */
+
+import { ValidationError } from '@hrkit/core';
 
 export interface InferencePort<I, O> {
   /** Stable, unique model identifier (e.g. "lactate-threshold-baseline"). */
@@ -45,7 +48,7 @@ export class ModelRegistry {
   register<I, O>(model: InferencePort<I, O>, card?: Partial<Omit<ModelCard, 'modelId' | 'version'>>): void {
     const key = this.key(model.modelId, model.version);
     if (this.byKey.has(key)) {
-      throw new Error(`ml: model ${key} already registered`);
+      throw new ValidationError(`ml: model ${key} already registered`);
     }
     this.byKey.set(key, model as InferencePort<unknown, unknown>);
     this.cards.set(key, {

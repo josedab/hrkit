@@ -2,7 +2,7 @@ export { SDK_NAME, SDK_VERSION } from './version.js';
 
 import type { LLMProvider } from '@hrkit/coach';
 import type { AthleteStore, HRVTrendPoint, SessionSummary, TrainingLoadPoint, WorkoutProtocol } from '@hrkit/core';
-import { parseWorkoutDSL } from '@hrkit/core';
+import { ParseError, parseWorkoutDSL } from '@hrkit/core';
 
 // ── Tool layer ──────────────────────────────────────────────────────────
 
@@ -16,6 +16,12 @@ export interface PlannerTools {
   getTrainingLoad(days: number): TrainingLoadPoint[];
 }
 
+/**
+ * Create a set of read-only tools over an {@link AthleteStore} for LLM agent use.
+ *
+ * @param store - The athlete store to query.
+ * @returns Tools with clamped input bounds safe for untrusted callers.
+ */
 export function makeTools(store: AthleteStore): PlannerTools {
   return {
     getRecentSessions: (limit) => store.getSessions(Math.max(1, Math.min(50, limit))),
@@ -35,6 +41,13 @@ export interface AthleteSnapshot {
   weekTRIMP: number;
 }
 
+/**
+ * Build a point-in-time athlete snapshot for inclusion in an LLM prompt.
+ *
+ * @param tools - Planner tools to fetch sessions, HRV, and load data.
+ * @param opts - Optional lookback window in days (default: 28).
+ * @returns Snapshot with baseline RMSSD, ACWR, weekly TRIMP, and raw trends.
+ */
 export function buildSnapshot(tools: PlannerTools, opts: { window?: number } = {}): AthleteSnapshot {
   const days = opts.window ?? 28;
   const sessions = tools.getRecentSessions(20);
@@ -165,14 +178,15 @@ Plan the next ${days} days. Vary intensity. Include at least one full rest day i
 
   const raw = await input.llm.complete({ system: SYSTEM_PROMPT, user: userPrompt });
   const json = trySplitJSON(raw);
-  if (!json) throw new Error(`AI response not parseable as JSON array: ${raw.slice(0, 200)}`);
+  if (!json) throw new ParseError(`AI response not parseable as JSON array: ${raw.slice(0, 200)}`);
 
   let parsed: Array<{ day: number; rationale?: string; dsl: string }>;
   try {
     parsed = JSON.parse(json);
-    if (!Array.isArray(parsed)) throw new Error('not an array');
+    if (!Array.isArray(parsed)) throw new ParseError('not an array');
   } catch (err) {
-    throw new Error(`AI JSON parse failed: ${(err as Error).message}`);
+    if (err instanceof ParseError) throw err;
+    throw new ParseError(`AI JSON parse failed: ${(err as Error).message}`);
   }
 
   const sessions: PlannedSession[] = [];
