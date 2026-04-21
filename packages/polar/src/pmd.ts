@@ -1,3 +1,4 @@
+import { ParseError } from '@hrkit/core';
 import type { ACCPacket, ACCSample, ECGPacket } from './types.js';
 
 // ── PMD Measurement Types ───────────────────────────────────────────────
@@ -107,6 +108,9 @@ export function buildGetSettingsCommand(measurementType: number): Uint8Array {
  * ```
  */
 export function parseECGData(data: DataView): ECGPacket {
+  if (data.byteLength < 10) {
+    throw new ParseError(`PMD ECG data too short: need at least 10 bytes for header, got ${data.byteLength}`);
+  }
   const timestamp = readUint64LE(data, 1);
   const frameType = data.getUint8(9);
 
@@ -145,6 +149,9 @@ export function parseECGData(data: DataView): ECGPacket {
  * ```
  */
 export function parseACCData(data: DataView, sampleRate: 25 | 50 | 100 | 200 = 25): ACCPacket {
+  if (data.byteLength < 10) {
+    throw new ParseError(`PMD ACC data too short: need at least 10 bytes for header, got ${data.byteLength}`);
+  }
   const timestamp = readUint64LE(data, 1);
   const frameType = data.getUint8(9);
 
