@@ -82,7 +82,7 @@ function isStepKeyword(s: string): s is StepKeyword {
  *
  * @param text - Workout DSL string.
  * @returns Parsed workout protocol.
- * @throws {Error} If the DSL contains unterminated repeat blocks.
+ * @throws {ParseError} If the DSL contains syntax errors or unterminated repeat blocks.
  *
  * @example
  * ```ts

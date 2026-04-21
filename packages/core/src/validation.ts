@@ -21,6 +21,15 @@ export interface MAPEResult {
 
 import { ValidationError } from './errors.js';
 
+/**
+ * Compute the Mean Absolute Percentage Error between reference and measured arrays.
+ * Skips samples where the reference value is zero.
+ *
+ * @param reference - Gold-standard values.
+ * @param measured - Values produced by the method under test.
+ * @returns {@link MAPEResult} with the MAPE percentage and sample count.
+ * @throws {ValidationError} if array lengths differ.
+ */
 export function mape(reference: readonly number[], measured: readonly number[]): MAPEResult {
   if (reference.length !== measured.length) {
     throw new ValidationError(`mape: array length mismatch (${reference.length} vs ${measured.length})`);
@@ -106,18 +115,21 @@ export interface ValidationThresholds {
   maxLoaHalfWidth: number;
 }
 
+/** Default acceptance thresholds for instantaneous heart rate validation. */
 export const DEFAULT_HR_THRESHOLDS: ValidationThresholds = {
   maxMape: 5, // 5% MAPE on instantaneous HR
   maxAbsBias: 2, // ±2 bpm bias
   maxLoaHalfWidth: 6, // ±6 bpm 95% LoA
 };
 
+/** Default acceptance thresholds for RMSSD (HRV) validation. */
 export const DEFAULT_RMSSD_THRESHOLDS: ValidationThresholds = {
   maxMape: 12,
   maxAbsBias: 4,
   maxLoaHalfWidth: 15,
 };
 
+/** Combined result of MAPE + Bland-Altman validation against a reference dataset. */
 export interface ValidationReport {
   passed: boolean;
   mape: MAPEResult;
@@ -125,6 +137,15 @@ export interface ValidationReport {
   failures: string[];
 }
 
+/**
+ * Run MAPE and Bland-Altman analysis against a reference dataset and check
+ * whether the results meet the given acceptance thresholds.
+ *
+ * @param reference - Gold-standard values.
+ * @param measured - Values produced by the method under test.
+ * @param thresholds - Acceptance gates (MAPE, bias, LoA half-width).
+ * @returns {@link ValidationReport} with pass/fail status and failure reasons.
+ */
 export function validateAgainstReference(
   reference: readonly number[],
   measured: readonly number[],
