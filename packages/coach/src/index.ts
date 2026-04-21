@@ -1,6 +1,14 @@
 export { SDK_NAME, SDK_VERSION } from './version.js';
 
-import { analyzeSession, hrToZone, rmssd, type Session, type SessionAnalysis } from '@hrkit/core';
+import {
+  analyzeSession,
+  HRKitError,
+  hrToZone,
+  RequestError,
+  rmssd,
+  type Session,
+  type SessionAnalysis,
+} from '@hrkit/core';
 
 // ── Public types ────────────────────────────────────────────────────────
 
@@ -188,7 +196,7 @@ export type FetchLike = (
 
 function defaultFetch(): FetchLike {
   if (typeof globalThis.fetch !== 'function') {
-    throw new Error('@hrkit/coach: no global fetch — pass `fetch` in provider config.');
+    throw new HRKitError('@hrkit/coach: no global fetch — pass `fetch` in provider config.', 'MISSING_DEPENDENCY');
   }
   return globalThis.fetch as unknown as FetchLike;
 }
@@ -226,7 +234,7 @@ export class OpenAIProvider implements LLMProvider {
         temperature: 0.4,
       }),
     });
-    if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}`);
+    if (!res.ok) throw new RequestError(`OpenAI HTTP ${res.status}`, { status: res.status });
     const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     return json.choices?.[0]?.message?.content ?? '';
   }
@@ -264,7 +272,7 @@ export class AnthropicProvider implements LLMProvider {
         messages: [{ role: 'user', content: input.user }],
       }),
     });
-    if (!res.ok) throw new Error(`Anthropic HTTP ${res.status}`);
+    if (!res.ok) throw new RequestError(`Anthropic HTTP ${res.status}`, { status: res.status });
     const json = (await res.json()) as { content?: Array<{ text?: string }> };
     return json.content?.[0]?.text ?? '';
   }
@@ -299,7 +307,7 @@ export class OllamaProvider implements LLMProvider {
         ],
       }),
     });
-    if (!res.ok) throw new Error(`Ollama HTTP ${res.status}`);
+    if (!res.ok) throw new RequestError(`Ollama HTTP ${res.status}`, { status: res.status });
     const json = (await res.json()) as { message?: { content?: string } };
     return json.message?.content ?? '';
   }
