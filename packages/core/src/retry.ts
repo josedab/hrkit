@@ -75,6 +75,9 @@ export async function retry<T>(op: () => Promise<T>, options: RetryOptions = {})
   } = options;
 
   if (maxAttempts < 1) throw new RangeError('retry: maxAttempts must be >= 1');
+  if (initialDelayMs < 0) throw new RangeError('retry: initialDelayMs must be >= 0');
+  if (maxDelayMs < 0) throw new RangeError('retry: maxDelayMs must be >= 0');
+  if (backoffMultiplier <= 0) throw new RangeError('retry: backoffMultiplier must be > 0');
 
   let lastError: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -86,7 +89,8 @@ export async function retry<T>(op: () => Promise<T>, options: RetryOptions = {})
       if (attempt >= maxAttempts || !shouldRetry(err, attempt)) {
         throw err;
       }
-      const base = Math.min(initialDelayMs * backoffMultiplier ** (attempt - 1), maxDelayMs);
+      const exp = backoffMultiplier ** (attempt - 1);
+      const base = Math.min(Number.isFinite(exp) ? initialDelayMs * exp : maxDelayMs, maxDelayMs);
       const delay = applyJitter(base, jitter, random);
       onRetry?.({ error: err, attempt, delayMs: delay });
       await sleep(delay, signal);

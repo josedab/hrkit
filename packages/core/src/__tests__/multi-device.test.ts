@@ -370,3 +370,21 @@ describe('MultiDeviceManager', () => {
     await manager.stop();
   });
 });
+
+describe('MultiDeviceManager validation', () => {
+  it('rejects zero staleThresholdMs', () => {
+    expect(() => new MultiDeviceManager({ staleThresholdMs: 0 })).toThrow(RangeError);
+  });
+
+  it('rejects negative staleThresholdMs', () => {
+    expect(() => new MultiDeviceManager({ staleThresholdMs: -1000 })).toThrow(RangeError);
+  });
+
+  it('rejects NaN staleThresholdMs', () => {
+    expect(() => new MultiDeviceManager({ staleThresholdMs: NaN })).toThrow(RangeError);
+  });
+
+  it('accepts valid positive staleThresholdMs', () => {
+    expect(() => new MultiDeviceManager({ staleThresholdMs: 5000 })).not.toThrow();
+  });
+});

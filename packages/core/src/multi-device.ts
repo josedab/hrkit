@@ -82,7 +82,11 @@ function computeArtifactRate(rrIntervals: number[]): number {
   for (let i = 1; i < rrIntervals.length; i++) {
     const prev = rrIntervals[i - 1]!;
     const curr = rrIntervals[i]!;
-    if (prev > 0 && Math.abs(curr - prev) / prev > DEFAULT_ARTIFACT_DEVIATION) {
+    if (prev <= 0) {
+      artifacts++;
+      continue;
+    }
+    if (Math.abs(curr - prev) / prev > DEFAULT_ARTIFACT_DEVIATION) {
       artifacts++;
     }
   }
@@ -262,10 +266,14 @@ export class MultiDeviceManager {
   readonly quality$: ReadableStream<DeviceQuality[]> = this.qualityStream;
 
   constructor(config?: Partial<MultiDeviceConfig>) {
+    const staleMs = config?.staleThresholdMs ?? DEFAULT_STALE_THRESHOLD_MS;
+    if (staleMs <= 0 || !Number.isFinite(staleMs)) {
+      throw new RangeError('MultiDeviceManager: staleThresholdMs must be a positive finite number');
+    }
     this.config = {
       strategy: config?.strategy ?? 'primary-fallback',
       primaryDeviceId: config?.primaryDeviceId ?? '',
-      staleThresholdMs: config?.staleThresholdMs ?? DEFAULT_STALE_THRESHOLD_MS,
+      staleThresholdMs: staleMs,
     };
   }
 

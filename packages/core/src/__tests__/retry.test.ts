@@ -56,6 +56,36 @@ describe('retry', () => {
   it('rejects when maxAttempts < 1', async () => {
     await expect(retry(async () => 1, { maxAttempts: 0 })).rejects.toThrow(RangeError);
   });
+
+  it('rejects negative initialDelayMs', async () => {
+    await expect(retry(async () => 1, { initialDelayMs: -1 })).rejects.toThrow(RangeError);
+  });
+
+  it('rejects negative maxDelayMs', async () => {
+    await expect(retry(async () => 1, { maxDelayMs: -1 })).rejects.toThrow(RangeError);
+  });
+
+  it('rejects backoffMultiplier <= 0', async () => {
+    await expect(retry(async () => 1, { backoffMultiplier: 0 })).rejects.toThrow(RangeError);
+    await expect(retry(async () => 1, { backoffMultiplier: -1 })).rejects.toThrow(RangeError);
+  });
+
+  it('handles large attempt counts without Infinity delay', async () => {
+    let attempts = 0;
+    const op = vi.fn().mockImplementation(async () => {
+      attempts++;
+      if (attempts < 3) throw new Error('fail');
+      return 'ok';
+    });
+    const result = await retry(op, {
+      maxAttempts: 3,
+      initialDelayMs: 1,
+      backoffMultiplier: 1e10,
+      maxDelayMs: 10,
+      jitter: 'none',
+    });
+    expect(result).toBe('ok');
+  });
 });
 
 describe('timeout', () => {

@@ -22,6 +22,9 @@ type Zone = 1 | 2 | 3 | 4 | 5;
  * ```
  */
 export function hrToZone(hr: number, config: HRZoneConfig): Zone {
+  if (!config.maxHR || config.maxHR <= 0 || !Number.isFinite(config.maxHR)) {
+    throw new RangeError(`maxHR must be a positive finite number, got ${config.maxHR}`);
+  }
   const thresholds = config.zones.map((z) => z * config.maxHR);
 
   if (hr >= thresholds[3]!) return 5;

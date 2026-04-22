@@ -42,6 +42,22 @@ describe('hrToZone', () => {
   it('handles HR above max', () => {
     expect(hrToZone(200, defaultConfig)).toBe(5);
   });
+
+  it('throws for maxHR of zero', () => {
+    expect(() => hrToZone(100, { maxHR: 0, zones: [0.6, 0.7, 0.8, 0.9] })).toThrow(RangeError);
+  });
+
+  it('throws for negative maxHR', () => {
+    expect(() => hrToZone(100, { maxHR: -10, zones: [0.6, 0.7, 0.8, 0.9] })).toThrow(RangeError);
+  });
+
+  it('throws for NaN maxHR', () => {
+    expect(() => hrToZone(100, { maxHR: NaN, zones: [0.6, 0.7, 0.8, 0.9] })).toThrow(RangeError);
+  });
+
+  it('throws for Infinity maxHR', () => {
+    expect(() => hrToZone(100, { maxHR: Infinity, zones: [0.6, 0.7, 0.8, 0.9] })).toThrow(RangeError);
+  });
 });
 
 describe('zoneDistribution', () => {

@@ -67,6 +67,11 @@ function expandSteps(steps: WorkoutStep[]): WorkoutStep[] {
     if (step.durationSec < 0) {
       throw new HRKitError(`Step "${step.name}" has negative duration: ${step.durationSec}`);
     }
+    if (step.target?.hrRange && step.target.hrRange[0] > step.target.hrRange[1]) {
+      throw new HRKitError(
+        `Step "${step.name}" has inverted hrRange: [${step.target.hrRange[0]}, ${step.target.hrRange[1]}]`,
+      );
+    }
     const count = step.repeat && step.repeat > 1 ? step.repeat : 1;
     for (let i = 0; i < count; i++) {
       expanded.push({ ...step, repeat: undefined });
