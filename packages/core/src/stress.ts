@@ -217,17 +217,22 @@ function scoreToLevel(score: number): 'low' | 'moderate' | 'high' | 'very_high' 
 export function computeStress(input: StressInput, weights?: Partial<StressWeights>): StressResult {
   const w = { ...DEFAULT_WEIGHTS, ...weights };
 
-  const hrvScore = hrvStress(input.rrIntervals);
-  const hrScore = hrElevationStress(input.currentHR, input.restHR);
-  const br = estimateBreathingRate(input.rrIntervals);
-  const brScore = breathingStress(br);
-  const rmssdVal = computeRmssd(input.rrIntervals);
+  // Sanitize inputs: treat NaN/Infinity as safe defaults
+  const currentHR = Number.isFinite(input.currentHR) ? Math.max(0, input.currentHR) : 0;
+  const restHR = Number.isFinite(input.restHR) && input.restHR > 0 ? input.restHR : 60;
+  const rrIntervals = input.rrIntervals.filter((v) => Number.isFinite(v) && v > 0);
 
-  const hasRecovery = input.baselineRmssd != null && input.baselineRmssd > 0;
+  const hrvScore = hrvStress(rrIntervals);
+  const hrScore = hrElevationStress(currentHR, restHR);
+  const br = estimateBreathingRate(rrIntervals);
+  const brScore = breathingStress(br);
+  const rmssdVal = computeRmssd(rrIntervals);
+
+  const hasRecovery = input.baselineRmssd != null && Number.isFinite(input.baselineRmssd) && input.baselineRmssd > 0;
   const recScore = hasRecovery ? recoveryStress(rmssdVal, input.baselineRmssd!) : null;
 
-  const hasSubjective = input.subjectiveWellness != null;
-  const subjScore = hasSubjective ? subjectiveStress(input.subjectiveWellness!) : null;
+  const hasSubjective = input.subjectiveWellness != null && Number.isFinite(input.subjectiveWellness);
+  const subjScore = hasSubjective ? subjectiveStress(Math.max(1, Math.min(10, input.subjectiveWellness!))) : null;
 
   // Weighted average — redistribute missing component weights proportionally
   let totalWeight = w.hrv + w.heartRate + w.breathingRate;

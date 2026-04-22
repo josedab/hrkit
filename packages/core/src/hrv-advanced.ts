@@ -120,14 +120,18 @@ export function poincare(rr: number[]): PoincareResult {
 export function dfaAlpha1(rr: number[], opts: { scaleMin?: number; scaleMax?: number } = {}): number {
   const scaleMin = opts.scaleMin ?? 4;
   const scaleMax = opts.scaleMax ?? 16;
-  if (rr.length < scaleMax * 4) return 0;
+  if (rr.length < scaleMax * 4) return NaN;
 
-  const mean = rr.reduce((s, v) => s + v, 0) / rr.length;
+  // Filter out non-finite or non-positive values
+  const clean = rr.filter((v) => Number.isFinite(v) && v > 0);
+  if (clean.length < scaleMax * 4) return NaN;
+
+  const mean = clean.reduce((s, v) => s + v, 0) / clean.length;
   // Cumulative sum of mean-centered series (integrated profile).
-  const y: number[] = new Array(rr.length);
+  const y: number[] = new Array(clean.length);
   let acc = 0;
-  for (let i = 0; i < rr.length; i++) {
-    acc += rr[i]! - mean;
+  for (let i = 0; i < clean.length; i++) {
+    acc += clean[i]! - mean;
     y[i] = acc;
   }
 
@@ -141,7 +145,7 @@ export function dfaAlpha1(rr: number[], opts: { scaleMin?: number; scaleMax?: nu
       logF.push(Math.log10(f));
     }
   }
-  if (logScales.length < 2) return 0;
+  if (logScales.length < 2) return NaN;
   const { slope } = linreg(logScales, logF);
   return slope;
 }

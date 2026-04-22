@@ -166,4 +166,65 @@ describe('computeStress', () => {
     });
     expect(['low', 'moderate']).toContain(lowStress.level);
   });
+
+  it('handles NaN in rrIntervals without producing NaN score', () => {
+    const result = computeStress({
+      rrIntervals: [800, NaN, 810, Infinity, 790],
+      currentHR: 72,
+      restHR: 60,
+    });
+    expect(Number.isFinite(result.score)).toBe(true);
+    expect(result.score).toBeGreaterThanOrEqual(0);
+    expect(result.score).toBeLessThanOrEqual(100);
+  });
+
+  it('handles NaN currentHR gracefully', () => {
+    const result = computeStress({
+      rrIntervals: generateRR(800, 50),
+      currentHR: NaN,
+      restHR: 60,
+    });
+    expect(Number.isFinite(result.score)).toBe(true);
+  });
+
+  it('handles zero restHR gracefully', () => {
+    const result = computeStress({
+      rrIntervals: generateRR(800, 50),
+      currentHR: 72,
+      restHR: 0,
+    });
+    expect(Number.isFinite(result.score)).toBe(true);
+  });
+
+  it('handles NaN baselineRmssd gracefully', () => {
+    const result = computeStress({
+      rrIntervals: generateRR(800, 50),
+      currentHR: 72,
+      restHR: 60,
+      baselineRmssd: NaN,
+    });
+    expect(Number.isFinite(result.score)).toBe(true);
+    expect(result.components.recovery).toBeNull();
+  });
+
+  it('clamps subjectiveWellness to 1-10 range', () => {
+    const outOfRange = computeStress({
+      rrIntervals: generateRR(800, 50),
+      currentHR: 72,
+      restHR: 60,
+      subjectiveWellness: 15,
+    });
+    expect(Number.isFinite(outOfRange.score)).toBe(true);
+    expect(outOfRange.score).toBeGreaterThanOrEqual(0);
+    expect(outOfRange.score).toBeLessThanOrEqual(100);
+  });
+
+  it('handles empty rrIntervals array', () => {
+    const result = computeStress({
+      rrIntervals: [],
+      currentHR: 72,
+      restHR: 60,
+    });
+    expect(Number.isFinite(result.score)).toBe(true);
+  });
 });

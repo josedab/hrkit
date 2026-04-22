@@ -54,6 +54,12 @@ export function coherenceScore(rr: number[], opts: CoherenceOptions = {}): Coher
     return { score: 0, bandPower: 0, totalPower: 0, peakHz: 0, inBand: false };
   }
 
+  // Filter out non-finite values to prevent NaN propagation
+  const clean = rr.filter((v) => Number.isFinite(v) && v > 0);
+  if (clean.length < 30) {
+    return { score: 0, bandPower: 0, totalPower: 0, peakHz: 0, inBand: false };
+  }
+
   // Build a fine frequency grid around the LF/HF range.
   const grid: number[] = [];
   // 0.04..0.4 Hz at 0.005 Hz resolution
@@ -61,9 +67,9 @@ export function coherenceScore(rr: number[], opts: CoherenceOptions = {}): Coher
 
   // Inline Lomb-Scargle on the fine grid (cheap; we need raw periodogram amplitudes).
   const t: number[] = [0];
-  for (let i = 1; i < rr.length; i++) t.push(t[i - 1]! + (rr[i - 1] ?? 0) / 1000);
-  const mean = rr.reduce((s, v) => s + v, 0) / rr.length;
-  const detrended = rr.map((v) => v - mean);
+  for (let i = 1; i < clean.length; i++) t.push(t[i - 1]! + (clean[i - 1] ?? 0) / 1000);
+  const mean = clean.reduce((s, v) => s + v, 0) / clean.length;
+  const detrended = clean.map((v) => v - mean);
 
   let peakHz = 0;
   let peakP = -Infinity;

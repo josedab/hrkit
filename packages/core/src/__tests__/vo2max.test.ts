@@ -181,4 +181,20 @@ describe('fitnessScore', () => {
     expect(fitnessScore(42, 25, 'female').category).toBe('excellent');
     expect(fitnessScore(48, 25, 'female').category).toBe('superior');
   });
+
+  it('handles negative age gracefully (defaults to youngest group)', () => {
+    const s = fitnessScore(40, -5, 'male');
+    expect(s.ageGroup).toBe('20-29');
+  });
+
+  it('handles NaN vo2max without crashing', () => {
+    const s = fitnessScore(NaN, 30, 'male');
+    expect(s.percentile).toBe(50);
+    expect(s.category).toBe('good');
+  });
+
+  it('handles NaN age gracefully', () => {
+    const s = fitnessScore(40, NaN, 'male');
+    expect(s.ageGroup).toBe('20-29');
+  });
 });

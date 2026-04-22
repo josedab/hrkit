@@ -201,14 +201,31 @@ export function screenForAFib(rr: number[], options?: AFibScreeningOptions): AFi
     };
   }
 
-  const entropy = shannonEntropyRR(rr);
-  const poincare = poincareDescriptors(rr);
+  // Filter non-finite values to prevent NaN propagation through scoring
+  const clean = rr.filter((v) => Number.isFinite(v) && v > 0);
+  if (clean.length < minSamples) {
+    return {
+      classification: 'inconclusive',
+      confidence: 0,
+      shannonEntropy: 0,
+      sd1: 0,
+      sd2: 0,
+      sd1sd2Ratio: 0,
+      rrCoefficientOfVariation: 0,
+      turningPointRatio: 0,
+      sampleCount: rr.length,
+      disclaimer: DISCLAIMER,
+    };
+  }
+
+  const entropy = shannonEntropyRR(clean);
+  const poincare = poincareDescriptors(clean);
   const sd1sd2 = poincare.sd2 > 0 ? poincare.sd1 / poincare.sd2 : 0;
-  const tpr = turningPointRatio(rr);
+  const tpr = turningPointRatio(clean);
 
   // CV of RR
-  const mean = rr.reduce((s, v) => s + v, 0) / rr.length;
-  const variance = rr.reduce((s, v) => s + (v - mean) ** 2, 0) / rr.length;
+  const mean = clean.reduce((s, v) => s + v, 0) / clean.length;
+  const variance = clean.reduce((s, v) => s + (v - mean) ** 2, 0) / clean.length;
   const cv = mean > 0 ? (Math.sqrt(variance) / mean) * 100 : 0;
 
   // Scoring: each metric contributes to an irregularity score (0–1)

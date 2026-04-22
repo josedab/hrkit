@@ -62,8 +62,10 @@ export class RollingRMSSD {
     }
 
     if (this.buffer.length >= this.minSamples) {
+      const rmssdVal = computeRmssd(this.buffer);
+      if (!Number.isFinite(rmssdVal)) return;
       this.stream.emit({
-        rmssd: computeRmssd(this.buffer),
+        rmssd: rmssdVal,
         timestamp,
         sampleCount: this.buffer.length,
       });

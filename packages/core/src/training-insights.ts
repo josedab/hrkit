@@ -156,7 +156,7 @@ export function analyzeHRVTrend(trend: HRVTrendPoint[]): {
   const firstAvg = recent[0]!.rollingAvg;
   const lastAvg = recent[recent.length - 1]!.rollingAvg;
 
-  if (firstAvg === 0) {
+  if (firstAvg === 0 || !Number.isFinite(firstAvg) || !Number.isFinite(lastAvg)) {
     return { direction: 'stable', magnitude: 0, concern: false };
   }
 

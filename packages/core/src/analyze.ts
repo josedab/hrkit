@@ -59,7 +59,8 @@ export function analyzeSession(session: Session): SessionAnalysis {
   const { samples, rrIntervals, config } = session;
 
   // Duration
-  const durationSec = samples.length >= 2 ? (samples[samples.length - 1]!.timestamp - samples[0]!.timestamp) / 1000 : 0;
+  const rawDuration = samples.length >= 2 ? (samples[samples.length - 1]!.timestamp - samples[0]!.timestamp) / 1000 : 0;
+  const durationSec = Number.isFinite(rawDuration) ? rawDuration : 0;
 
   // HR statistics from samples — use single-pass reduce to avoid spread-arg
   // RangeError on long sessions (e.g. 4Hz × multi-hour can exceed V8 spread limit).

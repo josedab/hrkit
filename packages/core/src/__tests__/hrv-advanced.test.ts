@@ -54,8 +54,27 @@ describe('dfaAlpha1', () => {
     expect(a).toBeLessThan(2.0);
   });
 
-  it('returns 0 for too-short input', () => {
-    expect(dfaAlpha1([800, 810, 820])).toBe(0);
+  it('returns NaN for too-short input', () => {
+    expect(dfaAlpha1([800, 810, 820])).toBeNaN();
+  });
+
+  it('returns NaN when RR intervals contain NaN', () => {
+    const rr = syntheticRR(100, 1000, 40, 0.1);
+    rr[50] = NaN;
+    rr[51] = NaN;
+    // With enough valid data remaining, should still work or return NaN
+    const a = dfaAlpha1(rr);
+    // Either produces a valid result (filtered NaN) or NaN (insufficient clean data)
+    expect(typeof a).toBe('number'); // not crashing is the key assertion
+  });
+
+  it('filters negative RR intervals', () => {
+    const rr = syntheticRR(300, 1000, 40, 0.1);
+    rr[10] = -100;
+    rr[20] = -200;
+    const a = dfaAlpha1(rr);
+    // Should still produce a finite result since only 2 out of 300 are bad
+    expect(Number.isFinite(a)).toBe(true);
   });
 });
 

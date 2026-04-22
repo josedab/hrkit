@@ -194,6 +194,7 @@ const FEMALE_NORMS: Record<string, number[]> = {
 };
 
 function getAgeGroup(age: number): string {
+  if (!Number.isFinite(age) || age < 0) return '20-29';
   if (age < 30) return '20-29';
   if (age < 40) return '30-39';
   if (age < 50) return '40-49';
@@ -203,6 +204,7 @@ function getAgeGroup(age: number): string {
 }
 
 function interpolatePercentile(vo2max: number, norms: number[]): number {
+  if (!Number.isFinite(vo2max)) return 50;
   const percentileBreaks = [10, 25, 50, 75, 90];
   if (vo2max <= norms[0]!) return 5;
   if (vo2max >= norms[4]!) return 95;
