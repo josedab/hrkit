@@ -29,6 +29,9 @@ export interface CyclingPowerPacket {
 
 /** Parse a Cycling Power Measurement (0x2A63) characteristic value. */
 export function parseCyclingPower(view: DataView, timestamp: number = Date.now()): CyclingPowerPacket {
+  if (view.byteLength < 4) {
+    throw new RangeError(`Cycling Power packet too short: need ≥4 bytes, got ${view.byteLength}`);
+  }
   const flags = view.getUint16(0, true);
   let offset = 2;
 
@@ -93,15 +96,24 @@ export interface CSCPacket {
 
 /** Parse a CSC Measurement (0x2A5B). */
 export function parseCSC(view: DataView, timestamp: number = Date.now()): CSCPacket {
+  if (view.byteLength < 1) {
+    throw new RangeError(`CSC packet too short: need ≥1 byte, got ${view.byteLength}`);
+  }
   const flags = view.getUint8(0);
   let offset = 1;
   const out: CSCPacket = { timestamp };
   if (flags & 0x01) {
+    if (view.byteLength < offset + 6) {
+      throw new RangeError(`CSC packet too short for wheel data: need ≥${offset + 6} bytes, got ${view.byteLength}`);
+    }
     out.wheelRevolutions = view.getUint32(offset, true);
     out.wheelEventTime = view.getUint16(offset + 4, true);
     offset += 6;
   }
   if (flags & 0x02) {
+    if (view.byteLength < offset + 4) {
+      throw new RangeError(`CSC packet too short for crank data: need ≥${offset + 4} bytes, got ${view.byteLength}`);
+    }
     out.crankRevolutions = view.getUint16(offset, true);
     out.crankEventTime = view.getUint16(offset + 2, true);
     offset += 4;
@@ -128,6 +140,9 @@ export interface RSCPacket {
 
 /** Parse a RSC Measurement (0x2A53). */
 export function parseRSC(view: DataView, timestamp: number = Date.now()): RSCPacket {
+  if (view.byteLength < 4) {
+    throw new RangeError(`RSC packet too short: need ≥4 bytes, got ${view.byteLength}`);
+  }
   const flags = view.getUint8(0);
   let offset = 1;
   const speedMps = view.getUint16(offset, true) / 256;
@@ -136,10 +151,16 @@ export function parseRSC(view: DataView, timestamp: number = Date.now()): RSCPac
   offset += 1;
   const out: RSCPacket = { timestamp, speedMps, cadenceSpm };
   if (flags & 0x01) {
+    if (view.byteLength < offset + 2) {
+      throw new RangeError(`RSC packet too short for stride data: need ≥${offset + 2} bytes, got ${view.byteLength}`);
+    }
     out.strideLengthM = view.getUint16(offset, true) / 100; // cm → m
     offset += 2;
   }
   if (flags & 0x02) {
+    if (view.byteLength < offset + 4) {
+      throw new RangeError(`RSC packet too short for distance data: need ≥${offset + 4} bytes, got ${view.byteLength}`);
+    }
     out.totalDistanceM = view.getUint32(offset, true) / 10; // 1/10 m units
     offset += 4;
   }
@@ -163,6 +184,9 @@ export interface SpO2Packet {
  * Spec uses IEEE-11073 sFLOAT16 for SpO₂ and pulse rate.
  */
 export function parsePulseOxContinuous(view: DataView, timestamp: number = Date.now()): SpO2Packet {
+  if (view.byteLength < 5) {
+    throw new RangeError(`Pulse Ox packet too short: need ≥5 bytes, got ${view.byteLength}`);
+  }
   // Skip flags byte
   // Bytes 1-2: SpO₂ (sFLOAT16), Bytes 3-4: PR (sFLOAT16)
   const spo2Pct = sFloat16(view.getUint16(1, true));

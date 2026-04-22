@@ -134,3 +134,40 @@ describe('sensor profiles', () => {
     expect(PULSE_OX_PROFILE.capabilities).toContain('spo2');
   });
 });
+
+describe('bounds checking', () => {
+  it('parseCyclingPower throws on too-short buffer', () => {
+    expect(() => parseCyclingPower(buf(0x00, 0x00), 0)).toThrow(RangeError);
+    expect(() => parseCyclingPower(buf(0x00, 0x00, 0x00), 0)).toThrow(RangeError);
+  });
+
+  it('parseCyclingPower accepts minimal 4-byte buffer', () => {
+    expect(() => parseCyclingPower(buf(0x00, 0x00, 0x00, 0x00), 0)).not.toThrow();
+  });
+
+  it('parseCSC throws on empty buffer', () => {
+    expect(() => parseCSC(buf(), 0)).toThrow(RangeError);
+  });
+
+  it('parseCSC throws when flags claim wheel data but buffer too short', () => {
+    expect(() => parseCSC(buf(0x01, 0x00, 0x00), 0)).toThrow(RangeError);
+  });
+
+  it('parseCSC throws when flags claim crank data but buffer too short', () => {
+    expect(() => parseCSC(buf(0x02, 0x00, 0x00), 0)).toThrow(RangeError);
+  });
+
+  it('parseRSC throws on too-short buffer', () => {
+    expect(() => parseRSC(buf(0x00), 0)).toThrow(RangeError);
+    expect(() => parseRSC(buf(0x00, 0x00), 0)).toThrow(RangeError);
+  });
+
+  it('parseRSC throws when stride flag set but buffer too short', () => {
+    expect(() => parseRSC(buf(0x01, 0x00, 0x03, 0xb4), 0)).toThrow(RangeError);
+  });
+
+  it('parsePulseOxContinuous throws on too-short buffer', () => {
+    expect(() => parsePulseOxContinuous(buf(0x00, 0x00), 0)).toThrow(RangeError);
+    expect(() => parsePulseOxContinuous(buf(0x00, 0x00, 0x00, 0x00), 0)).toThrow(RangeError);
+  });
+});
