@@ -42,6 +42,23 @@ describe('CrdtLog', () => {
     const e = restored.append(3);
     expect(e.lamport).toBe(3);
   });
+
+  it('rejects circular references with ValidationError', () => {
+    const log = new CrdtLog<unknown>('a');
+    const obj: Record<string, unknown> = { name: 'test' };
+    obj.self = obj; // circular reference
+    expect(() => log.append(obj)).toThrow(/not JSON-serializable/);
+  });
+
+  it('rejects payloads exceeding maxPayloadBytes', () => {
+    const log = new CrdtLog<string>('a', { maxPayloadBytes: 10 });
+    expect(() => log.append('this is a very long string that exceeds the limit')).toThrow(/too large/);
+  });
+
+  it('accepts payloads within maxPayloadBytes', () => {
+    const log = new CrdtLog<string>('a', { maxPayloadBytes: 100 });
+    expect(() => log.append('short')).not.toThrow();
+  });
 });
 
 describe('MemoryStore', () => {

@@ -14,13 +14,14 @@ import type { SyncMessage, SyncTransport } from './engine.js';
 export class WebSocketSyncTransport<T = unknown> implements SyncTransport<T> {
   private handlers: Array<(msg: SyncMessage<T>) => void> = [];
   private readonly logger: SyncLogger;
+  private readonly messageHandler: (ev: MessageEvent) => void;
 
   constructor(
     private readonly socket: WebSocket,
     options?: { logger?: SyncLogger },
   ) {
     this.logger = options?.logger ?? NoopSyncLogger;
-    socket.addEventListener('message', (ev) => {
+    this.messageHandler = (ev: MessageEvent) => {
       try {
         const data = typeof ev.data === 'string' ? ev.data : '';
         const msg = JSON.parse(data) as SyncMessage<T>;
@@ -28,7 +29,8 @@ export class WebSocketSyncTransport<T = unknown> implements SyncTransport<T> {
       } catch {
         /* ignore malformed */
       }
-    });
+    };
+    socket.addEventListener('message', this.messageHandler);
   }
 
   send(msg: SyncMessage<T>): void {
@@ -53,6 +55,7 @@ export class WebSocketSyncTransport<T = unknown> implements SyncTransport<T> {
   }
 
   close(): void {
+    this.socket.removeEventListener('message', this.messageHandler);
     this.socket.close();
   }
 }
@@ -149,6 +152,7 @@ export class ReconnectingWebSocketSyncTransport<T = unknown> implements SyncTran
 
   private connect(): void {
     if (this.closed) return;
+
     let s: WebSocket;
     try {
       s = this.factory();
@@ -157,11 +161,12 @@ export class ReconnectingWebSocketSyncTransport<T = unknown> implements SyncTran
       return;
     }
     this.socket = s;
-    s.addEventListener('open', () => {
+
+    const onOpen = (): void => {
       this.attempts = 0;
       this.flushBuffer();
-    });
-    s.addEventListener('message', (ev: MessageEvent) => {
+    };
+    const onMessage = (ev: MessageEvent): void => {
       try {
         const data = typeof ev.data === 'string' ? ev.data : '';
         const msg = JSON.parse(data) as SyncMessage<T>;
@@ -169,13 +174,19 @@ export class ReconnectingWebSocketSyncTransport<T = unknown> implements SyncTran
       } catch {
         /* ignore malformed */
       }
-    });
-    s.addEventListener('close', () => {
-      if (!this.closed) this.scheduleReconnect(undefined);
-    });
-    s.addEventListener('error', () => {
+    };
+    const onClose = (): void => {
+      // Only reconnect if this is still the active socket
+      if (!this.closed && this.socket === s) this.scheduleReconnect(undefined);
+    };
+    const onError = (): void => {
       this.logger.warn('hrkit.sync.socket_error', { attempts: this.attempts });
-    });
+    };
+
+    s.addEventListener('open', onOpen);
+    s.addEventListener('message', onMessage);
+    s.addEventListener('close', onClose);
+    s.addEventListener('error', onError);
   }
 
   private flushBuffer(): void {

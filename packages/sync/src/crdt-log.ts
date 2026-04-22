@@ -35,13 +35,30 @@ export class CrdtLog<T = unknown> {
   private clock = 0;
   private readonly entries = new Map<string, LogEntry<T>>();
 
-  constructor(replicaId: string) {
+  /** Maximum serialized payload size in bytes. Default: 1 MB. */
+  readonly maxPayloadBytes: number;
+
+  constructor(replicaId: string, options?: { maxPayloadBytes?: number }) {
     if (!replicaId) throw new ValidationError('replicaId is required');
     this.replicaId = replicaId;
+    this.maxPayloadBytes = options?.maxPayloadBytes ?? 1_048_576;
   }
 
   /** Insert a local payload. Bumps the Lamport clock. */
   append(payload: T): LogEntry<T> {
+    let serialized: string;
+    try {
+      serialized = JSON.stringify(payload);
+    } catch (err) {
+      throw new ValidationError(
+        `Payload is not JSON-serializable: ${err instanceof Error ? err.message : 'unknown error'}`,
+      );
+    }
+    if (serialized.length > this.maxPayloadBytes) {
+      throw new ValidationError(
+        `Payload too large: ${serialized.length} bytes exceeds limit of ${this.maxPayloadBytes} bytes`,
+      );
+    }
     this.clock += 1;
     const entry: LogEntry<T> = {
       id: `${this.replicaId}:${this.clock}`,

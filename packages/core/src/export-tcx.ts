@@ -123,8 +123,9 @@ const CALORIE_HR_COEFFICIENT = 0.6309;
 const CALORIE_HR_INTERCEPT = 30.4523;
 
 function estimateCalories(durationSec: number, samples: TimestampedHR[]): number {
-  if (samples.length === 0) return 0;
+  if (samples.length === 0 || !Number.isFinite(durationSec)) return 0;
   const avgHR = samples.reduce((sum, s) => sum + s.hr, 0) / samples.length;
+  if (!Number.isFinite(avgHR)) return 0;
   const durationMin = durationSec / 60;
   return Math.max(0, (durationMin * (avgHR * CALORIE_HR_COEFFICIENT - CALORIE_HR_INTERCEPT)) / 60);
 }

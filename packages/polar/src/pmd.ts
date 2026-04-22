@@ -127,6 +127,8 @@ export function parseECGData(data: DataView): ECGPacket {
       samples.push(signed);
       offset += 3;
     }
+  } else {
+    throw new ParseError(`Unsupported PMD ECG frame type: ${frameType}`);
   }
 
   return { timestamp, samples, sampleRate: 130 };
@@ -166,6 +168,8 @@ export function parseACCData(data: DataView, sampleRate: 25 | 50 | 100 | 200 = 2
       samples.push({ x, y, z });
       offset += 6;
     }
+  } else {
+    throw new ParseError(`Unsupported PMD ACC frame type: ${frameType}`);
   }
 
   return { timestamp, samples, sampleRate };

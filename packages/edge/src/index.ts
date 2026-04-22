@@ -152,7 +152,9 @@ export function validateSample(s: unknown): string | null {
   if (typeof s !== 'object' || s === null) return 'sample is not an object';
   const o = s as Record<string, unknown>;
   if (typeof o.athleteId !== 'string' || o.athleteId.length === 0) return 'missing athleteId';
+  if (typeof o.athleteId === 'string' && o.athleteId.length > 128) return 'athleteId exceeds 128 characters';
   if (typeof o.timestamp !== 'number' || !Number.isFinite(o.timestamp)) return 'invalid timestamp';
+  if (o.timestamp > Date.now() + 86_400_000) return 'timestamp is too far in the future';
   if (typeof o.hr !== 'number' || o.hr < 0 || o.hr > 300) return 'invalid hr';
   if (!Array.isArray(o.rrIntervals)) return 'rrIntervals must be array';
   return null;

@@ -30,11 +30,16 @@ export function sessionToTCX(session: Session, opts: TcxOptions = {}): string {
   const startMs = session.startTime ?? session.samples[0]?.timestamp ?? Date.now();
   const activityId = opts.activityId ?? isoStamp(startMs);
   const totalSec =
-    session.endTime != null && session.startTime != null ? (session.endTime - session.startTime) / 1000 : 0;
+    session.endTime != null &&
+    session.startTime != null &&
+    Number.isFinite(session.endTime) &&
+    Number.isFinite(session.startTime)
+      ? (session.endTime - session.startTime) / 1000
+      : 0;
 
   const trackpoints = session.samples
     .map((s) => {
-      const hr = Math.max(0, Math.min(255, Math.round(s.hr)));
+      const hr = Number.isFinite(s.hr) ? Math.max(0, Math.min(255, Math.round(s.hr))) : 0;
       return `        <Trackpoint>
           <Time>${isoStamp(s.timestamp)}</Time>
           <HeartRateBpm><Value>${hr}</Value></HeartRateBpm>
@@ -42,9 +47,10 @@ export function sessionToTCX(session: Session, opts: TcxOptions = {}): string {
     })
     .join('\n');
 
+  const validSamples = session.samples.filter((s) => Number.isFinite(s.hr));
   const avgHr =
-    session.samples.length > 0 ? Math.round(session.samples.reduce((a, s) => a + s.hr, 0) / session.samples.length) : 0;
-  const maxHr = session.samples.reduce((m, s) => Math.max(m, s.hr), 0);
+    validSamples.length > 0 ? Math.round(validSamples.reduce((a, s) => a + s.hr, 0) / validSamples.length) : 0;
+  const maxHr = validSamples.reduce((m, s) => Math.max(m, s.hr), 0);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"

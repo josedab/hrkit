@@ -43,6 +43,7 @@ const SPORT_MAP: Record<NonNullable<FitEncodeOptions['sport']>, number> = {
 const FIT_EPOCH_OFFSET = 631065600;
 
 function toFitTimestamp(epochMs: number): number {
+  if (!Number.isFinite(epochMs)) return 0;
   return Math.max(0, Math.round(epochMs / 1000) - FIT_EPOCH_OFFSET);
 }
 
@@ -306,14 +307,15 @@ export function sessionToFIT(session: Session, options?: FitEncodeOptions): Uint
 
 function avgHR(samples: TimestampedHR[]): number {
   if (samples.length === 0) return 0;
-  const sum = samples.reduce((acc, s) => acc + s.hr, 0);
-  return Math.round(sum / samples.length);
+  const valid = samples.filter((s) => Number.isFinite(s.hr));
+  if (valid.length === 0) return 0;
+  return Math.round(valid.reduce((acc, s) => acc + s.hr, 0) / valid.length);
 }
 
 function maxHR(samples: TimestampedHR[]): number {
   if (samples.length === 0) return 0;
   let m = 0;
-  for (const s of samples) if (s.hr > m) m = s.hr;
+  for (const s of samples) if (Number.isFinite(s.hr) && s.hr > m) m = s.hr;
   return Math.round(m);
 }
 
