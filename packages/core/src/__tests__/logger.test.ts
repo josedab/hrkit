@@ -76,4 +76,43 @@ describe('redact', () => {
     const out = redact([{ token: 'x' }, { ok: 1 }]);
     expect(out).toEqual([{ token: REDACTED }, { ok: 1 }]);
   });
+
+  it('handles Date objects', () => {
+    const d = new Date('2024-01-01T00:00:00Z');
+    const out = redact({ created: d });
+    expect(out.created).toBe('2024-01-01T00:00:00.000Z');
+  });
+
+  it('handles RegExp objects', () => {
+    const out = redact({ pattern: /abc/gi });
+    expect(out.pattern).toBe('/abc/gi');
+  });
+
+  it('handles Map objects', () => {
+    const out = redact({ data: new Map([['a', 1]]) });
+    expect(out.data).toBe('[Map(1)]');
+  });
+
+  it('handles Set objects', () => {
+    const out = redact({ items: new Set([1, 2, 3]) });
+    expect(out.items).toBe('[Set(3)]');
+  });
+});
+
+describe('setLogger validation', () => {
+  it('throws TypeError for null', () => {
+    expect(() => setLogger(null as never)).toThrow(TypeError);
+  });
+
+  it('throws TypeError for non-object', () => {
+    expect(() => setLogger('string' as never)).toThrow(TypeError);
+  });
+
+  it('throws TypeError for object missing methods', () => {
+    expect(() => setLogger({ debug: () => {} } as never)).toThrow(TypeError);
+  });
+
+  it('accepts valid Logger implementation', () => {
+    expect(() => setLogger(ConsoleLogger)).not.toThrow();
+  });
 });

@@ -97,9 +97,12 @@ export async function connectToDevice(transport: BLETransport, options: ConnectO
           }
         }
       }
-    } catch {
-      // Scan stream ended (normal completion, timeout, or transport error).
+    } catch (err) {
+      // Re-throw timeout and connection errors — don't mask real failures.
+      if (err instanceof TimeoutError || err instanceof DeviceNotFoundError) throw err;
+      // Scan stream ended (normal completion or transport error).
       // Fall through to check discovered fallback devices.
+      log.debug('Scan stream ended', { error: String(err) });
     }
 
     // If scan ended without a preferred match, use best discovered fallback

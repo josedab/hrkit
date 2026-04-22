@@ -61,6 +61,16 @@ let activeLogger: Logger = NoopLogger;
  * ```
  */
 export function setLogger(logger: Logger): void {
+  if (
+    typeof logger !== 'object' ||
+    logger === null ||
+    typeof logger.debug !== 'function' ||
+    typeof logger.info !== 'function' ||
+    typeof logger.warn !== 'function' ||
+    typeof logger.error !== 'function'
+  ) {
+    throw new TypeError('setLogger: argument must be a Logger with debug, info, warn, and error methods');
+  }
   activeLogger = logger;
 }
 
@@ -111,6 +121,15 @@ export function redact<T>(value: T, seen: WeakSet<object> = new WeakSet()): T {
   if (value instanceof Error) {
     // Errors are not plain objects; surface message + name only.
     return new Error(redactString(value.message)) as unknown as T;
+  }
+  if (value instanceof Date) {
+    return value.toISOString() as unknown as T;
+  }
+  if (value instanceof RegExp) {
+    return value.toString() as unknown as T;
+  }
+  if (value instanceof Map || value instanceof Set) {
+    return `[${value.constructor.name}(${value.size})]` as unknown as T;
   }
 
   const out: Record<string, unknown> = {};

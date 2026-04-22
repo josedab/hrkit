@@ -1,4 +1,5 @@
 import { HRKitError } from './errors.js';
+import { getLogger } from './logger.js';
 import type { HRPacket, Round, RoundMeta, Session } from './types.js';
 
 /** Lifecycle hooks that a plugin can implement. All hooks are optional. */
@@ -88,8 +89,8 @@ export class PluginRegistry {
           if (result !== undefined) {
             current = result;
           }
-        } catch {
-          // Skip misbehaving plugins — do not let one plugin crash the pipeline.
+        } catch (err) {
+          getLogger().warn(`Plugin "${plugin.name}" threw in onPacket`, { error: err });
         }
       }
     }
@@ -106,8 +107,8 @@ export class PluginRegistry {
     for (const plugin of this.plugins.values()) {
       try {
         plugin.onRoundStart?.(roundIndex, meta);
-      } catch {
-        // Skip misbehaving plugins.
+      } catch (err) {
+        getLogger().warn(`Plugin "${plugin.name}" threw in onRoundStart`, { error: err });
       }
     }
   }
@@ -121,8 +122,8 @@ export class PluginRegistry {
     for (const plugin of this.plugins.values()) {
       try {
         plugin.onRoundEnd?.(round);
-      } catch {
-        // Skip misbehaving plugins.
+      } catch (err) {
+        getLogger().warn(`Plugin "${plugin.name}" threw in onRoundEnd`, { error: err });
       }
     }
   }
@@ -136,8 +137,8 @@ export class PluginRegistry {
     for (const plugin of this.plugins.values()) {
       try {
         plugin.onSessionEnd?.(session);
-      } catch {
-        // Skip misbehaving plugins.
+      } catch (err) {
+        getLogger().warn(`Plugin "${plugin.name}" threw in onSessionEnd`, { error: err });
       }
     }
   }
@@ -154,8 +155,8 @@ export class PluginRegistry {
       if (plugin.onAnalyze) {
         try {
           Object.assign(merged, plugin.onAnalyze(session));
-        } catch {
-          // Skip misbehaving plugins.
+        } catch (err) {
+          getLogger().warn(`Plugin "${plugin.name}" threw in onAnalyze`, { error: err });
         }
       }
     }

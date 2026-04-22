@@ -61,8 +61,9 @@ export function sessionFromJSON(json: string, options?: SessionFromJSONOptions):
   let raw: unknown;
   try {
     raw = JSON.parse(json);
-  } catch {
-    throw new ParseError('Invalid JSON: unable to parse session data');
+  } catch (err) {
+    const detail = err instanceof Error ? `: ${err.message}` : '';
+    throw new ParseError(`Invalid JSON: unable to parse session data${detail}`);
   }
 
   if (typeof raw !== 'object' || raw === null) {

@@ -40,7 +40,14 @@ export class SensorBus {
 
   /** Push a normalized event. */
   emit(event: SensorEvent): void {
-    for (const l of this.listeners) l(event);
+    const handlers = Array.from(this.listeners);
+    for (const l of handlers) {
+      try {
+        l(event);
+      } catch {
+        // Don't let a failing listener break other listeners.
+      }
+    }
     this.stream.emit(event);
   }
 

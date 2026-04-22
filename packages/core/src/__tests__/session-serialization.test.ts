@@ -251,6 +251,49 @@ describe('sessionFromJSON', () => {
   });
 });
 
+describe('sessionFromJSON strict mode', () => {
+  it('non-strict mode only validates first sample', () => {
+    const json = JSON.stringify({
+      schemaVersion: 1,
+      startTime: 0,
+      endTime: 1000,
+      samples: [
+        { timestamp: 1000, hr: 72 },
+        { timestamp: 2000 }, // missing hr — should pass in non-strict
+      ],
+      rrIntervals: [],
+      rounds: [],
+      config: { maxHR: 185 },
+    });
+    expect(() => sessionFromJSON(json)).not.toThrow();
+  });
+
+  it('strict mode rejects sample missing hr', () => {
+    const json = JSON.stringify({
+      schemaVersion: 1,
+      startTime: 0,
+      endTime: 1000,
+      samples: [
+        { timestamp: 1000, hr: 72 },
+        { timestamp: 2000 }, // missing hr
+      ],
+      rrIntervals: [],
+      rounds: [],
+      config: { maxHR: 185 },
+    });
+    expect(() => sessionFromJSON(json, { strict: true })).toThrow(ParseError);
+  });
+
+  it('includes original error detail in ParseError for invalid JSON', () => {
+    expect(() => sessionFromJSON('not-json')).toThrow(ParseError);
+    try {
+      sessionFromJSON('not-json');
+    } catch (err) {
+      expect((err as ParseError).message).toContain('Invalid JSON');
+    }
+  });
+});
+
 describe('sessionToCSV', () => {
   it('exports basic CSV with timestamp and HR', () => {
     const session = makeSession();
