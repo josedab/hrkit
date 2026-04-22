@@ -4,6 +4,9 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { URL } from 'node:url';
 import type { HRPacket } from '@hrkit/core';
 
+/** WebSocket OPEN readyState constant (from ws spec / WebSocket API). */
+const WS_OPEN = 1;
+
 // ── Public types ────────────────────────────────────────────────────────
 
 /** Data broadcast to clients on each HR packet. */
@@ -235,7 +238,7 @@ export class HRStreamServer {
     // WebSocket clients
     if (this.wsServer) {
       for (const client of this.wsServer.clients) {
-        if (client.readyState !== 1 /* WebSocket.OPEN */) continue;
+        if (client.readyState !== WS_OPEN) continue;
         // Skip clients with too much queued data — protects the server from
         // a single slow consumer dragging memory up unboundedly.
         const buffered = typeof client.bufferedAmount === 'number' ? client.bufferedAmount : 0;
@@ -291,7 +294,13 @@ export class HRStreamServer {
 
   private handleHealth(res: ServerResponse): void {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'ok', clients: this.clientCount }));
+    res.end(
+      JSON.stringify({
+        status: 'ok',
+        clients: this.clientCount,
+        websocket: this.wsServer ? 'enabled' : 'disabled',
+      }),
+    );
   }
 
   private handleSSE(url: URL, _req: IncomingMessage, res: ServerResponse): void {
@@ -340,9 +349,20 @@ export class HRStreamServer {
           this.wsServer!.emit('connection', client, req);
         });
       });
-    } catch {
-      // ws package not installed — WebSocket support disabled
-      this.wsServer = null;
+    } catch (err: unknown) {
+      // Only suppress module-not-found; surface other errors (syntax, etc.)
+      if (err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === 'MODULE_NOT_FOUND') {
+        this.wsServer = null;
+      } else if (
+        err &&
+        typeof err === 'object' &&
+        'code' in err &&
+        (err as { code: string }).code === 'ERR_MODULE_NOT_FOUND'
+      ) {
+        this.wsServer = null;
+      } else {
+        throw err;
+      }
     }
   }
 }

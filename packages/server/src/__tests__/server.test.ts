@@ -192,7 +192,7 @@ describe('HRStreamServer', () => {
       const res = await fetch(`http://127.0.0.1:${port}/health`);
       const body = await res.json();
       expect(res.status).toBe(200);
-      expect(body).toEqual({ status: 'ok', clients: 0 });
+      expect(body).toEqual({ status: 'ok', clients: 0, websocket: 'disabled' });
     });
 
     it('returns 404 for unknown routes', async () => {
