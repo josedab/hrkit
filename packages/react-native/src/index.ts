@@ -1,7 +1,13 @@
 export { SDK_NAME, SDK_VERSION } from './version.js';
 
 import type { BLETransport, DeviceProfile, HRConnection, HRDevice, HRPacket } from '@hrkit/core';
-import { ConnectionError, GATT_HR_MEASUREMENT_UUID, GATT_HR_SERVICE_UUID, parseHeartRate } from '@hrkit/core';
+import {
+  ConnectionError,
+  GATT_HR_MEASUREMENT_UUID,
+  GATT_HR_SERVICE_UUID,
+  ParseError,
+  parseHeartRate,
+} from '@hrkit/core';
 
 /**
  * Check if the react-native-ble-plx BleManager is likely functional.
@@ -58,7 +64,12 @@ interface Subscription {
 }
 
 function base64ToDataView(b64: string): DataView {
-  const raw = atob(b64);
+  let raw: string;
+  try {
+    raw = atob(b64);
+  } catch {
+    throw new ParseError(`Invalid base64 in BLE characteristic value: ${b64.slice(0, 20)}`);
+  }
   const bytes = new Uint8Array(raw.length);
   for (let i = 0; i < raw.length; i++) {
     bytes[i] = raw.charCodeAt(i);

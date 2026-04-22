@@ -22,6 +22,7 @@ import {
   type HRDevice,
   HRKitError,
   type HRPacket,
+  ParseError,
   parseHeartRate,
 } from '@hrkit/core';
 
@@ -80,18 +81,35 @@ interface GattNotificationEvent {
 
 function hexToDataView(hex: string): DataView {
   const clean = hex.replace(/\s+/g, '').toLowerCase();
+  if (clean.length === 0 || clean.length % 2 !== 0) {
+    throw new ParseError(`Invalid hex string: length must be even and non-empty, got ${clean.length}`);
+  }
   const bytes = new Uint8Array(clean.length / 2);
-  for (let i = 0; i < bytes.length; i++) bytes[i] = Number.parseInt(clean.substring(i * 2, i * 2 + 2), 16);
+  for (let i = 0; i < bytes.length; i++) {
+    const byte = Number.parseInt(clean.substring(i * 2, i * 2 + 2), 16);
+    if (Number.isNaN(byte)) {
+      throw new ParseError(`Invalid hex character at position ${i * 2}: ${clean.substring(i * 2, i * 2 + 2)}`);
+    }
+    bytes[i] = byte;
+  }
   return new DataView(bytes.buffer);
 }
 
 function b64ToDataView(b64: string): DataView {
-  const bin =
-    typeof atob === 'function'
-      ? atob(b64)
-      : ((
-          globalThis as { Buffer?: { from(data: string, enc: string): { toString(enc: string): string } } }
-        ).Buffer?.from(b64, 'base64').toString('binary') ?? '');
+  let bin: string;
+  try {
+    bin =
+      typeof atob === 'function'
+        ? atob(b64)
+        : ((
+            globalThis as { Buffer?: { from(data: string, enc: string): { toString(enc: string): string } } }
+          ).Buffer?.from(b64, 'base64').toString('binary') ?? '');
+  } catch {
+    throw new ParseError(`Invalid base64 in BLE characteristic value: ${b64.slice(0, 20)}`);
+  }
+  if (bin.length === 0 && b64.length > 0) {
+    throw new ParseError(`Base64 decoding produced empty result for: ${b64.slice(0, 20)}`);
+  }
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return new DataView(bytes.buffer);
@@ -160,11 +178,16 @@ export async function createCapacitorNativeTransport(
 
       const sub = await p.addListener('scanResult', (raw) => {
         const evt = raw as ScanResultEvent;
+        const matched = profiles
+          ? (profiles.find((pr) => pr.namePrefix && evt.name?.startsWith(pr.namePrefix)) ??
+            profiles.find((pr) => !pr.namePrefix))
+          : undefined;
+        if (profiles && profiles.length > 0 && !matched) return;
         queue.push({
           id: evt.deviceId,
           name: evt.name ?? 'Unknown',
           rssi: evt.rssi ?? 0,
-          profile: profiles?.[0],
+          profile: matched,
         });
       });
       await p.startScan({ services, timeoutMs: scanTimeoutMs });
