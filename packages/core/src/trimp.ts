@@ -18,6 +18,7 @@ import type { Session, TimestampedHR, TRIMPConfig } from './types.js';
  */
 export function trimp(samples: TimestampedHR[], config: TRIMPConfig): number {
   if (samples.length < 2) return 0;
+  if (!Number.isFinite(config.maxHR) || !Number.isFinite(config.restHR)) return 0;
   if (config.maxHR <= config.restHR) return 0;
 
   const hrRange = config.maxHR - config.restHR;

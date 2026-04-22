@@ -51,6 +51,11 @@ export function filterArtifacts(rr: number[], options?: ArtifactFilterOptions): 
     if (count === 0) continue;
 
     const localMean = sum / count;
+    if (localMean === 0) {
+      isArtifact[i] = true;
+      artifactCount++;
+      continue;
+    }
     const deviation = Math.abs(rr[i]! - localMean) / localMean;
 
     if (deviation > threshold) {

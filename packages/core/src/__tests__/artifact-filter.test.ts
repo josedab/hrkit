@@ -57,4 +57,28 @@ describe('filterArtifacts', () => {
     // Should still return something reasonable
     expect(result.artifactRate).toBeGreaterThan(0);
   });
+
+  it('handles all-zero RR intervals without division by zero', () => {
+    const zeros = [0, 0, 0, 0, 0];
+    const result = filterArtifacts(zeros, { strategy: 'remove' });
+    expect(result.artifactRate).toBe(1);
+    expect(result.filtered).toHaveLength(0);
+  });
+
+  it('handles interpolation when all beats are artifacts', () => {
+    const allArtifact = [100, 2000, 50, 3000, 75];
+    const result = filterArtifacts(allArtifact, { strategy: 'interpolate' });
+    expect(result.filtered).toHaveLength(allArtifact.length);
+    // Values should still be numbers (no NaN/Infinity)
+    for (const v of result.filtered) {
+      expect(Number.isFinite(v)).toBe(true);
+    }
+  });
+
+  it('handles negative RR intervals as artifacts', () => {
+    const withNeg = [800, -100, 810, 790, 820];
+    const result = filterArtifacts(withNeg, { strategy: 'remove' });
+    expect(result.filtered).not.toContain(-100);
+    expect(result.artifactRate).toBeGreaterThan(0);
+  });
 });

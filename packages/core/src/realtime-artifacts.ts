@@ -68,6 +68,15 @@ export class RealtimeArtifactDetector {
     }
 
     const localMean = sum / count;
+    if (localMean <= 0 || !Number.isFinite(localMean)) {
+      this.stream.emit({
+        timestamp,
+        rr,
+        deviation: 0,
+        isArtifact: true,
+      });
+      return;
+    }
     const deviation = Math.abs(rr - localMean) / localMean;
     const isArtifact = deviation > this.threshold;
 

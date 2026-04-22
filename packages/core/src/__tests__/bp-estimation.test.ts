@@ -117,4 +117,24 @@ describe('estimateBloodPressure', () => {
     expect(result!.timestamp).toBeGreaterThan(0);
     expect(result!.disclaimer.length).toBeGreaterThan(50);
   });
+
+  it('handles PTTs that are all the same value (zero CV)', () => {
+    const result = estimateBloodPressure([200, 200, 200, 200]);
+    expect(result).not.toBeNull();
+    expect(Number.isFinite(result!.confidence)).toBe(true);
+  });
+
+  it('returns null for PTTs all out of range', () => {
+    expect(estimateBloodPressure([10, 10, 10])).toBeNull();
+    expect(estimateBloodPressure([1000, 1000, 1000])).toBeNull();
+  });
+
+  it('produces finite values for edge-case PTT near min bound', () => {
+    const result = estimateBloodPressure([51, 52, 53]);
+    if (result) {
+      expect(Number.isFinite(result.systolic)).toBe(true);
+      expect(Number.isFinite(result.diastolic)).toBe(true);
+      expect(Number.isFinite(result.confidence)).toBe(true);
+    }
+  });
 });

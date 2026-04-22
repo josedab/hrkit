@@ -206,7 +206,8 @@ export function estimateBloodPressure(ptts: number[], calibration?: BPCalibratio
 
   // Penalize high PTT variance
   const mean = ptts.reduce((s, v) => s + v, 0) / ptts.length;
-  const cv = ptts.length > 1 ? Math.sqrt(ptts.reduce((s, v) => s + (v - mean) ** 2, 0) / ptts.length) / mean : 0;
+  const cv =
+    ptts.length > 1 && mean > 0 ? Math.sqrt(ptts.reduce((s, v) => s + (v - mean) ** 2, 0) / ptts.length) / mean : 0;
   if (cv > 0.15) confidence -= 0.1;
 
   confidence = Math.round(Math.max(0.1, Math.min(0.85, confidence)) * 100) / 100;
