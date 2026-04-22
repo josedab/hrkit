@@ -408,4 +408,11 @@ export class GroupSession {
       timestamp: this.latestGlobalTimestamp,
     };
   }
+
+  /** Release all resources — clear athletes and close streams. */
+  destroy(): void {
+    this.athletes.clear();
+    this.targetZone = null;
+    this.latestGlobalTimestamp = 0;
+  }
 }

@@ -81,7 +81,13 @@ export async function connectWithRetry(
             `Failed to connect after ${maxAttempts} attempts: ${err instanceof Error ? err.message : String(err)}`,
           );
         }
-        await new Promise<void>((r) => setTimeout(r, delay));
+        await new Promise<void>((resolve) => {
+          const timer = setTimeout(resolve, delay);
+          if (stopped) {
+            clearTimeout(timer);
+            resolve();
+          }
+        });
         // Exponential backoff with ±10% jitter to prevent thundering herd
         const jitter = delay * (0.9 + Math.random() * 0.2);
         delay = Math.min(jitter * backoffMultiplier, maxDelayMs);

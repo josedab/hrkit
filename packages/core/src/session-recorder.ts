@@ -168,7 +168,7 @@ export class SessionRecorder {
       throw new HRKitError('Cannot start a new round while one is already in progress. Call endRound() first.');
     }
     this.currentRound = {
-      startTime: this.lastPacketTime ?? this.startTime ?? 0,
+      startTime: this.lastPacketTime ?? this.startTime ?? Date.now(),
       samples: [],
       rrIntervals: [],
       meta,
@@ -203,6 +203,7 @@ export class SessionRecorder {
 
   /** Pause recording. Ingested packets are ignored until `resume()` is called. */
   pause(): void {
+    if (this._state !== 'recording') return;
     this._state = 'paused';
   }
 

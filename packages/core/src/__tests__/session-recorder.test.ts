@@ -207,4 +207,27 @@ describe('SessionRecorder', () => {
     const session = recorder.end();
     expect(session.samples).toHaveLength(2);
   });
+
+  it('pause is a no-op when not recording', () => {
+    const recorder = new SessionRecorder(config);
+    recorder.pause();
+    expect(recorder.state).toBe('idle');
+  });
+
+  it('pause is a no-op after session ends', () => {
+    const recorder = new SessionRecorder(config);
+    recorder.ingest(makePacket(1000, 80));
+    recorder.end();
+    recorder.pause();
+    expect(recorder.state).toBe('ended');
+  });
+
+  it('startRound before any packet uses current time, not 0', () => {
+    const recorder = new SessionRecorder(config);
+    const before = Date.now();
+    recorder.startRound();
+    recorder.ingest(makePacket(Date.now(), 80));
+    const round = recorder.endRound();
+    expect(round.startTime).toBeGreaterThanOrEqual(before);
+  });
 });
