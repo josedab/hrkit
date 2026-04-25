@@ -111,6 +111,8 @@ export type {
 } from './group-session.js';
 // Group session
 export { GroupSession } from './group-session.js';
+// Runtime type guards
+export { isHRDevice, isHRPacket, isSession } from './guards.js';
 // HRV metrics
 export { hrBaseline, meanHR, pnn50, readinessVerdict, rmssd, sdnn } from './hrv.js';
 export type { CleanedRR, FrequencyDomainResult, HRVReport, PoincareResult } from './hrv-advanced.js';
