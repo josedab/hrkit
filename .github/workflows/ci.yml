@@ -146,17 +146,40 @@ jobs:
           pnpm docs:packages:check
           pnpm --filter website build
 
+  security:
+    name: Security Audit
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production dependencies
+        run: pnpm audit --prod
+
   ci-success:
     name: CI Success
     if: always()
-    needs: [changes, check, test, docs]
+    needs: [changes, check, test, docs, security]
     runs-on: ubuntu-latest
     steps:
       - name: Verify required jobs succeeded
         run: |
           # Skipped jobs (due to path filter) count as success.
           # Only fail if a required job genuinely failed or was cancelled.
-          for result in "${{ needs.check.result }}" "${{ needs.test.result }}" "${{ needs.docs.result }}"; do
+          for result in "${{ needs.check.result }}" "${{ needs.test.result }}" "${{ needs.docs.result }}" "${{ needs.security.result }}"; do
             if [[ "$result" == "failure" || "$result" == "cancelled" ]]; then
               echo "A required job failed or was cancelled: $result"
               exit 1
