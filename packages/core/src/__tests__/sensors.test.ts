@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ParseError } from '../errors.js';
 import {
   CYCLING_CSC_PROFILE,
   CYCLING_POWER_PROFILE,
@@ -100,6 +101,52 @@ describe('parseRSC', () => {
     expect(p.cadenceSpm).toBe(180);
     expect(p.isRunning).toBe(true);
   });
+
+  it('parses stride length when flag bit 0 is set', () => {
+    // flags=0x01 (stride present), speed=256 (1.0 m/s), cadence=80, stride=150cm
+    const view = buf(0x01, 0x00, 0x01, 80, 0x96, 0x00);
+    const p = parseRSC(view, 1000);
+    expect(p.speedMps).toBe(1.0);
+    expect(p.cadenceSpm).toBe(80);
+    expect(p.strideLengthM).toBeCloseTo(1.5);
+    expect(p.isRunning).toBe(false);
+  });
+
+  it('parses total distance when flag bit 1 is set', () => {
+    // flags=0x02 (distance present), speed=512 (2.0 m/s), cadence=90, distance=10000 (1000m)
+    const view = buf(0x02, 0x00, 0x02, 90, 0x10, 0x27, 0x00, 0x00);
+    const p = parseRSC(view, 1000);
+    expect(p.speedMps).toBe(2.0);
+    expect(p.cadenceSpm).toBe(90);
+    expect(p.totalDistanceM).toBe(1000);
+    expect(p.strideLengthM).toBeUndefined();
+  });
+
+  it('parses both stride and distance when both flags set', () => {
+    // flags=0x03 (stride+distance), speed=256, cadence=85, stride=120cm, distance=5000 (500m)
+    const view = buf(0x03, 0x00, 0x01, 85, 0x78, 0x00, 0x88, 0x13, 0x00, 0x00);
+    const p = parseRSC(view, 1000);
+    expect(p.strideLengthM).toBeCloseTo(1.2);
+    expect(p.totalDistanceM).toBe(500);
+  });
+
+  it('sets isRunning when flag bit 2 is set', () => {
+    const view = buf(0x04, 0x00, 0x01, 80);
+    const p = parseRSC(view, 1000);
+    expect(p.isRunning).toBe(true);
+  });
+
+  it('throws ParseError for stride data with truncated packet', () => {
+    // flags=0x01 (stride present) but only 5 bytes (needs 6)
+    const view = buf(0x01, 0x00, 0x01, 80, 0x96);
+    expect(() => parseRSC(view, 1000)).toThrow(ParseError);
+  });
+
+  it('throws ParseError for distance data with truncated packet', () => {
+    // flags=0x02 (distance present) but only 5 bytes (needs 8)
+    const view = buf(0x02, 0x00, 0x01, 80, 0x10);
+    expect(() => parseRSC(view, 1000)).toThrow(ParseError);
+  });
 });
 
 describe('sFloat16', () => {
@@ -137,8 +184,8 @@ describe('sensor profiles', () => {
 
 describe('bounds checking', () => {
   it('parseCyclingPower throws on too-short buffer', () => {
-    expect(() => parseCyclingPower(buf(0x00, 0x00), 0)).toThrow(RangeError);
-    expect(() => parseCyclingPower(buf(0x00, 0x00, 0x00), 0)).toThrow(RangeError);
+    expect(() => parseCyclingPower(buf(0x00, 0x00), 0)).toThrow(ParseError);
+    expect(() => parseCyclingPower(buf(0x00, 0x00, 0x00), 0)).toThrow(ParseError);
   });
 
   it('parseCyclingPower accepts minimal 4-byte buffer', () => {
@@ -146,28 +193,28 @@ describe('bounds checking', () => {
   });
 
   it('parseCSC throws on empty buffer', () => {
-    expect(() => parseCSC(buf(), 0)).toThrow(RangeError);
+    expect(() => parseCSC(buf(), 0)).toThrow(ParseError);
   });
 
   it('parseCSC throws when flags claim wheel data but buffer too short', () => {
-    expect(() => parseCSC(buf(0x01, 0x00, 0x00), 0)).toThrow(RangeError);
+    expect(() => parseCSC(buf(0x01, 0x00, 0x00), 0)).toThrow(ParseError);
   });
 
   it('parseCSC throws when flags claim crank data but buffer too short', () => {
-    expect(() => parseCSC(buf(0x02, 0x00, 0x00), 0)).toThrow(RangeError);
+    expect(() => parseCSC(buf(0x02, 0x00, 0x00), 0)).toThrow(ParseError);
   });
 
   it('parseRSC throws on too-short buffer', () => {
-    expect(() => parseRSC(buf(0x00), 0)).toThrow(RangeError);
-    expect(() => parseRSC(buf(0x00, 0x00), 0)).toThrow(RangeError);
+    expect(() => parseRSC(buf(0x00), 0)).toThrow(ParseError);
+    expect(() => parseRSC(buf(0x00, 0x00), 0)).toThrow(ParseError);
   });
 
   it('parseRSC throws when stride flag set but buffer too short', () => {
-    expect(() => parseRSC(buf(0x01, 0x00, 0x03, 0xb4), 0)).toThrow(RangeError);
+    expect(() => parseRSC(buf(0x01, 0x00, 0x03, 0xb4), 0)).toThrow(ParseError);
   });
 
   it('parsePulseOxContinuous throws on too-short buffer', () => {
-    expect(() => parsePulseOxContinuous(buf(0x00, 0x00), 0)).toThrow(RangeError);
-    expect(() => parsePulseOxContinuous(buf(0x00, 0x00, 0x00, 0x00), 0)).toThrow(RangeError);
+    expect(() => parsePulseOxContinuous(buf(0x00, 0x00), 0)).toThrow(ParseError);
+    expect(() => parsePulseOxContinuous(buf(0x00, 0x00, 0x00, 0x00), 0)).toThrow(ParseError);
   });
 });
