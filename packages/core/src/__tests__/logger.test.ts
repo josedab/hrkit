@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ValidationError } from '../errors.js';
 import { ConsoleLogger, getLogger, NoopLogger, REDACTED, redact, setLogger } from '../logger.js';
 
 afterEach(() => {
@@ -100,16 +101,16 @@ describe('redact', () => {
 });
 
 describe('setLogger validation', () => {
-  it('throws TypeError for null', () => {
-    expect(() => setLogger(null as never)).toThrow(TypeError);
+  it('throws ValidationError for null', () => {
+    expect(() => setLogger(null as never)).toThrow(ValidationError);
   });
 
-  it('throws TypeError for non-object', () => {
-    expect(() => setLogger('string' as never)).toThrow(TypeError);
+  it('throws ValidationError for non-object', () => {
+    expect(() => setLogger('string' as never)).toThrow(ValidationError);
   });
 
-  it('throws TypeError for object missing methods', () => {
-    expect(() => setLogger({ debug: () => {} } as never)).toThrow(TypeError);
+  it('throws ValidationError for object missing methods', () => {
+    expect(() => setLogger({ debug: () => {} } as never)).toThrow(ValidationError);
   });
 
   it('accepts valid Logger implementation', () => {

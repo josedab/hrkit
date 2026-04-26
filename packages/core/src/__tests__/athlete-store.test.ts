@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { InMemoryAthleteStore } from '../athlete-store.js';
+import { ValidationError } from '../errors.js';
 import type { Session, SessionConfig } from '../types.js';
 import { SESSION_SCHEMA_VERSION } from '../types.js';
 
@@ -335,14 +336,14 @@ describe('InMemoryAthleteStore.getSessionsBetween', () => {
     expect(r[1]!.startTime).toBe(base - day);
   });
 
-  it('throws RangeError if from > to', () => {
+  it('throws ValidationError if from > to', () => {
     const store = new InMemoryAthleteStore();
-    expect(() => store.getSessionsBetween(2000, 1000)).toThrow(RangeError);
+    expect(() => store.getSessionsBetween(2000, 1000)).toThrow(ValidationError);
   });
 
-  it('throws RangeError on NaN bounds', () => {
+  it('throws ValidationError on NaN bounds', () => {
     const store = new InMemoryAthleteStore();
-    expect(() => store.getSessionsBetween(Number.NaN, 0)).toThrow(RangeError);
+    expect(() => store.getSessionsBetween(Number.NaN, 0)).toThrow(ValidationError);
   });
 
   it('half-open with infinity', () => {

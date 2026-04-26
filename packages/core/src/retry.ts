@@ -9,7 +9,7 @@
  *     ("Exponential Backoff And Jitter", Mar 2015).
  */
 
-import { HRKitError, TimeoutError } from './errors.js';
+import { HRKitError, TimeoutError, ValidationError } from './errors.js';
 
 /** Configuration for {@link retry}. */
 export interface RetryOptions {
@@ -74,10 +74,10 @@ export async function retry<T>(op: () => Promise<T>, options: RetryOptions = {})
     random = Math.random,
   } = options;
 
-  if (maxAttempts < 1) throw new RangeError('retry: maxAttempts must be >= 1');
-  if (initialDelayMs < 0) throw new RangeError('retry: initialDelayMs must be >= 0');
-  if (maxDelayMs < 0) throw new RangeError('retry: maxDelayMs must be >= 0');
-  if (backoffMultiplier <= 0) throw new RangeError('retry: backoffMultiplier must be > 0');
+  if (maxAttempts < 1) throw new ValidationError('retry: maxAttempts must be >= 1');
+  if (initialDelayMs < 0) throw new ValidationError('retry: initialDelayMs must be >= 0');
+  if (maxDelayMs < 0) throw new ValidationError('retry: maxDelayMs must be >= 0');
+  if (backoffMultiplier <= 0) throw new ValidationError('retry: backoffMultiplier must be > 0');
 
   let lastError: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -112,7 +112,7 @@ export async function timeout<T>(
   ms: number,
   message = `operation timed out after ${ms}ms`,
 ): Promise<T> {
-  if (!Number.isFinite(ms) || ms <= 0) throw new RangeError('timeout: ms must be a positive number');
+  if (!Number.isFinite(ms) || ms <= 0) throw new ValidationError('timeout: ms must be a positive number');
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([

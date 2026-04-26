@@ -1,3 +1,4 @@
+import { ValidationError } from './errors.js';
 import type { HRZoneConfig, TimestampedHR, ZoneDistribution } from './types.js';
 
 type Zone = 1 | 2 | 3 | 4 | 5;
@@ -23,7 +24,7 @@ type Zone = 1 | 2 | 3 | 4 | 5;
  */
 export function hrToZone(hr: number, config: HRZoneConfig): Zone {
   if (!config.maxHR || config.maxHR <= 0 || !Number.isFinite(config.maxHR)) {
-    throw new RangeError(`maxHR must be a positive finite number, got ${config.maxHR}`);
+    throw new ValidationError(`maxHR must be a positive finite number, got ${config.maxHR}`);
   }
   const thresholds = config.zones.map((z) => z * config.maxHR);
 

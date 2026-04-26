@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ValidationError } from '../errors.js';
 import type { FusedHRPacket } from '../multi-device.js';
 import { MultiDeviceManager } from '../multi-device.js';
 import type { DeviceProfile, HRConnection, HRPacket } from '../types.js';
@@ -373,15 +374,15 @@ describe('MultiDeviceManager', () => {
 
 describe('MultiDeviceManager validation', () => {
   it('rejects zero staleThresholdMs', () => {
-    expect(() => new MultiDeviceManager({ staleThresholdMs: 0 })).toThrow(RangeError);
+    expect(() => new MultiDeviceManager({ staleThresholdMs: 0 })).toThrow(ValidationError);
   });
 
   it('rejects negative staleThresholdMs', () => {
-    expect(() => new MultiDeviceManager({ staleThresholdMs: -1000 })).toThrow(RangeError);
+    expect(() => new MultiDeviceManager({ staleThresholdMs: -1000 })).toThrow(ValidationError);
   });
 
   it('rejects NaN staleThresholdMs', () => {
-    expect(() => new MultiDeviceManager({ staleThresholdMs: NaN })).toThrow(RangeError);
+    expect(() => new MultiDeviceManager({ staleThresholdMs: NaN })).toThrow(ValidationError);
   });
 
   it('accepts valid positive staleThresholdMs', () => {

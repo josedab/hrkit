@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ValidationError } from '../errors.js';
 import type { HRZoneConfig, TimestampedHR } from '../types.js';
 import { hrToZone, zoneDistribution } from '../zones.js';
 
@@ -44,19 +45,19 @@ describe('hrToZone', () => {
   });
 
   it('throws for maxHR of zero', () => {
-    expect(() => hrToZone(100, { maxHR: 0, zones: [0.6, 0.7, 0.8, 0.9] })).toThrow(RangeError);
+    expect(() => hrToZone(100, { maxHR: 0, zones: [0.6, 0.7, 0.8, 0.9] })).toThrow(ValidationError);
   });
 
   it('throws for negative maxHR', () => {
-    expect(() => hrToZone(100, { maxHR: -10, zones: [0.6, 0.7, 0.8, 0.9] })).toThrow(RangeError);
+    expect(() => hrToZone(100, { maxHR: -10, zones: [0.6, 0.7, 0.8, 0.9] })).toThrow(ValidationError);
   });
 
   it('throws for NaN maxHR', () => {
-    expect(() => hrToZone(100, { maxHR: NaN, zones: [0.6, 0.7, 0.8, 0.9] })).toThrow(RangeError);
+    expect(() => hrToZone(100, { maxHR: NaN, zones: [0.6, 0.7, 0.8, 0.9] })).toThrow(ValidationError);
   });
 
   it('throws for Infinity maxHR', () => {
-    expect(() => hrToZone(100, { maxHR: Infinity, zones: [0.6, 0.7, 0.8, 0.9] })).toThrow(RangeError);
+    expect(() => hrToZone(100, { maxHR: Infinity, zones: [0.6, 0.7, 0.8, 0.9] })).toThrow(ValidationError);
   });
 });
 

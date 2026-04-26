@@ -9,6 +9,8 @@
  * tokens, API keys and signed URLs never leak into logs or telemetry.
  */
 
+import { ValidationError } from './errors.js';
+
 /** Standard log levels in increasing severity. */
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -69,7 +71,7 @@ export function setLogger(logger: Logger): void {
     typeof logger.warn !== 'function' ||
     typeof logger.error !== 'function'
   ) {
-    throw new TypeError('setLogger: argument must be a Logger with debug, info, warn, and error methods');
+    throw new ValidationError('setLogger: argument must be a Logger with debug, info, warn, and error methods');
   }
   activeLogger = logger;
 }

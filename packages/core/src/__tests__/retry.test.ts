@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { TimeoutError } from '../errors.js';
+import { TimeoutError, ValidationError } from '../errors.js';
 import { retry, sleep, timeout } from '../retry.js';
 
 describe('retry', () => {
@@ -54,20 +54,20 @@ describe('retry', () => {
   });
 
   it('rejects when maxAttempts < 1', async () => {
-    await expect(retry(async () => 1, { maxAttempts: 0 })).rejects.toThrow(RangeError);
+    await expect(retry(async () => 1, { maxAttempts: 0 })).rejects.toThrow(ValidationError);
   });
 
   it('rejects negative initialDelayMs', async () => {
-    await expect(retry(async () => 1, { initialDelayMs: -1 })).rejects.toThrow(RangeError);
+    await expect(retry(async () => 1, { initialDelayMs: -1 })).rejects.toThrow(ValidationError);
   });
 
   it('rejects negative maxDelayMs', async () => {
-    await expect(retry(async () => 1, { maxDelayMs: -1 })).rejects.toThrow(RangeError);
+    await expect(retry(async () => 1, { maxDelayMs: -1 })).rejects.toThrow(ValidationError);
   });
 
   it('rejects backoffMultiplier <= 0', async () => {
-    await expect(retry(async () => 1, { backoffMultiplier: 0 })).rejects.toThrow(RangeError);
-    await expect(retry(async () => 1, { backoffMultiplier: -1 })).rejects.toThrow(RangeError);
+    await expect(retry(async () => 1, { backoffMultiplier: 0 })).rejects.toThrow(ValidationError);
+    await expect(retry(async () => 1, { backoffMultiplier: -1 })).rejects.toThrow(ValidationError);
   });
 
   it('handles large attempt counts without Infinity delay', async () => {
@@ -107,7 +107,7 @@ describe('timeout', () => {
   });
 
   it('rejects when ms <= 0', async () => {
-    await expect(timeout(async () => 1, 0)).rejects.toThrow(RangeError);
+    await expect(timeout(async () => 1, 0)).rejects.toThrow(ValidationError);
   });
 });
 

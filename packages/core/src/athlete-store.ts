@@ -1,4 +1,5 @@
 import { filterArtifacts } from './artifact-filter.js';
+import { ValidationError } from './errors.js';
 import { rmssd as computeRmssd } from './hrv.js';
 import { trimp as computeTrimp } from './trimp.js';
 import type { Session } from './types.js';
@@ -212,10 +213,10 @@ export class InMemoryAthleteStore implements AthleteStore {
    */
   getSessionsBetween(from: number, to: number): SessionSummary[] {
     if (Number.isNaN(from) || Number.isNaN(to)) {
-      throw new RangeError('getSessionsBetween: from/to must be finite numbers');
+      throw new ValidationError('getSessionsBetween: from/to must be finite numbers');
     }
     if (from > to) {
-      throw new RangeError('getSessionsBetween: from must be <= to');
+      throw new ValidationError('getSessionsBetween: from must be <= to');
     }
     return [...this.sessions.values()]
       .filter((s) => s.startTime >= from && s.startTime <= to)

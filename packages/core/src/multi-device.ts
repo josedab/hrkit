@@ -1,5 +1,5 @@
 import { DEFAULT_ARTIFACT_DEVIATION } from './constants.js';
-import { HRKitError } from './errors.js';
+import { HRKitError, ValidationError } from './errors.js';
 import { SimpleStream } from './stream.js';
 import type { HRConnection, HRPacket, ReadableStream } from './types.js';
 
@@ -268,7 +268,7 @@ export class MultiDeviceManager {
   constructor(config?: Partial<MultiDeviceConfig>) {
     const staleMs = config?.staleThresholdMs ?? DEFAULT_STALE_THRESHOLD_MS;
     if (staleMs <= 0 || !Number.isFinite(staleMs)) {
-      throw new RangeError('MultiDeviceManager: staleThresholdMs must be a positive finite number');
+      throw new ValidationError('MultiDeviceManager: staleThresholdMs must be a positive finite number');
     }
     this.config = {
       strategy: config?.strategy ?? 'primary-fallback',
