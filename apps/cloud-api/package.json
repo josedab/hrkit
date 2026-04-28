@@ -14,8 +14,8 @@
     "@hrkit/edge": "workspace:*"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240909.0",
+    "@cloudflare/workers-types": "^4.20260426.1",
     "typescript": "^5.4.0",
-    "wrangler": "^4.14.0"
+    "wrangler": "^4.85.0"
   }
 }
