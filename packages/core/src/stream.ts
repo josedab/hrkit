@@ -1,3 +1,4 @@
+import { getLogger } from './logger.js';
 import type { ReadableStream, Unsubscribe } from './types.js';
 
 /**
@@ -53,8 +54,8 @@ export class SimpleStream<T> implements ReadableStream<T> {
     for (const listener of this.listeners) {
       try {
         listener(value);
-      } catch {
-        /* Subscriber error must not break other listeners */
+      } catch (err) {
+        getLogger().warn('SimpleStream subscriber threw', { error: err instanceof Error ? err.message : String(err) });
       }
     }
   }

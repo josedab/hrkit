@@ -9,6 +9,7 @@
  * based on athlete adherence.
  */
 
+import { getLogger } from './logger.js';
 import { parseWorkoutDSL } from './workout-dsl.js';
 import type { WorkoutProtocol } from './workout-protocol.js';
 
@@ -137,8 +138,11 @@ export class PlanRunner {
     if (!day.protocol && day.dsl) {
       try {
         day.protocol = parseWorkoutDSL(day.dsl);
-      } catch {
-        // DSL parse error — return the day but without protocol
+      } catch (err) {
+        getLogger().warn('Failed to parse workout DSL', {
+          dsl: day.dsl,
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     }
 

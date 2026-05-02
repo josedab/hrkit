@@ -1,3 +1,4 @@
+import { getLogger } from './logger.js';
 import { SimpleStream } from './stream.js';
 import type { ReadableStream } from './types.js';
 
@@ -44,8 +45,8 @@ export class SensorBus {
     for (const l of handlers) {
       try {
         l(event);
-      } catch {
-        // Don't let a failing listener break other listeners.
+      } catch (err) {
+        getLogger().warn('SensorBus listener threw', { error: err instanceof Error ? err.message : String(err) });
       }
     }
     this.stream.emit(event);
