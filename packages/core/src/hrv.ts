@@ -1,11 +1,18 @@
 import type { DailyHRVReading } from './types.js';
 
+/** Filter out non-finite and non-positive RR values to prevent NaN propagation. */
+function sanitizeRR(rr: number[]): number[] {
+  return rr.filter((v) => Number.isFinite(v) && v > 0);
+}
+
 /**
  * Root Mean Square of Successive Differences.
  * Primary short-term HRV metric reflecting parasympathetic activity.
  *
+ * Non-finite and non-positive values are filtered before computation.
+ *
  * @param rr - Array of RR intervals in milliseconds.
- * @returns rMSSD value in milliseconds. Returns 0 if fewer than 2 intervals.
+ * @returns rMSSD value in milliseconds. Returns 0 if fewer than 2 valid intervals.
  *
  * @example
  * ```ts
@@ -14,23 +21,26 @@ import type { DailyHRVReading } from './types.js';
  * ```
  */
 export function rmssd(rr: number[]): number {
-  if (rr.length < 2) return 0;
+  const clean = sanitizeRR(rr);
+  if (clean.length < 2) return 0;
 
   let sumSquaredDiffs = 0;
-  for (let i = 1; i < rr.length; i++) {
-    const diff = rr[i]! - rr[i - 1]!;
+  for (let i = 1; i < clean.length; i++) {
+    const diff = clean[i]! - clean[i - 1]!;
     sumSquaredDiffs += diff * diff;
   }
 
-  return Math.sqrt(sumSquaredDiffs / (rr.length - 1));
+  return Math.sqrt(sumSquaredDiffs / (clean.length - 1));
 }
 
 /**
  * Standard Deviation of NN (Normal-to-Normal) intervals.
  * Reflects overall HRV including both short and long-term variability.
  *
+ * Non-finite and non-positive values are filtered before computation.
+ *
  * @param rr - Array of RR intervals in milliseconds.
- * @returns SDNN value in milliseconds. Returns 0 if fewer than 2 intervals.
+ * @returns SDNN value in milliseconds. Returns 0 if fewer than 2 valid intervals.
  *
  * @example
  * ```ts
@@ -39,10 +49,11 @@ export function rmssd(rr: number[]): number {
  * ```
  */
 export function sdnn(rr: number[]): number {
-  if (rr.length < 2) return 0;
+  const clean = sanitizeRR(rr);
+  if (clean.length < 2) return 0;
 
-  const mean = rr.reduce((sum, v) => sum + v, 0) / rr.length;
-  const variance = rr.reduce((sum, v) => sum + (v - mean) ** 2, 0) / rr.length;
+  const mean = clean.reduce((sum, v) => sum + v, 0) / clean.length;
+  const variance = clean.reduce((sum, v) => sum + (v - mean) ** 2, 0) / clean.length;
 
   return Math.sqrt(variance);
 }
@@ -50,6 +61,8 @@ export function sdnn(rr: number[]): number {
 /**
  * Percentage of successive RR intervals differing by more than 50ms.
  * Another parasympathetic HRV marker.
+ *
+ * Non-finite and non-positive values are filtered before computation.
  *
  * @param rr - Array of RR intervals in milliseconds.
  * @returns Percentage (0-100) of successive intervals differing by >50ms.
@@ -61,23 +74,26 @@ export function sdnn(rr: number[]): number {
  * ```
  */
 export function pnn50(rr: number[]): number {
-  if (rr.length < 2) return 0;
+  const clean = sanitizeRR(rr);
+  if (clean.length < 2) return 0;
 
   let count = 0;
-  for (let i = 1; i < rr.length; i++) {
-    if (Math.abs(rr[i]! - rr[i - 1]!) > 50) {
+  for (let i = 1; i < clean.length; i++) {
+    if (Math.abs(clean[i]! - clean[i - 1]!) > 50) {
       count++;
     }
   }
 
-  return (count / (rr.length - 1)) * 100;
+  return (count / (clean.length - 1)) * 100;
 }
 
 /**
  * Mean heart rate derived from RR intervals.
  *
+ * Non-finite and non-positive values are filtered before computation.
+ *
  * @param rr - Array of RR intervals in milliseconds.
- * @returns Mean heart rate in BPM. Returns 0 if array is empty.
+ * @returns Mean heart rate in BPM. Returns 0 if no valid intervals.
  *
  * @example
  * ```ts
@@ -86,9 +102,10 @@ export function pnn50(rr: number[]): number {
  * ```
  */
 export function meanHR(rr: number[]): number {
-  if (rr.length === 0) return 0;
+  const clean = sanitizeRR(rr);
+  if (clean.length === 0) return 0;
 
-  const meanRR = rr.reduce((sum, v) => sum + v, 0) / rr.length;
+  const meanRR = clean.reduce((sum, v) => sum + v, 0) / clean.length;
   if (meanRR <= 0) return 0;
 
   return 60000 / meanRR;
