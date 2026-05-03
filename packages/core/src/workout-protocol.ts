@@ -119,8 +119,8 @@ export class WorkoutEngine {
   /** Observable: emits the current workout state. */
   readonly state$: ReadableStream<WorkoutState> = this.stateStream;
 
-  constructor(protocol: WorkoutProtocol, zoneConfig: HRZoneConfig) {
-    this.zoneConfig = zoneConfig;
+  constructor(protocol: WorkoutProtocol, zoneConfig?: HRZoneConfig) {
+    this.zoneConfig = zoneConfig ?? { maxHR: 200, zones: [0.6, 0.7, 0.8, 0.9] };
     this.expandedSteps = expandSteps(protocol.steps);
   }
 
