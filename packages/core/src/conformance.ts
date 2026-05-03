@@ -16,7 +16,11 @@ import { ParseError } from './errors.js';
 import { parseHeartRate } from './gatt-parser.js';
 import type { HRPacket } from './types.js';
 
-/** Schema version of the conformance fixture format. Increment on breaking changes. */
+/**
+ * Schema version of the conformance fixture format. Increment on breaking changes.
+ *
+ * @internal Used by conformance test infrastructure.
+ */
 export const CONFORMANCE_FIXTURE_SCHEMA = 1;
 
 /** A single recorded BLE GATT notification (raw bytes + timestamp). */

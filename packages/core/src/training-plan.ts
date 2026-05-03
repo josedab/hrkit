@@ -15,6 +15,30 @@ import type { WorkoutProtocol } from './workout-protocol.js';
 
 // ── Types ───────────────────────────────────────────────────────────────
 
+/**
+ * A multi-week periodized training program built on the Workout DSL.
+ *
+ * Plans follow a hierarchical structure: **Plan → Blocks → Weeks → Days**.
+ * Each day carries a DSL string that is lazily parsed into a
+ * {@link WorkoutProtocol} by the {@link PlanRunner}.
+ *
+ * @example
+ * ```ts
+ * const plan: TrainingPlan = {
+ *   id: 'base-8wk',
+ *   name: '8-Week Base Building',
+ *   version: 1,
+ *   blocks: [
+ *     { name: 'Aerobic Base', weeks: [{ weekNumber: 1, days: [
+ *       { dayOfWeek: 1, dsl: 'name: Easy Run\nwork 30m @zone 2' },
+ *       { dayOfWeek: 3, dsl: 'name: Tempo\nwork 20m @zone 3' },
+ *       { dayOfWeek: 5, dsl: 'name: Long Run\nwork 60m @zone 2' },
+ *     ]}]},
+ *   ],
+ *   tags: ['running', 'base'],
+ * };
+ * ```
+ */
 export interface TrainingPlan {
   /** Plan identifier. */
   id: string;
@@ -63,6 +87,15 @@ export interface TrainingDay {
   notes?: string;
 }
 
+/**
+ * Snapshot of the athlete's progress through a {@link TrainingPlan}.
+ *
+ * @example
+ * ```ts
+ * const progress = runner.currentProgress;
+ * console.log(`Week ${progress.weekIndex + 1}, compliance: ${(progress.complianceRate * 100).toFixed(0)}%`);
+ * ```
+ */
 export interface PlanProgress {
   /** Current block index (0-based). */
   blockIndex: number;
@@ -161,7 +194,12 @@ export class PlanRunner {
     return this.plan.blocks[this.progress.blockIndex] ?? null;
   }
 
-  /** Mark a day as completed. */
+  /**
+   * Mark a day as completed. Updates compliance rate and total count.
+   * Duplicate calls for the same day are no-ops.
+   *
+   * @param dayOfWeek - Day of week (0=Sunday … 6=Saturday).
+   */
   markCompleted(dayOfWeek: number): void {
     if (!this.progress.completedDays.includes(dayOfWeek)) {
       this.progress.completedDays.push(dayOfWeek);
@@ -170,7 +208,12 @@ export class PlanRunner {
     }
   }
 
-  /** Mark a day as skipped. */
+  /**
+   * Mark a day as skipped. Lowers the compliance rate.
+   * Duplicate calls for the same day are no-ops.
+   *
+   * @param dayOfWeek - Day of week (0=Sunday … 6=Saturday).
+   */
   markSkipped(dayOfWeek: number): void {
     if (!this.progress.skippedDays.includes(dayOfWeek)) {
       this.progress.skippedDays.push(dayOfWeek);
@@ -179,8 +222,10 @@ export class PlanRunner {
   }
 
   /**
-   * Advance to the next week. Returns true if there's a next week,
-   * false if the plan is completed.
+   * Advance to the next week (or next block if the current block is exhausted).
+   * Resets the completed/skipped day lists for the new week.
+   *
+   * @returns `true` if there is a next week; `false` if the plan is complete.
    */
   advanceWeek(): boolean {
     const block = this.plan.blocks[this.progress.blockIndex];
@@ -201,7 +246,11 @@ export class PlanRunner {
     return true;
   }
 
-  /** Get a summary of the week's remaining sessions. */
+  /**
+   * Get a summary of the current week's session counts.
+   *
+   * @returns Breakdown of total, completed, remaining, and rest day counts.
+   */
   getWeekSummary(): { total: number; completed: number; remaining: number; restDays: number } {
     const week = this.getCurrentWeek();
     if (!week) return { total: 0, completed: 0, remaining: 0, restDays: 0 };

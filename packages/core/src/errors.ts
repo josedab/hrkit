@@ -175,8 +175,18 @@ export function isRetryable(err: unknown): boolean {
 }
 
 /**
- * Format any error into a stable single-line string for logs. Includes
- * code, status, and request id when present.
+ * Format any error into a stable single-line string suitable for structured
+ * logs. Includes code, HTTP status, and request ID when available.
+ *
+ * @param err - The caught error value (may be non-Error).
+ * @returns A human-readable single-line error description.
+ *
+ * @example
+ * ```ts
+ * try { await upload(session); }
+ * catch (err) { logger.error(formatError(err)); }
+ * // "RateLimitError: Too many requests code=RATE_LIMITED status=429"
+ * ```
  */
 export function formatError(err: unknown): string {
   if (err instanceof HRKitError) {

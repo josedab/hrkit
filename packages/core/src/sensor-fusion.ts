@@ -111,7 +111,11 @@ export class SensorFusion {
     };
   }
 
-  /** Register a sensor source. */
+  /**
+   * Register a sensor source with its type-based quality prior.
+   *
+   * @param source - Source descriptor including ID, label, and sensor type.
+   */
   addSource(source: SensorSource): void {
     this.sources.set(source.id, {
       source,
@@ -125,12 +129,24 @@ export class SensorFusion {
     });
   }
 
-  /** Remove a sensor source. */
+  /**
+   * Remove a sensor source and discard its state.
+   *
+   * @param id - The source ID to remove.
+   */
   removeSource(id: string): void {
     this.sources.delete(id);
   }
 
-  /** Push a new reading from a source. */
+  /**
+   * Push a new HR reading from a registered source.
+   *
+   * Updates the per-source Kalman filter and quality score. Readings from
+   * unknown source IDs are silently ignored. Artifacts (>30 bpm jump in
+   * <2 s) degrade the source's quality score.
+   *
+   * @param reading - The heart rate reading with source ID, HR, and timestamp.
+   */
   pushReading(reading: SensorReading): void {
     const state = this.sources.get(reading.sourceId);
     if (!state) return;
@@ -201,7 +217,11 @@ export class SensorFusion {
     };
   }
 
-  /** Get per-source quality scores. */
+  /**
+   * Get per-source quality scores (0–1) for all registered sources.
+   *
+   * @returns Map from source ID to quality score.
+   */
   getSourceQualities(): Map<string, number> {
     const result = new Map<string, number>();
     for (const [id, state] of this.sources) {
@@ -210,7 +230,10 @@ export class SensorFusion {
     return result;
   }
 
-  /** Get all registered source IDs. */
+  /** Get all registered source IDs.
+   *
+   * @returns Array of source ID strings.
+   */
   get sourceIds(): string[] {
     return Array.from(this.sources.keys());
   }

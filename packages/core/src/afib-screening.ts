@@ -104,8 +104,18 @@ export function shannonEntropyRR(rr: number[]): number {
 /**
  * Compute Poincaré plot descriptors (SD1, SD2) from RR intervals.
  *
- * SD1 = short-term variability (beat-to-beat), sensitive to parasympathetic
- * SD2 = long-term variability, reflects overall variability
+ * SD1 = short-term variability (beat-to-beat), sensitive to parasympathetic tone.
+ * SD2 = long-term variability, reflects overall HRV including sympathetic input.
+ *
+ * @param rr - RR intervals in milliseconds (minimum 3 required).
+ * @returns Object with `sd1` and `sd2` in milliseconds. Returns zeros for insufficient data.
+ *
+ * @example
+ * ```ts
+ * const { sd1, sd2 } = poincareDescriptors(rrIntervals);
+ * const ratio = sd2 > 0 ? sd1 / sd2 : 0;
+ * console.log(ratio > 0.6 ? 'Possible irregularity' : 'Normal variability');
+ * ```
  */
 export function poincareDescriptors(rr: number[]): { sd1: number; sd2: number } {
   if (rr.length < 3) return { sd1: 0, sd2: 0 };
@@ -141,6 +151,15 @@ export function poincareDescriptors(rr: number[]): { sd1: number; sd2: number } 
  * A turning point occurs when RR[i] is a local extremum. For random data,
  * the expected ratio is 2/3 ≈ 0.667. Significantly higher ratios suggest
  * irregularity; lower ratios suggest trending patterns.
+ *
+ * @param rr - RR intervals in milliseconds (minimum 3 required).
+ * @returns Turning point ratio (0–1). Returns 0 for insufficient data.
+ *
+ * @example
+ * ```ts
+ * const tpr = turningPointRatio(rrIntervals);
+ * console.log(Math.abs(tpr - 0.667) > 0.1 ? 'Non-sinus pattern' : 'Normal');
+ * ```
  */
 export function turningPointRatio(rr: number[]): number {
   if (rr.length < 3) return 0;

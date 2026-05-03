@@ -34,6 +34,8 @@ export interface SessionMigrator {
  *
  * Currently empty because v1 is the initial released schema. The first real
  * migrator (v1 → v2) will land alongside the next breaking change.
+ *
+ * @internal Exposed for testing; most consumers should use {@link migrateSession} directly.
  */
 export const BUILTIN_MIGRATORS: readonly SessionMigrator[] = [];
 
@@ -92,6 +94,8 @@ export function migrateSession(
  * here (rather than published as a `.json`) so consumers get the same shape
  * regardless of how they install — and so we can refuse drift via a test that
  * compares the schema's fields against the TypeScript `Session` keys.
+ *
+ * @internal Primarily for validation tooling and test infrastructure.
  */
 export const SESSION_JSON_SCHEMA = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',

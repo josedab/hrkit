@@ -30,7 +30,11 @@ export interface Logger {
   error(msg: string, meta?: Record<string, unknown>): void;
 }
 
-/** No-op logger used when no logger is registered. */
+/**
+ * No-op logger used when no logger is registered.
+ *
+ * @internal Prefer {@link setLogger} to configure logging.
+ */
 export const NoopLogger: Logger = Object.freeze({
   debug() {},
   info() {},
@@ -39,8 +43,9 @@ export const NoopLogger: Logger = Object.freeze({
 });
 
 /**
- * Console-backed logger. Useful for examples and tests; not recommended for
- * production where you should plug in a structured logger.
+ * Console-backed logger. Useful for quick debugging and examples.
+ *
+ * @internal For production, plug in a structured logger (pino, winston) via {@link setLogger}.
  */
 export const ConsoleLogger: Logger = Object.freeze({
   debug: (m: string, meta?: Record<string, unknown>) => console.debug(m, redact(meta)),
@@ -101,13 +106,20 @@ const INLINE_SECRET_PATTERNS: RegExp[] = [
   /(password\s*[:=]\s*)([^\s,;]+)/gi,
 ];
 
-/** Replacement marker used wherever a secret was redacted. */
+/**
+ * Replacement marker used wherever a secret was redacted.
+ *
+ * @internal Used by the redaction pipeline; not intended for consumer use.
+ */
 export const REDACTED = '[REDACTED]';
 
 /**
  * Recursively redact secrets from arbitrary log payloads. Safe on cyclic
  * structures (tracked via `WeakSet`). Returns a deep copy — never mutates
  * the input.
+ *
+ * @internal Used automatically by {@link ConsoleLogger}. Custom loggers should
+ *   call this explicitly if they log raw objects.
  */
 export function redact<T>(value: T, seen: WeakSet<object> = new WeakSet()): T {
   if (value == null) return value;
