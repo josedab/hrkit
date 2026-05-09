@@ -8,6 +8,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "bench": "vitest bench",
     "validate:corpus": "node scripts/validate-corpus.mjs",
     "lint": "pnpm -r --parallel run typecheck",
     "format": "biome format --write .",
