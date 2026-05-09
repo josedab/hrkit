@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   BJJ_ROUNDS,
+  createBrowserCues,
   MAF_45,
   NORWEGIAN_4X4,
   PROTOCOL_LIBRARY,
@@ -158,5 +159,70 @@ describe('WorkoutCues', () => {
     cues.tick(2, 0);
     cues.tick(1, 0);
     expect(sp.spoken).toEqual(['3', '2', '1']);
+  });
+});
+
+describe('WorkoutCues.cancel', () => {
+  it('calls speaker.cancel when available', () => {
+    const cancel = vi.fn();
+    const cues = new WorkoutCues({ speak: vi.fn(), cancel });
+    cues.cancel();
+    expect(cancel).toHaveBeenCalled();
+  });
+
+  it('does not throw when speaker.cancel is undefined', () => {
+    const cues = new WorkoutCues({ speak: vi.fn() });
+    expect(() => cues.cancel()).not.toThrow();
+  });
+});
+
+describe('WorkoutCues.announceStep with hrRange target', () => {
+  it('announces step with HR range target', () => {
+    const speak = vi.fn();
+    const cues = new WorkoutCues({ speak });
+    cues.announceStep({ name: 'Tempo', durationSec: 120, target: { hrRange: [140, 160] } }, 0);
+    expect(speak).toHaveBeenCalledWith(expect.stringContaining('target 140 to 160 BPM'));
+  });
+
+  it('announces step with zone target', () => {
+    const speak = vi.fn();
+    const cues = new WorkoutCues({ speak });
+    cues.announceStep({ name: 'Hard', durationSec: 60, target: { zone: 4 } }, 0);
+    expect(speak).toHaveBeenCalledWith(expect.stringContaining('target zone 4'));
+  });
+
+  it('announces step with no target', () => {
+    const speak = vi.fn();
+    const cues = new WorkoutCues({ speak });
+    cues.announceStep({ name: 'Free', durationSec: 30 }, 0);
+    expect(speak).toHaveBeenCalledWith('Free for 30 seconds');
+  });
+
+  it('formats duration as minutes plural', () => {
+    const speak = vi.fn();
+    const cues = new WorkoutCues({ speak });
+    cues.announceStep({ name: 'Steady', durationSec: 300 }, 0);
+    expect(speak).toHaveBeenCalledWith('Steady for 5 minutes');
+  });
+
+  it('formats duration as 1 minute singular', () => {
+    const speak = vi.fn();
+    const cues = new WorkoutCues({ speak });
+    cues.announceStep({ name: 'Quick', durationSec: 60 }, 0);
+    expect(speak).toHaveBeenCalledWith('Quick for 1 minute');
+  });
+
+  it('formats duration with minutes and seconds', () => {
+    const speak = vi.fn();
+    const cues = new WorkoutCues({ speak });
+    cues.announceStep({ name: 'Mix', durationSec: 90 }, 0);
+    expect(speak).toHaveBeenCalledWith('Mix for 1 minute 30 seconds');
+  });
+});
+
+describe('createBrowserCues', () => {
+  it('returns null when window is undefined', () => {
+    const result = createBrowserCues();
+    expect(result).toBeNull();
   });
 });

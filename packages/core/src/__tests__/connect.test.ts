@@ -107,6 +107,35 @@ describe('MockTransport', () => {
     await expect(transport.connect('unknown', GENERIC_HR)).rejects.toThrow('No fixture');
   });
 
+  it('falls back to discovered device when scan stream ends', async () => {
+    const fixture = {
+      device: { id: 'generic-001', name: 'Generic HR', rssi: -60 },
+      packets: [{ timestamp: 0, hr: 72, rrIntervals: [833], contactDetected: true }],
+    };
+    const transport = new MockTransport(fixture);
+    const specificProfile: DeviceProfile = {
+      brand: 'Specific',
+      model: 'X9000',
+      namePrefix: 'X9000',
+      capabilities: ['heartRate'],
+      serviceUUIDs: [GATT_HR_SERVICE_UUID],
+    };
+    const conn = await connectToDevice(transport, {
+      prefer: [specificProfile],
+      fallback: GENERIC_HR,
+      timeoutMs: 5000,
+    });
+    expect(conn.deviceId).toBe('generic-001');
+  });
+
+  it('throws DeviceNotFoundError when no profiles specified', async () => {
+    const transport = new MockTransport({
+      device: { id: 'test', name: 'Test' },
+      packets: [{ timestamp: 0, hr: 60, rrIntervals: [1000], contactDetected: true }],
+    });
+    await expect(connectToDevice(transport, { prefer: [] })).rejects.toThrow('No device profiles');
+  });
+
   it('scans and yields devices', async () => {
     const transport = new MockTransport([BJJ_SESSION_FIXTURE, CYCLING_HR_ONLY_FIXTURE]);
 
