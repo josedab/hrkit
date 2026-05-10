@@ -39,8 +39,7 @@ describe('base64EncodeString', () => {
   it('uses pure-JS fallback when btoa is unavailable', () => {
     const original = globalThis.btoa;
     try {
-      // biome-ignore lint/performance/noDelete: test needs to remove btoa
-      delete (globalThis as Record<string, unknown>).btoa;
+      Object.defineProperty(globalThis, 'btoa', { value: undefined, configurable: true, writable: true });
       expect(base64EncodeString('hello')).toBe(original('hello'));
       expect(base64EncodeString('ab')).toBe(original('ab'));
       expect(base64EncodeString('abc')).toBe(original('abc'));
@@ -53,8 +52,7 @@ describe('base64EncodeString', () => {
   it('pure-JS fallback handles all padding cases', () => {
     const original = globalThis.btoa;
     try {
-      // biome-ignore lint/performance/noDelete: test needs to remove btoa
-      delete (globalThis as Record<string, unknown>).btoa;
+      Object.defineProperty(globalThis, 'btoa', { value: undefined, configurable: true, writable: true });
       // 1 byte → 2 padding chars
       expect(base64EncodeString('a')).toBe(original('a'));
       // 2 bytes → 1 padding char
