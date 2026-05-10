@@ -99,4 +99,98 @@ describe('@hrkit/ant AntTransport', () => {
     await new Promise((r) => setTimeout(r, 5));
     expect(resolved).toBe(true);
   });
+
+  it('throws ConnectionError when stick.open() returns false', async () => {
+    const stick = new MockStick();
+    stick.open = async () => false;
+    const ch = new MockChannel('hr', 1);
+    const t = new AntTransport({ stick, channels: [ch], profileFor: () => PROFILE });
+    await expect(t.connect('ant:hr:1', PROFILE)).rejects.toThrow(/failed to open/);
+  });
+
+  it('stopScan resolves without error', async () => {
+    const stick = new MockStick();
+    const t = new AntTransport({ stick, channels: [], profileFor: () => PROFILE });
+    await expect(t.stopScan()).resolves.toBeUndefined();
+  });
+
+  it('scans multiple channels of different sensor types', async () => {
+    const stick = new MockStick();
+    const hrCh = new MockChannel('hr', 1);
+    const pwrCh = new MockChannel('power', 2);
+    const cadCh = new MockChannel('cadence', 3);
+    const spdCh = new MockChannel('speed', 4);
+    const t = new AntTransport({
+      stick,
+      channels: [hrCh, pwrCh, cadCh, spdCh],
+      profileFor: () => PROFILE,
+    });
+    const devices = [];
+    for await (const d of t.scan()) devices.push(d);
+    expect(devices).toHaveLength(4);
+    expect(devices[0]!.id).toBe('ant:hr:1');
+    expect(devices[1]!.id).toBe('ant:power:2');
+    expect(devices[2]!.id).toBe('ant:cadence:3');
+    expect(devices[3]!.id).toBe('ant:speed:4');
+  });
+
+  it('does not reopen stick on second connect', async () => {
+    const stick = new MockStick();
+    let openCount = 0;
+    const origOpen = stick.open.bind(stick);
+    stick.open = async () => {
+      openCount++;
+      return origOpen();
+    };
+    const ch1 = new MockChannel('hr', 1);
+    const ch2 = new MockChannel('hr', 2);
+    const t = new AntTransport({ stick, channels: [ch1, ch2], profileFor: () => PROFILE });
+    await t.connect('ant:hr:1', PROFILE);
+    await t.connect('ant:hr:2', PROFILE);
+    expect(openCount).toBe(1);
+  });
+
+  it('double disconnect is idempotent', async () => {
+    const stick = new MockStick();
+    const ch = new MockChannel('hr', 5);
+    const t = new AntTransport({ stick, channels: [ch], profileFor: () => PROFILE });
+    const conn = await t.connect('ant:hr:5', PROFILE);
+    await conn.disconnect();
+    await conn.disconnect(); // should not throw
+  });
+
+  it('buffered packets are returned before waiting for new ones', async () => {
+    const stick = new MockStick();
+    const ch = new MockChannel('hr', 10);
+    const t = new AntTransport({ stick, channels: [ch], profileFor: () => PROFILE });
+    const conn = await t.connect('ant:hr:10', PROFILE);
+    // Emit data before starting iteration
+    ch.emit({ timestamp: 1, hr: 70 });
+    ch.emit({ timestamp: 2, hr: 75 });
+    const iter = conn.heartRate()[Symbol.asyncIterator]();
+    const r1 = await iter.next();
+    const r2 = await iter.next();
+    expect(r1.value).toMatchObject({ hr: 70 });
+    expect(r2.value).toMatchObject({ hr: 75 });
+    await conn.disconnect();
+  });
+
+  it('iterator return() ends the stream', async () => {
+    const stick = new MockStick();
+    const ch = new MockChannel('hr', 20);
+    const t = new AntTransport({ stick, channels: [ch], profileFor: () => PROFILE });
+    const conn = await t.connect('ant:hr:20', PROFILE);
+    const iter = conn.heartRate()[Symbol.asyncIterator]();
+    const ret = await iter.return!();
+    expect(ret.done).toBe(true);
+    const next = await iter.next();
+    expect(next.done).toBe(true);
+  });
+
+  it('close is safe when stick was never opened', async () => {
+    const stick = new MockStick();
+    const t = new AntTransport({ stick, channels: [], profileFor: () => PROFILE });
+    await expect(t.close()).resolves.toBeUndefined();
+    expect(stick.opened).toBe(false);
+  });
 });
