@@ -1,6 +1,6 @@
 import type { HRPacket } from '@hrkit/core';
-import type { BroadcastExtra, BroadcastPayload } from './index.js';
-import { buildPayload } from './index.js';
+import type { BroadcastExtra, BroadcastPayload } from './broadcast.js';
+import { buildPayload } from './broadcast.js';
 
 /**
  * Signaling protocol message types exchanged between peers via the

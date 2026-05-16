@@ -1,39 +1,14 @@
+export { type BroadcastExtra, type BroadcastPayload, buildPayload } from './broadcast.js';
 export { SDK_NAME, SDK_VERSION } from './version.js';
 
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { URL } from 'node:url';
 import type { HRPacket } from '@hrkit/core';
+import type { BroadcastExtra, BroadcastPayload } from './broadcast.js';
+import { buildPayload } from './broadcast.js';
 
 /** WebSocket OPEN readyState constant (from ws spec / WebSocket API). */
 const WS_OPEN = 1;
-
-// ── Public types ────────────────────────────────────────────────────────
-
-/** Data broadcast to clients on each HR packet. */
-export interface BroadcastPayload {
-  /** Timestamp of the HR packet. */
-  timestamp: number;
-  /** Heart rate in BPM. */
-  hr: number;
-  /** RR intervals in ms. */
-  rrIntervals: number[];
-  /** Current HR zone (1-5), if zone config provided. */
-  zone?: number;
-  /** Cumulative TRIMP, if config provided. */
-  trimp?: number;
-  /** Rolling rMSSD, if available. */
-  rmssd?: number;
-  /** Custom data from user. */
-  custom?: Record<string, unknown>;
-}
-
-/** Extra metrics to include alongside an HRPacket broadcast. */
-export interface BroadcastExtra {
-  zone?: number;
-  trimp?: number;
-  rmssd?: number;
-  custom?: Record<string, unknown>;
-}
 
 /** Configuration for the HR streaming server. */
 export interface StreamServerConfig {
@@ -57,22 +32,6 @@ export interface StreamServerConfig {
    * so one stalled consumer can't OOM the server. Default: 1 MiB.
    */
   maxBufferedBytesPerClient?: number;
-}
-
-// ── Pure helpers (exported for testing) ─────────────────────────────────
-
-/** Build a BroadcastPayload from an HRPacket and optional extras. */
-export function buildPayload(packet: HRPacket, extra?: BroadcastExtra): BroadcastPayload {
-  const payload: BroadcastPayload = {
-    timestamp: packet.timestamp,
-    hr: packet.hr,
-    rrIntervals: packet.rrIntervals,
-  };
-  if (extra?.zone !== undefined) payload.zone = extra.zone;
-  if (extra?.trimp !== undefined) payload.trimp = extra.trimp;
-  if (extra?.rmssd !== undefined) payload.rmssd = extra.rmssd;
-  if (extra?.custom !== undefined) payload.custom = extra.custom;
-  return payload;
 }
 
 // ── Resolved config with defaults ───────────────────────────────────────
@@ -366,5 +325,20 @@ export class HRStreamServer {
     }
   }
 }
-export * from './group-room.js';
-export * from './webrtc.js';
+export {
+  applyPacketToRoom,
+  DEFAULT_PRESENCE_TIMEOUT_MS,
+  type GroupRoom,
+  InMemoryRoomStore,
+  joinRoom,
+  type RoomSnapshot,
+  type RoomStore,
+  snapshotRoom,
+} from './group-room.js';
+export {
+  type DataChannelLike,
+  type RoomPeer,
+  type SignalingMessage,
+  SignalingRoom,
+  WebRTCBroadcaster,
+} from './webrtc.js';
