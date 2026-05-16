@@ -33,6 +33,18 @@ export default defineConfig({
           branches: 65,
           statements: 75,
         },
+        'packages/web/src/**': {
+          lines: 75,
+          functions: 75,
+          branches: 70,
+          statements: 75,
+        },
+        'packages/react-native/src/**': {
+          lines: 75,
+          functions: 75,
+          branches: 70,
+          statements: 75,
+        },
       },
     },
   },

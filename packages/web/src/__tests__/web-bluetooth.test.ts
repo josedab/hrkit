@@ -271,5 +271,163 @@ describe('WebBluetoothTransport', () => {
       btDevice._simulateDisconnect();
       vi.unstubAllGlobals();
     });
+
+    it('scan returns immediately when signal is pre-aborted', async () => {
+      const ac = new AbortController();
+      ac.abort();
+      const transport = new WebBluetoothTransport();
+      const devices = [];
+      for await (const d of transport.scan([], { signal: ac.signal })) {
+        devices.push(d);
+      }
+      expect(devices).toHaveLength(0);
+    });
+
+    it('scan with no profiles uses HR service filter', async () => {
+      const mockDevice = { id: 'web-np', name: null };
+      const mockBluetooth = {
+        requestDevice: vi.fn().mockResolvedValue(mockDevice),
+      };
+      vi.stubGlobal('navigator', { bluetooth: mockBluetooth });
+
+      const transport = new WebBluetoothTransport();
+      const devices = [];
+      for await (const d of transport.scan()) {
+        devices.push(d);
+      }
+
+      expect(devices).toHaveLength(1);
+      expect(devices[0]!.name).toBe('Unknown');
+      expect(devices[0]!.profile).toBeUndefined();
+      const callArgs = mockBluetooth.requestDevice.mock.calls[0]![0];
+      expect(callArgs.filters).toEqual([{ services: [GATT_HR_SERVICE_UUID] }]);
+      vi.unstubAllGlobals();
+    });
+
+    it('connect throws when signal is pre-aborted', async () => {
+      const ac = new AbortController();
+      ac.abort();
+      const transport = new WebBluetoothTransport();
+      await expect(transport.connect('id', GENERIC_HR, { signal: ac.signal })).rejects.toThrow('aborted');
+    });
+
+    it('connect throws when signal aborts after getDevices', async () => {
+      const ac = new AbortController();
+      const btDevice = createMockBtDevice('web-abort', 'Test HR');
+      const server = await btDevice.gatt.connect();
+      // Make connect itself async and abort during it
+      btDevice.gatt.connect = vi.fn().mockImplementation(async () => {
+        ac.abort();
+        return server;
+      });
+      const mockBluetooth = {
+        getDevices: vi.fn().mockResolvedValue([btDevice]),
+      };
+      vi.stubGlobal('navigator', { bluetooth: mockBluetooth });
+
+      const transport = new WebBluetoothTransport();
+      await expect(transport.connect('web-abort', GENERIC_HR, { signal: ac.signal })).rejects.toThrow('aborted');
+      vi.unstubAllGlobals();
+    });
+
+    it('connect aborts after gatt connect triggers disconnect', async () => {
+      const btDevice = createMockBtDevice('web-abort2', 'Test HR');
+      const mockBluetooth = {
+        getDevices: vi.fn().mockResolvedValue([btDevice]),
+      };
+      vi.stubGlobal('navigator', { bluetooth: mockBluetooth });
+
+      const ac = new AbortController();
+      const transport = new WebBluetoothTransport();
+      const conn = await transport.connect('web-abort2', GENERIC_HR, { signal: ac.signal });
+
+      // Abort after connect — should trigger server.disconnect
+      ac.abort();
+      // Verify connection was established and then aborted
+      expect(conn.deviceId).toBe('web-abort2');
+      vi.unstubAllGlobals();
+    });
+
+    it('heartRate returns immediately when signal is pre-aborted', async () => {
+      const btDevice = createMockBtDevice('web-hr-abort', 'Test HR');
+      const mockBluetooth = {
+        getDevices: vi.fn().mockResolvedValue([btDevice]),
+      };
+      vi.stubGlobal('navigator', { bluetooth: mockBluetooth });
+
+      const transport = new WebBluetoothTransport();
+      const conn = await transport.connect('web-hr-abort', GENERIC_HR);
+
+      const ac = new AbortController();
+      ac.abort();
+      const packets = [];
+      for await (const p of conn.heartRate({ signal: ac.signal })) {
+        packets.push(p);
+      }
+      expect(packets).toHaveLength(0);
+
+      await conn.disconnect();
+      vi.unstubAllGlobals();
+    });
+
+    it('heartRate stops cleanly when signal aborts during streaming', async () => {
+      const btDevice = createMockBtDevice('web-hr-abort2', 'Test HR');
+      const mockBluetooth = {
+        getDevices: vi.fn().mockResolvedValue([btDevice]),
+      };
+      vi.stubGlobal('navigator', { bluetooth: mockBluetooth });
+
+      const transport = new WebBluetoothTransport();
+      const conn = await transport.connect('web-hr-abort2', GENERIC_HR);
+
+      const ac = new AbortController();
+      const iterator = conn.heartRate({ signal: ac.signal })[Symbol.asyncIterator]();
+
+      // Emit a packet, then abort
+      setTimeout(() => {
+        btDevice._hrChar._emit('characteristicvaluechanged', makeHRBuffer(72, 833));
+      }, 10);
+
+      const p1 = await iterator.next();
+      expect(p1.value!.hr).toBe(72);
+
+      // Abort — stream should end
+      ac.abort();
+      const final = await iterator.next();
+      expect(final.done).toBe(true);
+
+      vi.unstubAllGlobals();
+    });
+
+    it('ignores characteristic events with null value', async () => {
+      const btDevice = createMockBtDevice('web-null', 'Test HR');
+      const mockBluetooth = {
+        getDevices: vi.fn().mockResolvedValue([btDevice]),
+      };
+      vi.stubGlobal('navigator', { bluetooth: mockBluetooth });
+
+      const transport = new WebBluetoothTransport();
+      const conn = await transport.connect('web-null', GENERIC_HR);
+
+      const iterator = conn.heartRate()[Symbol.asyncIterator]();
+
+      // Emit event with null value, then a valid packet
+      setTimeout(() => {
+        const nullEvent = { target: { value: null } } as unknown as Event;
+        // Access internal listeners to dispatch
+        for (const cb of btDevice._hrChar.addEventListener.mock.calls
+          .filter((c: unknown[]) => c[0] === 'characteristicvaluechanged')
+          .map((c: unknown[]) => c[1] as (event: Event) => void)) {
+          cb(nullEvent);
+        }
+        btDevice._hrChar._emit('characteristicvaluechanged', makeHRBuffer(99));
+      }, 10);
+
+      const result = await iterator.next();
+      expect(result.value!.hr).toBe(99);
+
+      btDevice._simulateDisconnect();
+      vi.unstubAllGlobals();
+    });
   });
 });

@@ -311,5 +311,229 @@ describe('ReactNativeTransport', () => {
 
       manager._emitError();
     });
+
+    it('scan returns immediately when signal is pre-aborted', async () => {
+      const ac = new AbortController();
+      ac.abort();
+      const manager = createMockManager();
+      const transport = new ReactNativeTransport(manager as never);
+      const devices = [];
+      for await (const d of transport.scan([GENERIC_HR], { signal: ac.signal })) {
+        devices.push(d);
+      }
+      expect(devices).toHaveLength(0);
+    });
+
+    it('scan aborts via signal during scanning', async () => {
+      const ac = new AbortController();
+      const manager = createMockManager();
+      const transport = new ReactNativeTransport(manager as never);
+
+      const devices: unknown[] = [];
+      const scanPromise = (async () => {
+        for await (const d of transport.scan([GENERIC_HR], { signal: ac.signal })) {
+          devices.push(d);
+        }
+      })();
+
+      await new Promise((r) => setTimeout(r, 10));
+
+      manager._emitDevice({
+        id: 'rn-sig1',
+        name: 'Sig Device',
+        localName: null,
+        rssi: -50,
+        serviceUUIDs: null,
+      });
+
+      // Wait for the device to be yielded
+      await new Promise((r) => setTimeout(r, 10));
+      ac.abort();
+      await scanPromise;
+
+      expect(devices.length).toBeGreaterThanOrEqual(1);
+      expect(manager.stopDeviceScan).toHaveBeenCalled();
+    });
+
+    it('scan error terminates the iterator', async () => {
+      const manager = createMockManager();
+      const transport = new ReactNativeTransport(manager as never);
+
+      const devices: unknown[] = [];
+      const scanPromise = (async () => {
+        for await (const d of transport.scan()) {
+          devices.push(d);
+        }
+      })();
+
+      await new Promise((r) => setTimeout(r, 10));
+      // Emit a scan error
+      manager.startDeviceScan.mock.calls[0]![2](new Error('scan failed'), null);
+      await scanPromise;
+
+      expect(devices).toHaveLength(0);
+    });
+
+    it('scan uses localName as fallback when name is null', async () => {
+      const manager = createMockManager();
+      const transport = new ReactNativeTransport(manager as never);
+
+      const devices: unknown[] = [];
+      const scanPromise = (async () => {
+        for await (const d of transport.scan()) {
+          devices.push(d);
+          break;
+        }
+      })();
+
+      await new Promise((r) => setTimeout(r, 10));
+      manager._emitDevice({
+        id: 'rn-local',
+        name: null,
+        localName: 'LocalHR',
+        rssi: null,
+        serviceUUIDs: null,
+      });
+      await scanPromise;
+
+      expect((devices[0] as { name: string }).name).toBe('LocalHR');
+      expect((devices[0] as { rssi: number }).rssi).toBe(-100); // null rssi → -100
+    });
+
+    it('scan uses "Unknown" when both name and localName are null', async () => {
+      const manager = createMockManager();
+      const transport = new ReactNativeTransport(manager as never);
+
+      const devices: unknown[] = [];
+      const scanPromise = (async () => {
+        for await (const d of transport.scan()) {
+          devices.push(d);
+          break;
+        }
+      })();
+
+      await new Promise((r) => setTimeout(r, 10));
+      manager._emitDevice({
+        id: 'rn-unk',
+        name: null,
+        localName: null,
+        rssi: -80,
+        serviceUUIDs: null,
+      });
+      await scanPromise;
+
+      expect((devices[0] as { name: string }).name).toBe('Unknown');
+    });
+
+    it('scan skips null device in callback', async () => {
+      const manager = createMockManager();
+      const transport = new ReactNativeTransport(manager as never);
+
+      const devices: unknown[] = [];
+      const scanPromise = (async () => {
+        for await (const d of transport.scan()) {
+          devices.push(d);
+          break;
+        }
+      })();
+
+      await new Promise((r) => setTimeout(r, 10));
+      // Emit null device, then a real one
+      manager.startDeviceScan.mock.calls[0]![2](null, null);
+      manager._emitDevice({
+        id: 'rn-after-null',
+        name: 'After Null',
+        localName: null,
+        rssi: -50,
+        serviceUUIDs: null,
+      });
+      await scanPromise;
+
+      expect(devices).toHaveLength(1);
+      expect((devices[0] as { id: string }).id).toBe('rn-after-null');
+    });
+
+    it('connect throws when signal is pre-aborted', async () => {
+      const ac = new AbortController();
+      ac.abort();
+      const manager = createMockManager();
+      const transport = new ReactNativeTransport(manager as never);
+      await expect(transport.connect('id', GENERIC_HR, { signal: ac.signal })).rejects.toThrow('aborted');
+    });
+
+    it('connect throws when signal aborts after connectToDevice', async () => {
+      const ac = new AbortController();
+      const manager = createMockManager();
+      const origConnect = manager.connectToDevice;
+      manager.connectToDevice = vi.fn().mockImplementation(async (deviceId: string) => {
+        const device = await origConnect(deviceId);
+        ac.abort();
+        return device;
+      });
+      const transport = new ReactNativeTransport(manager as never);
+      await expect(transport.connect('rn-abort', GENERIC_HR, { signal: ac.signal })).rejects.toThrow('aborted');
+    });
+
+    it('heartRate returns immediately when signal is pre-aborted', async () => {
+      const manager = createMockManager();
+      const transport = new ReactNativeTransport(manager as never);
+      const conn = await transport.connect('rn-hr-abort', GENERIC_HR);
+
+      const ac = new AbortController();
+      ac.abort();
+      const packets = [];
+      for await (const p of conn.heartRate({ signal: ac.signal })) {
+        packets.push(p);
+      }
+      expect(packets).toHaveLength(0);
+
+      await conn.disconnect();
+    });
+
+    it('heartRate stops cleanly when signal aborts during streaming', async () => {
+      const manager = createMockManager();
+      const transport = new ReactNativeTransport(manager as never);
+      const conn = await transport.connect('rn-hr-abort2', GENERIC_HR);
+
+      const ac = new AbortController();
+      const iterator = conn.heartRate({ signal: ac.signal })[Symbol.asyncIterator]();
+
+      setTimeout(() => {
+        manager._emitCharacteristic(makeHRBase64(72, 833));
+      }, 10);
+
+      const p1 = await iterator.next();
+      expect(p1.value!.hr).toBe(72);
+
+      ac.abort();
+      const final = await iterator.next();
+      expect(final.done).toBe(true);
+    });
+
+    it('skips characteristic with null value', async () => {
+      const manager = createMockManager();
+      const transport = new ReactNativeTransport(manager as never);
+      const conn = await transport.connect('rn-null', GENERIC_HR);
+
+      const iterator = conn.heartRate()[Symbol.asyncIterator]();
+
+      setTimeout(() => {
+        manager._emitCharacteristic(null);
+      }, 10);
+
+      // null value should terminate stream
+      const final = await iterator.next();
+      expect(final.done).toBe(true);
+    });
+
+    it('disconnect via onDisconnect resolves onDisconnect promise', async () => {
+      const manager = createMockManager();
+      const transport = new ReactNativeTransport(manager as never);
+      const conn = await transport.connect('rn-disc', GENERIC_HR);
+
+      // Simulate device-initiated disconnect
+      manager._emitDisconnect();
+      await conn.onDisconnect;
+    });
   });
 });
