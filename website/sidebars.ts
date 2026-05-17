@@ -83,6 +83,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'reference/core-api',
         'reference/polar-api',
+        'reference/api-stability',
         'reference/device-compatibility',
         {
           type: 'category',
