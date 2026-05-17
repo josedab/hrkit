@@ -379,3 +379,42 @@ describe('backpressure', () => {
     expect(server.getSlowClientDrops()).toBe(1);
   });
 });
+
+describe('SSE disabled', () => {
+  let server: HRStreamServer;
+
+  afterEach(async () => {
+    if (server?.isRunning) await server.stop();
+  });
+
+  it('returns 404 when SSE is disabled', async () => {
+    const port = 18000 + Math.floor(Math.random() * 1000);
+    server = new HRStreamServer({ port, enableWebSocket: false, enableSSE: false });
+    await server.start();
+
+    const res = await fetch(`http://127.0.0.1:${port}/sse`);
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.error).toBe('SSE disabled');
+  });
+});
+
+describe('broadcastRaw edge cases', () => {
+  it('broadcastRaw to zero clients does not throw', () => {
+    const server = new HRStreamServer({ enableWebSocket: false, enableSSE: false });
+    expect(() => {
+      server.broadcastRaw(buildPayload(makePacket()));
+    }).not.toThrow();
+  });
+
+  it('skips WS clients that are not in OPEN state', () => {
+    const server = new HRStreamServer({ maxRateHz: 1000 });
+    const sent: string[] = [];
+    const closedClient = { readyState: 3, bufferedAmount: 0, send: (s: string) => sent.push(s) };
+    (server as unknown as { wsServer: { clients: Set<unknown> } }).wsServer = {
+      clients: new Set([closedClient]),
+    };
+    server.broadcastRaw(buildPayload(makePacket()));
+    expect(sent).toHaveLength(0);
+  });
+});
