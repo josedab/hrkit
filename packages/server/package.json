@@ -20,7 +20,7 @@
     "@hrkit/core": "workspace:*"
   },
   "peerDependencies": {
-    "ws": "^8.0.0"
+    "ws": "^8.20.1"
   },
   "peerDependenciesMeta": {
     "ws": {
@@ -32,7 +32,7 @@
     "@types/ws": "^8.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0",
-    "ws": "^8.0.0"
+    "ws": "^8.20.1"
   },
   "files": [
     "dist"
