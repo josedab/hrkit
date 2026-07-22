@@ -22,6 +22,9 @@
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit -p tsconfig.lint.json"
   },
+  "dependencies": {
+    "@hrkit/core": "workspace:*"
+  },
   "devDependencies": {
     "tsup": "^8.0.0",
     "typescript": "^5.4.0"

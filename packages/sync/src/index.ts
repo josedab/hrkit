@@ -3,7 +3,7 @@
  *
  * Re-exports from focused modules:
  *   - crdt-log.ts   — CrdtLog, LogEntry, SyncLogger
- *   - stores.ts     — SyncStore, MemoryStore, IndexedDBStore
+ *   - stores.ts     — SyncStore, MemoryStore, createIndexedDBStore
  *   - engine.ts     — SyncEngine, SyncMessage, SyncTransport
  *   - transports.ts — WebSocket, Reconnecting, MockPair
  */

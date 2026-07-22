@@ -33,30 +33,59 @@ export interface DisposableSyncStore<T = unknown> extends SyncStore<T> {
  * throws synchronously if `indexedDB` isn't available.
  */
 export function createIndexedDBStore<T = unknown>(dbName: string, storeName = 'hrkit-sync'): DisposableSyncStore<T> {
-  const idb = (globalThis as { indexedDB?: IDBFactory }).indexedDB;
-  if (!idb) throw new HRKitError('IndexedDB is not available in this runtime', 'ENV_UNSUPPORTED');
+  const factory = (globalThis as { indexedDB?: IDBFactory }).indexedDB;
+  if (factory === undefined) throw new HRKitError('IndexedDB is not available in this runtime', 'ENV_UNSUPPORTED');
+  const indexedDBFactory: IDBFactory = factory;
 
   let cached: IDBDatabase | undefined;
   let openP: Promise<IDBDatabase> | undefined;
 
+  function requestDatabase(version?: number): Promise<IDBDatabase> {
+    return new Promise<IDBDatabase>((resolve, reject) => {
+      const request = version === undefined ? indexedDBFactory.open(dbName) : indexedDBFactory.open(dbName, version);
+      request.onupgradeneeded = () => {
+        if (!request.result.objectStoreNames.contains(storeName)) {
+          request.result.createObjectStore(storeName);
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async function connect(): Promise<IDBDatabase> {
+    let database = await requestDatabase();
+    if (!database.objectStoreNames.contains(storeName)) {
+      const nextVersion = database.version + 1;
+      database.close();
+      database = await requestDatabase(nextVersion);
+    }
+
+    const release = () => {
+      if (cached === database) cached = undefined;
+    };
+    database.onversionchange = () => {
+      release();
+      database.close();
+    };
+    database.onclose = release;
+    return database;
+  }
+
   function open(): Promise<IDBDatabase> {
     if (cached) return Promise.resolve(cached);
     if (openP) return openP;
-    openP = new Promise<IDBDatabase>((resolve, reject) => {
-      const req = idb!.open(dbName, 1);
-      req.onupgradeneeded = () => req.result.createObjectStore(storeName);
-      req.onsuccess = () => {
-        cached = req.result;
-        cached.onclose = () => {
-          cached = undefined;
-        };
-        resolve(req.result);
-      };
-      req.onerror = () => {
+    openP = connect().then(
+      (database) => {
+        cached = database;
         openP = undefined;
-        reject(req.error);
-      };
-    });
+        return database;
+      },
+      (error: unknown) => {
+        openP = undefined;
+        throw error;
+      },
+    );
     return openP;
   }
 

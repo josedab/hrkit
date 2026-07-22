@@ -43,7 +43,10 @@ const engine = new SyncEngine(log, transport, { store });
 await engine.start();          // hydrates from store
 engine.append({ t: now(), hr: 142 });
 await engine.flush();          // wait for persists
+store.close();                 // release the IndexedDB connection when done
 ```
+
+Multiple stores can share one database name by using distinct object-store names. The factory creates missing object stores lazily and reopens the database after `close()` when it is used again.
 
 ### Reconnecting WebSocket transport
 
