@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { trimp, weeklyTRIMP } from '../trimp.js';
+import { GroupSession } from '../group-session.js';
+import { trimp, trimpIncrement, weeklyTRIMP } from '../trimp.js';
 import type { Session, TimestampedHR, TRIMPConfig } from '../types.js';
 import { SESSION_SCHEMA_VERSION } from '../types.js';
+import { TRIMPAccumulator } from '../windowed-metrics.js';
 
 const defaultConfig: TRIMPConfig = {
   maxHR: 185,
@@ -94,6 +96,47 @@ describe('trimp', () => {
 
     const withoutGap = trimp(continuous, defaultConfig);
     expect(withGap).toBeCloseTo(withoutGap, 5);
+  });
+
+  it('uses one kernel for batch, live, and group calculations', () => {
+    const samples = [0, 1000, 2000, 3000].map((timestamp) => ({ timestamp, hr: 150 }));
+    const expected = Math.round(trimp(samples, defaultConfig) * 100) / 100;
+
+    const accumulator = new TRIMPAccumulator(defaultConfig);
+    let liveTrimp = 0;
+    accumulator.trimp$.subscribe(({ trimp: value }) => {
+      liveTrimp = value;
+    });
+
+    const group = new GroupSession();
+    group.addAthlete({ id: 'athlete', name: 'Athlete', config: defaultConfig });
+
+    for (const sample of samples) {
+      accumulator.ingest(sample.hr, sample.timestamp);
+      group.ingest('athlete', {
+        ...sample,
+        rrIntervals: [],
+        contactDetected: true,
+      });
+    }
+
+    expect(liveTrimp).toBe(expected);
+    expect(group.getAthleteState('athlete')?.trimp).toBe(expected);
+  });
+});
+
+describe('trimpIncrement', () => {
+  it('preserves the inclusive 30-second gap boundary', () => {
+    expect(trimpIncrement(150, 0.5, defaultConfig)).toBeGreaterThan(0);
+    expect(trimpIncrement(150, 0.500001, defaultConfig)).toBe(0);
+  });
+
+  it('returns zero for invalid durations and heart-rate ranges', () => {
+    expect(trimpIncrement(150, 0, defaultConfig)).toBe(0);
+    expect(trimpIncrement(150, -1, defaultConfig)).toBe(0);
+    expect(trimpIncrement(150, Number.NaN, defaultConfig)).toBe(0);
+    expect(trimpIncrement(150, 0.1, { ...defaultConfig, maxHR: defaultConfig.restHR })).toBe(0);
+    expect(trimpIncrement(150, 0.1, { ...defaultConfig, maxHR: Number.NaN })).toBe(0);
   });
 });
 

@@ -1,6 +1,23 @@
 import { SEX_FACTORS } from './constants.js';
 import type { Session, TimestampedHR, TRIMPConfig } from './types.js';
 
+const TRIMP_GAIN = 0.64;
+const MAX_TRIMP_GAP_MIN = 0.5;
+
+/**
+ * Calculate one incremental Bannister TRIMP contribution.
+ * Invalid durations, gaps over 30 seconds, and invalid HR ranges contribute zero.
+ */
+export function trimpIncrement(hr: number, durationMin: number, config: TRIMPConfig): number {
+  if (!Number.isFinite(durationMin) || durationMin <= 0 || durationMin > MAX_TRIMP_GAP_MIN) return 0;
+
+  const hrRange = config.maxHR - config.restHR;
+  if (!Number.isFinite(hrRange) || hrRange <= 0) return 0;
+
+  const hrr = Math.max(0, Math.min(1, (hr - config.restHR) / hrRange));
+  return durationMin * hrr * TRIMP_GAIN * Math.exp(SEX_FACTORS[config.sex] * hrr);
+}
+
 /**
  * Bannister's TRIMP (Training Impulse).
  * TRIMP = Σ (duration_min × HRR × 0.64 × e^(sexFactor × HRR))
@@ -21,8 +38,6 @@ export function trimp(samples: TimestampedHR[], config: TRIMPConfig): number {
   if (!Number.isFinite(config.maxHR) || !Number.isFinite(config.restHR)) return 0;
   if (config.maxHR <= config.restHR) return 0;
 
-  const hrRange = config.maxHR - config.restHR;
-  const sexFactor = SEX_FACTORS[config.sex];
   let total = 0;
 
   for (let i = 0; i < samples.length - 1; i++) {
@@ -30,10 +45,7 @@ export function trimp(samples: TimestampedHR[], config: TRIMPConfig): number {
     const next = samples[i + 1]!;
     const durationMin = (next.timestamp - current.timestamp) / 60000;
 
-    if (durationMin <= 0 || durationMin > 0.5) continue; // skip gaps > 30s
-
-    const hrr = Math.max(0, Math.min(1, (current.hr - config.restHR) / hrRange));
-    total += durationMin * hrr * 0.64 * Math.exp(sexFactor * hrr);
+    total += trimpIncrement(current.hr, durationMin, config);
   }
 
   return total;

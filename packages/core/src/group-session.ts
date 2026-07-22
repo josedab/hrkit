@@ -1,5 +1,6 @@
 import { SimpleStream } from './stream.js';
-import type { HRPacket, HRZoneConfig, ReadableStream, SessionConfig } from './types.js';
+import { trimpIncrement } from './trimp.js';
+import type { HRPacket, HRZoneConfig, ReadableStream, SessionConfig, TRIMPConfig } from './types.js';
 import { hrToZone } from './zones.js';
 
 // ── Public Types ────────────────────────────────────────────────────────
@@ -74,9 +75,7 @@ interface InternalAthleteState {
   packetCount: number;
   lastPacketTime: number;
   lastTimestamp: number;
-  restHR: number;
-  maxHR: number;
-  sex: 'male' | 'female' | 'neutral';
+  trimpConfig: TRIMPConfig;
 }
 
 type Zone = 1 | 2 | 3 | 4 | 5;
@@ -108,18 +107,8 @@ export interface GroupSnapshot {
   timestamp: number;
 }
 
-// ── Sex Factor Constants ────────────────────────────────────────────────
-
-const SEX_FACTORS: Record<'male' | 'female' | 'neutral', number> = {
-  male: 1.92,
-  female: 1.67,
-  neutral: 1.8,
-};
-
 /** Default resting heart rate (BPM) when not specified in athlete config. */
 const DEFAULT_REST_HR = 60;
-/** Maximum sample gap (minutes) for incremental TRIMP calculation. Gaps exceeding this are skipped. */
-const MAX_TRIMP_GAP_MIN = 0.5;
 
 const DEFAULT_ZONES: [number, number, number, number] = [0.6, 0.7, 0.8, 0.9];
 
@@ -174,9 +163,7 @@ export class GroupSession {
       packetCount: 0,
       lastPacketTime: -1,
       lastTimestamp: -1,
-      restHR,
-      maxHR,
-      sex,
+      trimpConfig: { maxHR, restHR, sex },
     });
   }
 
@@ -220,14 +207,7 @@ export class GroupSession {
     // Accumulate TRIMP incrementally
     if (athlete.lastTimestamp >= 0) {
       const durationMin = (packet.timestamp - athlete.lastTimestamp) / 60000;
-      if (durationMin > 0 && durationMin <= MAX_TRIMP_GAP_MIN) {
-        const hrRange = athlete.maxHR - athlete.restHR;
-        if (hrRange > 0) {
-          const hrr = Math.max(0, Math.min(1, (packet.hr - athlete.restHR) / hrRange));
-          const sexFactor = SEX_FACTORS[athlete.sex];
-          athlete.trimp += durationMin * hrr * 0.64 * Math.exp(sexFactor * hrr);
-        }
-      }
+      athlete.trimp += trimpIncrement(packet.hr, durationMin, athlete.trimpConfig);
     }
     athlete.lastTimestamp = packet.timestamp;
 

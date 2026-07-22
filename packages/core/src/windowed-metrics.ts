@@ -1,6 +1,6 @@
-import { SEX_FACTORS } from './constants.js';
 import { rmssd as computeRmssd } from './hrv.js';
 import { SimpleStream } from './stream.js';
+import { trimpIncrement } from './trimp.js';
 import type { ReadableStream, TRIMPConfig } from './types.js';
 
 // ── Rolling RMSSD ───────────────────────────────────────────────────────
@@ -124,16 +124,7 @@ export class TRIMPAccumulator {
   ingest(hr: number, timestamp: number): void {
     if (this.lastTimestamp !== null) {
       const durationMin = (timestamp - this.lastTimestamp) / 60000;
-
-      // Skip gaps > 30s and negative durations
-      if (durationMin > 0 && durationMin <= 0.5) {
-        const hrRange = this.config.maxHR - this.config.restHR;
-        if (hrRange > 0) {
-          const hrr = Math.max(0, Math.min(1, (hr - this.config.restHR) / hrRange));
-          const sexFactor = SEX_FACTORS[this.config.sex];
-          this.cumulative += durationMin * hrr * 0.64 * Math.exp(sexFactor * hrr);
-        }
-      }
+      this.cumulative += trimpIncrement(hr, durationMin, this.config);
     }
 
     this.lastTimestamp = timestamp;
