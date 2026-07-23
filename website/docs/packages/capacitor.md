@@ -26,9 +26,9 @@ import { CapacitorBLETransport } from '@hrkit/capacitor';
 import { connectToDevice, GENERIC_HR } from '@hrkit/core';
 
 const transport = new CapacitorBLETransport();
-const connection = await connectToDevice(transport, GENERIC_HR);
-for await (const packet of connection.packets) {
-  console.log('HR:', packet.heartRate);
+const connection = await connectToDevice(transport, { prefer: [GENERIC_HR] });
+for await (const packet of connection.heartRate()) {
+  console.log('HR:', packet.hr);
 }
 ```
 

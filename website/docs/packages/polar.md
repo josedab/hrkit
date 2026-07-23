@@ -30,9 +30,7 @@ import { POLAR_H10, isPolarConnection } from '@hrkit/polar';
 const conn = await transport.connect(deviceId, POLAR_H10);
 
 if (isPolarConnection(conn)) {
-  // Start ECG streaming at 130 Hz
-  await conn.startECG();
-  for await (const frame of conn.ecg$) {
+  for await (const frame of conn.ecg()) {
     console.log('ECG samples:', frame.samples);
   }
 }

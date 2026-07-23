@@ -22,11 +22,16 @@ pnpm add @hrkit/sync
 ## Quick example
 
 ```typescript
-import { SyncStore } from '@hrkit/sync';
+import { CrdtLog, createIndexedDBStore } from '@hrkit/sync';
 
-const store = new SyncStore({ url: 'wss://sync.example.com' });
-await store.push(session);      // upload when online
-const all = await store.list(); // read from local cache when offline
+type HeartRateSample = { timestamp: number; hr: number };
+const store = createIndexedDBStore<HeartRateSample>('hrkit', 'session-42');
+const log = new CrdtLog<HeartRateSample>('watch');
+
+log.append({ timestamp: Date.now(), hr: 142 });
+await store.save(log.snapshot());
+const restored = await store.load();
+store.close();
 ```
 
 See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/sync#readme) for more runnable code.

@@ -108,7 +108,7 @@ player.play(8);
 // 3. When something catches your eye, pause and annotate
 player.pause();
 player.addAnnotation(
-  player.currentSampleIndex,
+  session.samples[player.currentSampleIndex]!.timestamp,
   'HR spike during guard recovery — investigate fatigue',
   { type: 'issue' }
 );

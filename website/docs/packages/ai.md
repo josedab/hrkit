@@ -22,15 +22,15 @@ pnpm add @hrkit/ai
 ## Quick example
 
 ```typescript
-import { planWeek } from '@hrkit/ai';
+import { planNextWeek } from '@hrkit/ai';
 
-const plan = await planWeek({
-  athleteProfile: { maxHR: 185, restHR: 48, weeklyHours: 6 },
-  recentSessions: sessions,
-  llm: openaiAdapter,
+const plan = await planNextWeek({
+  store: athleteStore,
+  goal: 'Build aerobic volume and threshold fitness for a race in 12 weeks',
+  llm,
 });
 
-console.log(plan.workouts); // WorkoutProtocol[] for the week
+console.log(plan.sessions); // PlannedSession[] with validated Workout DSL
 ```
 
 See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/ai#readme) for more runnable code.

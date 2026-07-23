@@ -29,9 +29,9 @@ if (!isWebBluetoothSupported()) {
   console.error('Web Bluetooth not available in this browser');
 } else {
   const transport = new WebBluetoothTransport();
-  const connection = await connectToDevice(transport, GENERIC_HR);
-  for await (const packet of connection.packets) {
-    console.log('HR:', packet.heartRate);
+  const connection = await connectToDevice(transport, { prefer: [GENERIC_HR] });
+  for await (const packet of connection.heartRate()) {
+    console.log('HR:', packet.hr);
   }
 }
 ```

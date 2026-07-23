@@ -15,21 +15,23 @@ pnpm add @hrkit/react-native
 
 ## Key features
 
-- **ReactNativeBLETransport** — wraps `react-native-ble-plx` as a `BLETransport`
+- **ReactNativeTransport** — wraps `react-native-ble-plx` as a `BLETransport`
 - **`isBleManagerReady()`** — checks BLE adapter state before scanning
 - **Permission handling** — built-in Android/iOS BLE permission requests
 
 ## Quick example
 
 ```typescript
-import { ReactNativeBLETransport, isBleManagerReady } from '@hrkit/react-native';
+import { BleManager } from 'react-native-ble-plx';
+import { ReactNativeTransport, isBleManagerReady } from '@hrkit/react-native';
 import { connectToDevice, GENERIC_HR } from '@hrkit/core';
 
-const transport = new ReactNativeBLETransport();
-if (await isBleManagerReady(transport)) {
-  const connection = await connectToDevice(transport, GENERIC_HR);
-  for await (const packet of connection.packets) {
-    console.log('HR:', packet.heartRate);
+const manager = new BleManager();
+const transport = new ReactNativeTransport(manager);
+if (isBleManagerReady(manager)) {
+  const connection = await connectToDevice(transport, { prefer: [GENERIC_HR] });
+  for await (const packet of connection.heartRate()) {
+    console.log('HR:', packet.hr);
   }
 }
 ```

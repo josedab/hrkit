@@ -17,21 +17,21 @@ pnpm add @hrkit/readiness
 
 - **Adaptive HRV baseline** — rolling baseline that adjusts to an athlete's training load
 - **Multi-factor recovery scoring** — combines HRV, sleep, subjective readiness, and training history
-- **Readiness tiers** — `go_hard` (≥ 0.95), `moderate` (≥ 0.80), `rest` (< 0.80) thresholds
+- **Readiness recommendations** — `go_hard` (score ≥ 75), `moderate` (55–74), or `rest` (< 55)
 
 ## Quick example
 
 ```typescript
-import { readinessScore } from '@hrkit/readiness';
+import { computeReadiness } from '@hrkit/readiness';
 
-const score = readinessScore({
+const result = computeReadiness({
   todayRmssd: 52,
   baselineRmssd: 55,
   sleepHours: 7.5,
 });
 
-console.log(score.tier);  // 'moderate'
-console.log(score.value); // 0.87
+console.log(result.recommendation); // 'go_hard' | 'moderate' | 'rest'
+console.log(result.score);          // 0–100
 ```
 
 See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/readiness#readme) for more runnable code.

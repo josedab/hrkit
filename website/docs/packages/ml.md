@@ -23,14 +23,24 @@ pnpm add @hrkit/ml
 ## Quick example
 
 ```typescript
-import { ModelRegistry, InferencePort } from '@hrkit/ml';
+import { ModelRegistry, type InferencePort } from '@hrkit/ml';
 
+type Input = { hr: number; maxHR: number };
+type Output = { zone: number };
+const zonePredictor: InferencePort<Input, Output> = {
+  modelId: 'zone-predictor',
+  version: '1.0.0',
+  modalities: ['hr'],
+  async predict({ hr, maxHR }) {
+    return { zone: Math.min(5, Math.max(1, Math.ceil((hr / maxHR) * 5))) };
+  },
+};
 const registry = new ModelRegistry();
-registry.register('zone-predictor', myOnnxModel);
+registry.register(zonePredictor);
 
-const port: InferencePort = registry.get('zone-predictor');
-const prediction = await port.infer({ hr: 162, rmssd: 42 });
-console.log(prediction); // { zone: 4, confidence: 0.91 }
+const port = registry.get<Input, Output>('zone-predictor');
+const prediction = await port?.predict({ hr: 162, maxHR: 185 });
+console.log(prediction); // { zone: 5 }
 ```
 
 See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/ml#readme) for more runnable code.

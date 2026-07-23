@@ -26,7 +26,7 @@ You can pass optional parameters to tune detection sensitivity:
 
 ```typescript
 const result = cleanRR(raw, {
-  threshold: 0.2,  // deviation threshold (default)
+  relativeThreshold: 0.2, // deviation threshold (default)
 });
 ```
 
@@ -117,17 +117,17 @@ console.log(`Corrected ${artefactIndices.length} artifacts`);
 const report = hrvReport(cleaned);
 
 // Time-domain
-console.log(`RMSSD: ${report.rmssd.toFixed(1)} ms`);
-console.log(`SDNN:  ${report.sdnn.toFixed(1)} ms`);
+console.log(`RMSSD: ${report.time.rmssd.toFixed(1)} ms`);
+console.log(`SDNN:  ${report.time.sdnn.toFixed(1)} ms`);
 
 // Non-linear
-console.log(`SD1:   ${report.poincare.sd1.toFixed(1)} ms`);
-console.log(`SD2:   ${report.poincare.sd2.toFixed(1)} ms`);
-console.log(`DFA α1: ${report.dfaAlpha1.toFixed(2)}`);
+console.log(`SD1:   ${report.nonlinear.sd1.toFixed(1)} ms`);
+console.log(`SD2:   ${report.nonlinear.sd2.toFixed(1)} ms`);
+console.log(`DFA α1: ${report.nonlinear.dfaAlpha1.toFixed(2)}`);
 
 // Frequency-domain
-console.log(`LF/HF: ${report.frequencyDomain.lfHfRatio.toFixed(2)}`);
-console.log(`HF:    ${report.frequencyDomain.hf.toFixed(1)} ms²`);
+console.log(`LF/HF: ${report.frequency.lfHfRatio.toFixed(2)}`);
+console.log(`HF:    ${report.frequency.hf.toFixed(1)} ms²`);
 ```
 
 `hrvReport()` internally calls `cleanRR`, then runs all analysis functions and bundles the results into a single `HRVReport` object. Use this when you want the complete picture; use individual functions when you only need specific metrics.

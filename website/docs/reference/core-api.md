@@ -212,8 +212,8 @@ interface SessionConfig {
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `hr$` | `Observable<number>` | Real-time HR stream. Emits current value on subscribe. |
-| `zone$` | `Observable<1\|2\|3\|4\|5>` | Real-time zone stream. Emits current value on subscribe. |
+| `hr$` | `ReadableStream<number>` | Real-time HR stream. Call `.subscribe(cb)` or `.get()`. |
+| `zone$` | `ReadableStream<1\|2\|3\|4\|5>` | Real-time zone stream. Call `.subscribe(cb)` or `.get()`. |
 
 ---
 

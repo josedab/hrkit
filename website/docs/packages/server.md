@@ -22,12 +22,18 @@ pnpm add @hrkit/server
 ## Quick example
 
 ```typescript
-import { createHRServer } from '@hrkit/server';
+import { HRStreamServer } from '@hrkit/server';
 
-const server = createHRServer({ port: 3000 });
+const server = new HRStreamServer({ port: 3000 });
+await server.start();
 
 // Broadcast HR data to all connected clients
-server.broadcast({ heartRate: 142, timestamp: Date.now() });
+server.broadcast({
+  hr: 142,
+  timestamp: Date.now(),
+  rrIntervals: [],
+  contactDetected: true,
+});
 
 console.log('HR server listening on ws://localhost:3000');
 ```

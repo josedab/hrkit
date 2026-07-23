@@ -22,13 +22,25 @@ pnpm add @hrkit/ant
 ## Quick example
 
 ```typescript
-import { AntTransport } from '@hrkit/ant';
+import { AntTransport, loadGarminStick, type AntChannel } from '@hrkit/ant';
 import { connectToDevice, GENERIC_HR } from '@hrkit/core';
 
-const transport = new AntTransport();
-const connection = await connectToDevice(transport, GENERIC_HR);
-for await (const packet of connection.packets) {
-  console.log('HR:', packet.heartRate);
+const stick = await loadGarminStick();
+const heartRateChannel: AntChannel = {
+  sensorType: 'hr',
+  deviceId: 12345,
+  on: (_event, _listener) => {
+    // Bridge your ant-plus-next channel events here.
+  },
+};
+const transport = new AntTransport({
+  stick,
+  channels: [heartRateChannel],
+  profileFor: () => GENERIC_HR,
+});
+const connection = await connectToDevice(transport, { prefer: [GENERIC_HR] });
+for await (const packet of connection.heartRate()) {
+  console.log('HR:', packet.hr);
 }
 ```
 

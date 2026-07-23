@@ -24,13 +24,13 @@ pnpm add @hrkit/integrations
 ## Quick example
 
 ```typescript
-import { uploadToStrava } from '@hrkit/integrations';
+import { StravaUploader } from '@hrkit/integrations';
 
-await uploadToStrava(session, {
+const strava = new StravaUploader({
   accessToken: process.env.STRAVA_TOKEN!,
-  activityName: 'Morning BJJ',
-  activityType: 'Workout',
 });
+const result = await strava.upload(session, { name: 'Morning BJJ' });
+console.log(result);
 ```
 
 See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/integrations#readme) for more runnable code.

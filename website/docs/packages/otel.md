@@ -23,11 +23,12 @@ pnpm add @hrkit/otel
 ## Quick example
 
 ```typescript
-import { instrumentTransport } from '@hrkit/otel';
+import { connectToDevice, GENERIC_HR } from '@hrkit/core';
+import { wrapTransport } from '@hrkit/otel';
 
-const traced = instrumentTransport(transport);
+const traced = wrapTransport(transport);
 // All scan/connect calls now emit OTel spans automatically
-const connection = await connectToDevice(traced, GENERIC_HR);
+const connection = await connectToDevice(traced, { prefer: [GENERIC_HR] });
 ```
 
 See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/otel#readme) for more runnable code.

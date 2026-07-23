@@ -37,7 +37,7 @@ const smoothing: HRKitPlugin = {
 
   onAnalyze(session: Session) {
     // Returned object is merged into the analyze() result.
-    return { customSmoothedMetric: session.packets.length };
+    return { customSmoothedMetric: session.samples.length };
   },
 };
 ```

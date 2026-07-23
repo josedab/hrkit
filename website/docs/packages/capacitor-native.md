@@ -22,13 +22,13 @@ pnpm add @hrkit/capacitor-native
 ## Quick example
 
 ```typescript
-import { CapacitorNativeBLETransport } from '@hrkit/capacitor-native';
+import { createCapacitorNativeTransport } from '@hrkit/capacitor-native';
 import { connectToDevice, GENERIC_HR } from '@hrkit/core';
 
-const transport = new CapacitorNativeBLETransport();
-const connection = await connectToDevice(transport, GENERIC_HR);
-for await (const packet of connection.packets) {
-  console.log('HR:', packet.heartRate);
+const transport = await createCapacitorNativeTransport();
+const connection = await connectToDevice(transport, { prefer: [GENERIC_HR] });
+for await (const packet of connection.heartRate()) {
+  console.log('HR:', packet.hr);
 }
 ```
 

@@ -36,21 +36,26 @@ pnpm add @hrkit/core
 ## Quick example
 
 ```typescript
-import { analyzeSession } from '@hrkit/core';
+import { analyzeSession, SESSION_SCHEMA_VERSION, type Session } from '@hrkit/core';
 
-const session = {
+const session: Session = {
+  schemaVersion: SESSION_SCHEMA_VERSION,
+  startTime: 0,
+  endTime: 2000,
   samples: [
     { timestamp: 0, hr: 72 },
     { timestamp: 1000, hr: 75 },
     { timestamp: 2000, hr: 80 },
   ],
   rrIntervals: [800, 810, 790, 820, 805],
+  rounds: [],
+  config: { maxHR: 185, restHR: 48 },
 };
 
-const report = analyzeSession(session, { maxHR: 185, restHR: 48 });
-console.log(report.rmssd);           // HRV in ms
-console.log(report.trimp);           // training impulse
-console.log(report.zoneDistribution); // time-in-zone breakdown
+const report = analyzeSession(session);
+console.log(report.hrv?.rmssd); // HRV in ms
+console.log(report.trimp);      // training impulse
+console.log(report.zones);      // time-in-zone breakdown
 ```
 
 See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/core#readme) for more runnable code.

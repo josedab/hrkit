@@ -32,7 +32,7 @@ Retrieve daily training load over a rolling window:
 
 ```typescript
 const trend = store.getTrainingLoadTrend(28); // last 28 days
-// Each point: { date, load, atl, ctl, tsb, acwr }
+// Each point: { date, atl, ctl, tsb, acwr }
 ```
 
 | Field | Meaning |
@@ -75,8 +75,8 @@ const risk = assessACWRRisk(1.4);
 |------|-----------|----------|
 | > 1.5 | `'critical'` | Very high injury risk — reduce load immediately |
 | > 1.3 | `'high'` | Elevated risk — scale back intensity |
-| 0.8–1.3 | `'optimal'` | Sweet spot for adaptation |
-| < 0.8 | `'undertrained'` | Insufficient stimulus — increase load gradually |
+| 0.8–1.3 | `'low'` | Sweet spot for adaptation |
+| < 0.8 | `'moderate'` | Insufficient stimulus — increase load gradually |
 
 The threshold constants are exported for custom logic:
 
@@ -124,13 +124,13 @@ import { getTrainingRecommendation } from '@hrkit/core';
 const rec = getTrainingRecommendation({
   trainingLoad: store.getTrainingLoadTrend(28),
   hrvTrend: store.getHRVTrend(14),
-  acwr: store.getCurrentACWR(),
+  maxHR: 185,
 });
 
-console.log(rec.verdict);      // 'go_hard' | 'moderate' | 'rest' | 'deload'
+console.log(rec.verdict);      // 'go_hard' | 'moderate' | 'easy' | 'rest' | 'deload'
 console.log(rec.riskLevel);    // 'low' | 'moderate' | 'high' | 'critical'
-console.log(rec.prescription); // human-readable training suggestion
-console.log(rec.reasons);      // array of contributing factors
+console.log(rec.prescription); // { primaryZone, maxZone, suggestedDurationMin }
+console.log(rec.reasons);      // InsightReason[] with factor, message, concern
 console.log(rec.confidence);   // 0–1 confidence score
 ```
 
@@ -165,12 +165,14 @@ console.log(`Monotony: ${monotony.toFixed(2)}`);
 const rec = getTrainingRecommendation({
   trainingLoad: store.getTrainingLoadTrend(28),
   hrvTrend: store.getHRVTrend(14),
-  acwr,
+  maxHR: 185,
 });
 
 console.log(`Today: ${rec.verdict} (${rec.riskLevel} risk)`);
-console.log(rec.prescription);
-rec.reasons.forEach((r) => console.log(`  • ${r}`));
+console.log(
+  `Zone ${rec.prescription.primaryZone}–${rec.prescription.maxZone} for ${rec.prescription.suggestedDurationMin} min`,
+);
+rec.reasons.forEach((reason) => console.log(`  • ${reason.message}`));
 ```
 
 :::info Key constants

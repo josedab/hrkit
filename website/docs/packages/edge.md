@@ -22,12 +22,14 @@ pnpm add @hrkit/edge
 ## Quick example
 
 ```typescript
-import { handleHRRequest } from '@hrkit/edge';
+import { createIngestHandler, MemoryStore } from '@hrkit/edge';
+
+const handler = createIngestHandler({
+  store: new MemoryStore(),
+});
 
 export default {
-  async fetch(request: Request): Promise<Response> {
-    return handleHRRequest(request);
-  },
+  fetch: handler,
 };
 ```
 

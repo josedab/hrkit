@@ -32,18 +32,15 @@ The accumulator appends the intervals to its internal buffer, trims to `windowSi
 
 ### Subscribing to updates
 
-`rmssd$` is a `ReadableStream<WindowedHRV>` that emits after every `ingest()`:
+`rmssd$` uses the lightweight HRKit `ReadableStream<WindowedHRV>` interface and emits after every `ingest()`:
 
 ```typescript
-const reader = rolling.rmssd$.getReader();
+const unsubscribe = rolling.rmssd$.subscribe(({ rmssd, sampleCount }) => {
+  console.log(`RMSSD: ${rmssd.toFixed(1)} ms (n=${sampleCount})`);
+});
 
-(async () => {
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    console.log(`RMSSD: ${value.rmssd.toFixed(1)} ms (n=${value.sampleCount})`);
-  }
-})();
+// Later:
+unsubscribe();
 ```
 
 ### Resetting
@@ -78,18 +75,12 @@ accumulator.ingest(142, Date.now());
 
 ### Subscribing to updates
 
-`trimp$` is a `ReadableStream<CumulativeTRIMP>` that emits the running total after every `ingest()`:
+`trimp$` uses the same subscribe/get stream interface and emits the running total after every `ingest()`:
 
 ```typescript
-const reader = accumulator.trimp$.getReader();
-
-(async () => {
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    console.log(`Cumulative TRIMP: ${value.trimp.toFixed(1)}`);
-  }
-})();
+accumulator.trimp$.subscribe(({ trimp }) => {
+  console.log(`Cumulative TRIMP: ${trimp.toFixed(1)}`);
+});
 ```
 
 ### Resetting
@@ -114,26 +105,12 @@ const trimpAcc = new TRIMPAccumulator({
 });
 
 // Subscribe to real-time updates
-const hrvReader = rollingHRV.rmssd$.getReader();
-const trimpReader = trimpAcc.trimp$.getReader();
-
-// Read HRV stream
-(async () => {
-  for (;;) {
-    const { value, done } = await hrvReader.read();
-    if (done) break;
-    console.log(`Live RMSSD: ${value.rmssd.toFixed(1)} ms`);
-  }
-})();
-
-// Read TRIMP stream
-(async () => {
-  for (;;) {
-    const { value, done } = await trimpReader.read();
-    if (done) break;
-    console.log(`Session TRIMP: ${value.trimp.toFixed(1)}`);
-  }
-})();
+rollingHRV.rmssd$.subscribe(({ rmssd }) => {
+  console.log(`Live RMSSD: ${rmssd.toFixed(1)} ms`);
+});
+trimpAcc.trimp$.subscribe(({ trimp }) => {
+  console.log(`Session TRIMP: ${trimp.toFixed(1)}`);
+});
 
 // Feed data as it arrives from the sensor
 function onHeartRateSample(hr: number, rrIntervals: number[]) {

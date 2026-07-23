@@ -131,13 +131,15 @@ Use `@hrkit/ai` to generate plans automatically:
 ```typescript
 import { planNextWeek } from '@hrkit/ai';
 
-const output = await planNextWeek(athleteStore, provider, {
+const output = await planNextWeek({
+  store: athleteStore,
   goal: 'Build aerobic base for 5K',
-  daysToplan: 7,
+  daysAhead: 7,
+  llm: provider,
 });
 
-// output.sessions contains WorkoutProtocol objects
-// which can be converted to a TrainingPlan
+// output.sessions contains PlannedSession objects;
+// each one includes a validated `protocol` WorkoutProtocol.
 ```
 
 ## Next steps

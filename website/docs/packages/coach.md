@@ -22,17 +22,16 @@ pnpm add @hrkit/coach
 ## Quick example
 
 ```typescript
-import { coachSummary } from '@hrkit/coach';
+import { ruleEngineSummary } from '@hrkit/coach';
 
-const session = { /* ... recorded session data ... */ };
-const summary = coachSummary(session, {
-  maxHR: 185,
-  restHR: 48,
+const output = ruleEngineSummary({
+  session,
+  baselineRmssd: 52,
 });
 
-console.log(summary.text);
-// "Solid aerobic session — 62% of time in Zone 2. Consider adding
-//  short Zone 4 intervals next time for cardiac output gains."
+console.log(output.headline);
+console.log(output.summary);
+console.log(output.recommendations);
 ```
 
 See the [examples directory](https://github.com/josedab/hrkit/tree/main/examples) and the package [README](https://github.com/josedab/hrkit/tree/main/packages/coach#readme) for more runnable code.

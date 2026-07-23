@@ -78,13 +78,17 @@ interface FusedOutput {
 
 ```typescript
 // Push readings as they arrive from different devices
-chestConn.heartRate().subscribe(pkt => {
-  fusion.pushReading({ sourceId: 'chest', hr: pkt.hr, timestamp: pkt.timestamp });
-});
+void (async () => {
+  for await (const packet of chestConn.heartRate()) {
+    fusion.pushReading({ sourceId: 'chest', hr: packet.hr, timestamp: packet.timestamp });
+  }
+})();
 
-watchConn.heartRate().subscribe(pkt => {
-  fusion.pushReading({ sourceId: 'watch', hr: pkt.hr, timestamp: pkt.timestamp });
-});
+void (async () => {
+  for await (const packet of watchConn.heartRate()) {
+    fusion.pushReading({ sourceId: 'watch', hr: packet.hr, timestamp: packet.timestamp });
+  }
+})();
 
 // Poll fused result at your UI refresh rate
 setInterval(() => {

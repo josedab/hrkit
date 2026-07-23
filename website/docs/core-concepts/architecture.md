@@ -141,4 +141,4 @@ hrToZone(162, { maxHR: 185, zones: [0.6, 0.7, 0.8, 0.9] });  // → 4
 trimp(samples, { maxHR: 185, restHR: 48, sex: 'male' });  // → number
 ```
 
-The only stateful abstraction is `SessionRecorder`, which accumulates packets over time. Everything else is a function call.
+Stateful orchestration is kept in focused classes such as `SessionRecorder`, `MultiDeviceManager`, `GroupSession`, `WorkoutEngine`, `SensorFusion`, `SensorBus`, `SessionPlayer`, and `PlanRunner`. Metric calculations remain pure functions so they can be tested independently.

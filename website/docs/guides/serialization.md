@@ -43,7 +43,7 @@ const session = sessionFromJSON(json, {
 | Option | Default | Description |
 |--------|---------|-------------|
 | `strict` | `false` | Validates every sample in the session. O(n) — use for untrusted input. |
-| `migrators` | `BUILTIN_MIGRATORS` | Array of migration functions for upgrading old schemas. |
+| `migrators` | `BUILTIN_MIGRATORS` | Complete migrator chain for upgrading old schemas. Spread the built-ins when adding custom migrations. |
 
 ## CSV export
 
@@ -108,7 +108,7 @@ import { SESSION_SCHEMA_VERSION } from '@hrkit/core';
 
 ```typescript
 import { BUILTIN_MIGRATORS } from '@hrkit/core';
-// Array of built-in migration functions (version 0 → 1, etc.)
+// Empty for the initial v1 schema; future releases append version-to-version migrations.
 ```
 
 ### Manual migration
@@ -129,8 +129,8 @@ You can also provide custom migrators for your own schema extensions:
 const customMigrators = [
   ...BUILTIN_MIGRATORS,
   {
-    fromVersion: 1,
-    toVersion: 2,
+    from: 1,
+    to: 2,
     migrate: (data) => ({ ...data, myField: 'default', schemaVersion: 2 }),
   },
 ];
