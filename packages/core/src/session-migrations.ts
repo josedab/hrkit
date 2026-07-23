@@ -13,8 +13,8 @@ import { SESSION_SCHEMA_VERSION } from './types.js';
  * {@link SESSION_SCHEMA_VERSION} would silently break any user who replays a
  * v0.1 fixture. This module is the contract.
  *
- * @see [Wire Format Spec](../../docs/wire-format.md) for the canonical
- * version-by-version field reference.
+ * @see [Session serialization guide](https://hrkit.dev/docs/guides/serialization#schema-versioning--migration)
+ * for schema-versioning and migration examples.
  */
 export interface SessionMigrator {
   /** Source schema version this migrator consumes. */
@@ -44,7 +44,7 @@ export const BUILTIN_MIGRATORS: readonly SessionMigrator[] = [];
  * schema version (defaulting to the current {@link SESSION_SCHEMA_VERSION}).
  *
  * @param raw - Parsed JSON object (already known to be a non-null object).
- * @param migrators - Migrators to consider. Defaults to {@link BUILTIN_MIGRATORS}.
+ * @param migrators - Migrators to consider. Defaults to `BUILTIN_MIGRATORS`.
  * @param targetVersion - Stop when this version is reached. Exposed so future
  *   tooling (and tests) can drive the chain to an arbitrary version without
  *   having to bump the global constant. Defaults to {@link SESSION_SCHEMA_VERSION}.

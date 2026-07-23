@@ -33,9 +33,10 @@ export interface SessionFromJSONOptions {
    */
   strict?: boolean;
   /**
-   * Custom migrators applied in addition to the built-ins. Useful for
-   * downstream consumers who store extended session shapes and want to keep
-   * historical files readable without forking @hrkit/core.
+   * Migrator chain used instead of the built-ins. Spread
+   * `BUILTIN_MIGRATORS` into this array when extending the default chain.
+   * Useful for downstream consumers who store extended session shapes and
+   * want to keep historical files readable without forking @hrkit/core.
    */
   migrators?: readonly SessionMigrator[];
 }

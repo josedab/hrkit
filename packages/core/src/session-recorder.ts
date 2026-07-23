@@ -113,7 +113,8 @@ export class SessionRecorder {
 
   /**
    * Feed an HR packet into the session. Updates samples, RR intervals, and streams.
-   * Ignored when paused. Silently skips backward timestamps and physiologically invalid HR (< 0 or > {@link MAX_PHYSIOLOGICAL_HR} bpm).
+   * Ignored when paused. Silently skips backward timestamps and physiologically invalid HR
+   * (below 0 or above `MAX_PHYSIOLOGICAL_HR` bpm).
    *
    * @param packet - Parsed HR packet from BLE or mock transport.
    */

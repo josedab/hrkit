@@ -31,7 +31,7 @@ export class HRKitZoneBar extends HTMLElement {
     this.refresh();
   }
 
-  /** Update the displayed value. @param value - New value to display. */
+  /** Update the displayed value. @param zone - New active zone to display. */
   update(zone: number): void {
     this.setAttribute('zone', String(zone));
   }

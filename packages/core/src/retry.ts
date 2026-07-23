@@ -11,7 +11,7 @@
 
 import { HRKitError, TimeoutError, ValidationError } from './errors.js';
 
-/** Configuration for {@link retry}. */
+/** Configuration for `retry()`. */
 export interface RetryOptions {
   /** Maximum total attempts (including the first). Default: 5. */
   maxAttempts?: number;
@@ -41,7 +41,7 @@ export interface RetryOptions {
 }
 
 /**
- * Run {@link op} with exponential backoff. Resolves with the first successful
+ * Run `op` with exponential backoff. Resolves with the first successful
  * value; rejects with the last error after `maxAttempts` attempts or when
  * `shouldRetry` returns false.
  *
@@ -101,7 +101,7 @@ export async function retry<T>(op: () => Promise<T>, options: RetryOptions = {})
 }
 
 /**
- * Race {@link op} against a deadline. Resolves/rejects with the inner result
+ * Race `op` against a deadline. Resolves/rejects with the inner result
  * if it finishes first; otherwise rejects with a typed timeout error.
  *
  * The inner operation is **not** automatically cancelled — pass an
@@ -127,8 +127,7 @@ export async function timeout<T>(
 }
 
 /**
- * Sleep for {@link ms} milliseconds. Resolves early (rejecting) when
- * {@link signal} aborts.
+ * Sleep for `ms` milliseconds. Resolves early (rejecting) when `signal` aborts.
  */
 export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   if (ms <= 0) {

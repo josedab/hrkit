@@ -5,10 +5,7 @@ import type { Session, TimestampedHR } from './types.js';
  * Compatible with Strava, Garmin Connect, TrainingPeaks, and other platforms.
  *
  * @param session - The completed session to export.
- * @param options - Optional export configuration.
- * @param options.sport - Activity sport type. Default: 'Other'.
- * @param options.includeRR - Include RR intervals in TCX extensions. Default: true.
- * @param options.includeCalories - Include estimated calories. Default: true.
+ * @param options - Optional sport, RR-extension, and calorie export configuration.
  * @returns TCX XML string.
  *
  * @example

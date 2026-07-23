@@ -41,7 +41,7 @@ export class HRKitHeartRate extends HTMLElement {
     this.refresh();
   }
 
-  /** Update the displayed value. @param value - New value to display. */
+  /** Update the displayed value. @param hr - New heart rate to display. */
   update(hr: number): void {
     this.setAttribute('value', String(hr));
   }

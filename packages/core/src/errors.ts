@@ -5,7 +5,7 @@
  */
 
 /**
- * Base error for all @hrkit errors.
+ * Base error for all HRKit errors.
  *
  * @param message - Human-readable error message.
  * @param code - Machine-readable error code.
@@ -148,7 +148,7 @@ export class ServerError extends RequestError {
 // ── Helpers ────────────────────────────────────────────────────────────
 
 /**
- * Heuristic: should this error be retried by {@link retry}?
+ * Heuristic: should this error be retried by `retry()`?
  *
  * Only known transient failures return `true`. Unknown errors default to
  * `false` — callers who want aggressive retry for network-layer errors

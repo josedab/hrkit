@@ -1,7 +1,7 @@
 /**
  * <hrkit-dashboard> — Configurable analytics dashboard component.
  *
- * Renders a grid of @hrkit widgets with a single `session` property.
+ * Renders a grid of HRKit widgets with a single `session` property.
  * Supports preset layouts and theming for zero-config integration.
  *
  * Attributes:

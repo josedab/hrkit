@@ -22,7 +22,7 @@ export { HRKitWorkoutBuilder } from './workout-builder.js';
 export { HRKitZoneBar } from './zone-bar.js';
 
 /**
- * Register all @hrkit Web Components with the browser's custom element registry.
+ * Register all HRKit Web Components with the browser's custom element registry.
  * Safe to call multiple times — skips already-registered elements.
  * Called automatically on import; only call manually if using lazy loading.
  */

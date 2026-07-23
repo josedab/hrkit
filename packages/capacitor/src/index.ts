@@ -57,7 +57,7 @@ export interface CapacitorBLETransportOptions {
 
 /**
  * BLE transport adapter for Capacitor (iOS + Android).
- * Wraps `@capacitor-community/bluetooth-le` with the @hrkit `BLETransport` API.
+ * Wraps `@capacitor-community/bluetooth-le` with the HRKit `BLETransport` API.
  *
  * Usage:
  * ```ts
