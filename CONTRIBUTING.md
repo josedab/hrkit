@@ -42,6 +42,7 @@ apps/
   cloud-api/        Cloud-side API service that ingests sync uploads
   dashboard/        Live dashboard Vite app built on widgets
   demo/             General SDK demo / sandbox
+  playground/       Interactive browser playground
   starter-rn/       React Native starter source template
   starter-web/      Web starter template
 ```
@@ -50,7 +51,7 @@ apps/
 
 ## Architecture Notes
 
-- **All core functions are pure.** Pure analysis helpers (HRV, zones, TRIMP, artifact filter, GATT parser, VO2max, stress, AFib screening) have no state and no platform imports. Stateful behavior is encapsulated in classes — `SessionRecorder`, `MultiDeviceManager`, `GroupSession`, `WorkoutEngine`, `WorkoutCues`, `RealtimeArtifactDetector`, `RollingRMSSD`, `TRIMPAccumulator`, `PluginRegistry`, `InMemoryAthleteStore`, `SensorFusion`, `SensorBus`, `SessionPlayer`, `PlanRunner`, `MemoryGlucoseSource`, and `MockTransport`.
+- **Most core metric helpers are pure.** Analysis helpers (HRV, zones, TRIMP, artifact filter, GATT parser, VO2max, stress, AFib screening) have no state or platform imports. Stateful orchestration is isolated in focused classes such as `SessionRecorder`, `MultiDeviceManager`, `GroupSession`, `WorkoutEngine`, `SensorFusion`, `SensorBus`, `SessionPlayer`, and `PlanRunner`.
 - **BLE transport is injected.** `BLETransport` is an interface; platform adapters implement it. `MockTransport` is the test implementation.
 - **Device capability model.** Devices are described by `DeviceProfile` objects declaring capabilities. Consumer code requests capabilities, not specific devices.
 - **Workspace resolution for tests.** Vitest uses path aliases in `vitest.config.ts` to resolve every `@hrkit/*` package to its source (not dist). Tests always run against source code.
@@ -72,7 +73,12 @@ apps/
 3. **Keep core zero-dependency** — no runtime dependencies in `@hrkit/core`.
 4. **Run checks** before submitting:
    ```bash
-   pnpm test && pnpm lint && pnpm check && pnpm build
+   pnpm test:coverage
+   pnpm lint
+   pnpm check
+   pnpm docs:packages:check
+   pnpm sync:versions:check
+   pnpm build
    ```
 5. **Create a changeset** if your change affects published packages:
    ```bash
@@ -86,7 +92,7 @@ To keep the monorepo consistent, every workspace package under `packages/` shoul
 
 1. Have a `tsconfig.lint.json` extending the root `tsconfig.json` (lean, no `rootDir`/`outDir`, `noEmit: true`). Override `lib` (e.g. `["ES2022", "DOM"]`) or `types` (e.g. `["node"]`) as needed.
 2. Expose a `typecheck` script in `package.json`: `"typecheck": "tsc --noEmit -p tsconfig.lint.json"`. Root `pnpm lint` runs this for every package in parallel via `pnpm -r --parallel run typecheck` — packages without the script are silently skipped, so don't forget it.
-3. Add a vitest alias in `vitest.config.ts` so tests resolve to source, not `dist`.
+3. Set `name` in `package.json` and expose `src/index.ts`; the Vitest alias map discovers packages automatically.
 4. Add a `size-limit` entry in the root `package.json` if the package is published.
 5. Add a README entry in the root `README.md` "Packages" table and Mermaid diagram.
 
@@ -94,6 +100,7 @@ To keep the monorepo consistent, every workspace package under `packages/` shoul
 
 - TypeScript strict mode throughout.
 - Pure functions preferred — no classes unless state is required.
+- Keep modules and classes focused on one reason to change; extract protocol, serialization, validation, and transport concerns instead of growing multi-purpose entrypoints.
 - No `any` types.
 - Use `camelCase` for functions, `PascalCase` for classes/types, `SCREAMING_SNAKE_CASE` for constants.
 - Formatting is enforced by [Biome](https://biomejs.dev/). Run `pnpm format` to auto-fix.
@@ -101,6 +108,8 @@ To keep the monorepo consistent, every workspace package under `packages/` shoul
 ## Testing
 
 Tests live alongside source in `packages/*/src/__tests__/`. Fixture data is in `packages/core/src/__tests__/fixtures/`.
+
+Every behavior change should include regression coverage. `pnpm test:coverage` enforces a 90% global line/function floor, an 85% branch floor, and package-specific thresholds for critical or lower-coverage modules. Do not lower thresholds to accommodate new code.
 
 Test categories:
 - **Pure function tests** (HRV, zones, TRIMP, artifact filter) — no mocking needed

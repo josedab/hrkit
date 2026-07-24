@@ -8,7 +8,7 @@ A platform-agnostic TypeScript SDK for BLE heart rate sensors. Works with **any*
 
 ## Packages
 
-The SDK is split into 20 focused packages — install only what you need. `@hrkit/core` has zero runtime dependencies; everything else is opt-in.
+The SDK is split into 19 focused packages — install only what you need. `@hrkit/core` has zero runtime dependencies; everything else is opt-in.
 
 **Core & protocols**
 
@@ -60,6 +60,8 @@ The SDK is split into 20 focused packages — install only what you need. `@hrki
 | [`@hrkit/otel`](packages/otel/) | OpenTelemetry-compatible instrumentation hooks (zero-dep) |
 
 ## Architecture
+
+The diagram below highlights the primary runtime path; the [architecture guide](website/docs/core-concepts/architecture.md) contains the complete package dependency graph.
 
 ```mermaid
 graph TD
@@ -266,7 +268,7 @@ if (isPolarConnection(conn) && conn.profile.capabilities.includes('ecg')) {
 pnpm install          # install all dependencies
 pnpm test             # run tests (vitest)
 pnpm test:watch       # run tests in watch mode
-pnpm test:coverage    # run tests with coverage report
+pnpm test:coverage    # run tests and enforce coverage thresholds
 pnpm lint             # type-check all packages (per-package `typecheck` script)
 pnpm format           # auto-format all files (biome)
 pnpm check            # lint + format check (biome)

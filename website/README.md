@@ -1,41 +1,29 @@
-# Website
+# @hrkit documentation website
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+The documentation site is built with [Docusaurus](https://docusaurus.io/) and managed from the repository root with pnpm.
 
-## Installation
-
-```bash
-yarn
-```
-
-## Local Development
+## Local development
 
 ```bash
-yarn start
+pnpm install
+pnpm docs:dev
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+`docs:dev` regenerates the TypeDoc API reference and package landing-page metadata before starting Docusaurus.
 
-## Build
+## Validation and production build
 
 ```bash
-yarn build
+pnpm docs:packages:check
+pnpm docs:build
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+Run `pnpm docs:packages` after changing package names, descriptions, or versions. The generator updates package metadata while preserving the curated feature lists and examples in `website/docs/packages/`.
 
 ## Deployment
 
-Using SSH:
-
 ```bash
-USE_SSH=true yarn deploy
+pnpm --filter website deploy
 ```
 
-Not using SSH:
-
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+Set the Docusaurus deployment environment variables required by the target hosting provider before running the command.
