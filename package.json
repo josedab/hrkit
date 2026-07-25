@@ -139,7 +139,7 @@
     "@size-limit/file": "^12.1.0",
     "@vitest/coverage-v8": "^2.1.9",
     "fake-indexeddb": "^6.2.5",
-    "happy-dom": "^20.9.0",
+    "happy-dom": "^20.11.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "size-limit": "^12.1.0",
@@ -147,7 +147,7 @@
     "typedoc": "^0.28.19",
     "typedoc-plugin-markdown": "^4.11.0",
     "typescript": "^5.4.0",
-    "vitest": "^2.0.0"
+    "vitest": "^4.1.10"
   },
   "engines": {
     "node": ">=18",
