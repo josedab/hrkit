@@ -15,7 +15,7 @@
     "@hrkit/widgets": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.4.0",
+    "typescript": "^7.0.2",
     "vite": "^6.4.2"
   }
 }
