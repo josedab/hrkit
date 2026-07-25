@@ -23,7 +23,7 @@
     "@hrkit/core": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.4.0",
+    "typescript": "^7.0.2",
     "tsup": "^8.0.0"
   },
   "keywords": [
